@@ -8,11 +8,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Ícone de sino para notificações -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/heroicons/2.0.18/24/outline/bell.min.css">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        /* Ocultar scrollbar mas manter rolagem */
+        
+        /* Ajuste para a nova barra de rolagem da lista de vendedores */
+        .seller-list-container {
+            max-height: 448px; /* 28rem, mesma altura do feed de observações */
+            overflow-y: auto;
+        }
+        
+        /* Ocultar scrollbar mas manter rolagem (opcional, mas limpo) */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
@@ -56,32 +61,24 @@
             letter-spacing: 1px;
         }
         
-        /* Badge de Notificação */
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -8px;
-            padding: 2px 5px;
-            border-radius: 50%;
-            background: red;
-            color: white;
-            font-size: 0.7rem;
-            font-weight: bold;
-            min-width: 18px;
-            text-align: center;
+        /* Estilo para o card de vendedor selecionado */
+        .seller-card.selected {
+            background-color: #dbeafe; /* blue-100 */
+            border-color: #3b82f6; /* blue-500 */
         }
 
     </style>
 </head>
 <body class="text-gray-800 antialiased">
 
+    
     <!-- === TELA DE LOGIN === -->
     <div id="login-view" class="fixed inset-0 bg-gray-100 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white w-full max-w-4xl rounded-2xl shadow-xl border border-gray-200 p-8">
             <div class="text-center mb-8">
                 <!-- Ícone de Usuário Simples -->
                 <svg class="h-16 w-16 text-blue-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                 </svg>
 
                 <h1 class="text-3xl font-bold text-gray-900">Painel de Gerência</h1>
@@ -96,10 +93,10 @@
                 </button>
             </div>
 
-            <!-- Botões de Acesso Gerentes -->
+            <!-- Botões dos Gerentes -->
             <h3 class="text-lg font-semibold text-gray-700 mb-3 border-t pt-4">Acesso Gerentes de Segmento</h3>
             <div id="manager-login-buttons" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Botões gerados por JS -->
+                <!-- Botões dos gerentes serão inseridos aqui pelo JS -->
             </div>
         </div>
     </div>
@@ -125,7 +122,7 @@
     <!-- === PAINEL PRINCIPAL (DASHBOARD) === -->
     <div id="dashboard-view" class="hidden min-h-screen">
         
-        <!-- Cabeçalho -->
+        <!-- Cabeçalho Fixo -->
         <header class="bg-white shadow-sm sticky top-0 z-30">
             <div class="container mx-auto px-4 md:px-8 py-3 flex justify-between items-center">
                 <div class="flex items-center space-x-4">
@@ -144,18 +141,18 @@
                         <label for="admin-segment-filter" class="text-sm font-medium text-gray-700">Filtrar Segmento:</label>
                         <select id="admin-segment-filter" class="ml-2 border-gray-300 rounded-lg shadow-sm text-sm p-2">
                             <option value="TODOS">Todos os Segmentos</option>
-                            <!-- Opções geradas por JS -->
+                            <!-- Opções de segmento inseridas pelo JS -->
                         </select>
                     </div>
-                    
+
                     <!-- Botão de Notificações (Sino) -->
                     <div class="relative">
-                        <button id="notification-bell-btn" class="relative text-gray-500 hover:text-gray-700">
-                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                             <span id="notification-badge" class="notification-badge hidden">0</span>
+                        <button id="notification-btn" class="relative text-gray-500 hover:text-blue-600 focus:outline-none">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                            <span id="notification-badge" class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
                         </button>
                     </div>
-
+                    
                     <button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg text-sm hover:bg-red-600 transition-colors">Sair</button>
                 </div>
             </div>
@@ -167,6 +164,14 @@
             
             <div id="dashboard-content" class="hidden space-y-8">
                 
+                <!-- Título da Visão Detalhada (aparece ao focar em um vendedor) -->
+                <div id="focus-view-header" class="hidden items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h2 id="focus-view-title" class="text-xl font-bold text-blue-800"></h2>
+                    <button id="clear-focus-btn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-sm hover:bg-blue-700">
+                        &larr; Voltar para Todos
+                    </button>
+                </div>
+
                 <!-- KPIs -->
                 <section>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -194,18 +199,20 @@
                 <!-- Listas (Vendedores e Feed) -->
                 <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     
-                    <!-- Lista de Vendedores -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border lg:col-span-1">
+                    <!-- Coluna de Vendedores -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border lg:col-span-1 flex flex-col">
                         <h2 class="text-xl font-bold text-gray-900 mb-4">Vendedores do Segmento</h2>
                         <input id="seller-search-input" type="text" placeholder="Procurar vendedor..." class="w-full border-gray-300 rounded-lg shadow-sm text-sm mb-4">
-                        <div id="sellers-list" class="space-y-3 max-h-96 overflow-y-auto no-scrollbar pr-2">
+                        
+                        <!-- Container com barra de rolagem -->
+                        <div id="sellers-list" class="space-y-3 pr-2 seller-list-container">
                             <p class="text-gray-500">Nenhum vendedor encontrado.</p>
-                            <!-- Lista gerada por JS -->
+                            <!-- Cards de Vendedor inseridos pelo JS -->
                         </div>
                     </div>
 
-                    <!-- Feed de Observações -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border lg:col-span-2">
+                    <!-- Coluna do Feed de Observações -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border lg:col-span-2 flex flex-col">
                         <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                             <h2 class="text-xl font-bold text-gray-900">Feed de Observações</h2>
                             <div class="flex flex-wrap items-center gap-2">
@@ -216,18 +223,39 @@
                                 </select>
                                 <select id="observation-feedback-filter" class="border-gray-300 rounded-lg shadow-sm text-sm p-1.5">
                                     <option value="TODOS">Todos Feedbacks</option>
-                                    <!-- Opções geradas por JS -->
+                                    <!-- Opções de Feedback inseridas pelo JS -->
                                 </select>
                             </div>
                         </div>
-                        <div id="observations-feed-list" class="space-y-4 max-h-[30rem] overflow-y-auto no-scrollbar pr-2">
+                        <div id="observations-feed-list" class="space-y-4 overflow-y-auto no-scrollbar pr-2" style="max-height: 28rem;">
                             <p class="text-gray-500">Nenhuma observação encontrada.</p>
-                            <!-- Feed gerado por JS -->
+                            <!-- Observações inseridas pelo JS -->
                         </div>
                     </div>
                 </section>
 
-                <!-- Acessos dos Gerentes (Apenas Admin) -->
+                <!-- Nova Seção: Tabela de Amostras do Vendedor (Oculta por padrão) -->
+                <section id="focus-samples-section" class="hidden">
+                    <h2 id="focus-samples-title" class="text-2xl font-bold text-gray-900 mb-4">Todas as Amostras de...</h2>
+                    <div class="bg-white rounded-2xl shadow-sm border overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-gray-50 text-left">
+                                <tr>
+                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase">Pedido</th>
+                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase">Cliente</th>
+                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase">Produto</th>
+                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase">Status Original</th>
+                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase">Feedback</th>
+                                </tr>
+                            </thead>
+                            <tbody id="focus-samples-tbody" class="divide-y divide-gray-200">
+                                <!-- Linhas da tabela inseridas pelo JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Seção de Acessos (Admin) -->
                 <section id="admin-access-section" class="hidden">
                     <h2 class="text-2xl font-bold text-gray-900 mb-4">Acessos dos Gerentes</h2>
                     <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
@@ -241,7 +269,7 @@
                                 </tr>
                             </thead>
                             <tbody id="manager-access-tbody" class="divide-y divide-gray-200">
-                                <!-- Linhas geradas por JS -->
+                                <!-- Linhas de acesso inseridas pelo JS -->
                             </tbody>
                         </table>
                     </div>
@@ -251,7 +279,7 @@
         </main>
     </div>
 
-    <!-- === MODAL DE AMOSTRAS (CLIQUE NO GRÁFICO) === -->
+    <!-- === MODAL: AMOSTRAS (DO GRÁFICO) === -->
     <div id="feedback-samples-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 flex flex-col">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
@@ -260,13 +288,12 @@
             </div>
             <div id="feedback-samples-list" class="space-y-3 max-h-[60vh] overflow-y-auto no-scrollbar pr-2">
                 <p class="text-gray-500">A carregar detalhes...</p>
-                <!-- Lista gerada por JS -->
+                <!-- Amostras inseridas pelo JS -->
             </div>
         </div>
     </div>
 
-
-    <!-- === MODAL DE RESPOSTA (FEED) === -->
+    <!-- === MODAL: RESPONDER OBSERVAÇÃO === -->
     <div id="reply-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-40">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-xl p-6">
             <h3 class="text-xl font-bold mb-4">Responder à Observação</h3>
@@ -278,7 +305,7 @@
             <div class="space-y-4">
                 <div>
                     <label for="manager-name-input" class="block text-sm font-medium text-gray-700">Seu Nome (Gerente)</label>
-                    <input type="text" id="manager-name-input" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm" placeholder="Digite seu nome" readonly>
+                    <input type="text" id="manager-name-input" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm bg-gray-100" placeholder="Digite seu nome" readonly>
                 </div>
                 <div>
                     <label for="reply-message-input" class="block text-sm font-medium text-gray-700">Sua Resposta</label>
@@ -292,19 +319,19 @@
         </div>
     </div>
     
-    <!-- === MODAL DE NOTIFICAÇÕES (SINO) === -->
-     <div id="notifications-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
-         <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 flex flex-col">
-             <div class="flex justify-between items-center mb-4 border-b pb-3">
-                  <h3 class="text-xl font-bold">Respostas dos Vendedores</h3>
-                  <button id="close-notifications-btn" class="text-3xl font-bold text-gray-500 hover:text-gray-800">&times;</button>
-             </div>
-             <div id="notifications-list" class="space-y-3 max-h-[60vh] overflow-y-auto no-scrollbar pr-2">
-                  <p class="text-gray-500">Nenhuma resposta nova.</p>
-                  <!-- Notificações geradas por JS -->
-             </div>
-         </div>
-     </div>
+    <!-- === MODAL: NOTIFICAÇÕES (RESPOSTAS DOS VENDEDORES) === -->
+    <div id="notification-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 flex flex-col">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="text-xl font-bold">Novas Respostas de Vendedores</h3>
+                <button id="close-notification-btn" class="text-3xl font-bold text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            <div id="notification-list" class="space-y-3 max-h-[60vh] overflow-y-auto no-scrollbar pr-2">
+                <p class="text-gray-500">Nenhuma resposta nova.</p>
+                <!-- Notificações inseridas pelo JS -->
+            </div>
+        </div>
+    </div>
 
 
     <script type="module">
@@ -315,7 +342,7 @@
 
         // === CONFIGURAÇÃO ===
         
-        // Cole sua configuração do Firebase aqui
+        // Cole sua configuração do Firebase aqui (a mesma do painelgestor.html)
         const firebaseConfig = {
              apiKey: "AIzaSyAF_TE28Tbp2nakBGTva1yEEbBCqWvRdJQ",
              authDomain: "feedback-vendedores.firebaseapp.com",
@@ -326,8 +353,8 @@
              measurementId: "G-TG588KDK0C"
         };
 
-        // Configuração dos Gerentes (Altere as senhas aqui)
-        // Ajustado para corresponder aos nomes dos segmentos do seu painelgestor
+        // Configuração dos Gerentes (Senhas e Segmentos)
+        // Padrão: Os nomes dos segmentos aqui DEVEM BATER com os nomes no painelgestor.html
         const MANAGERS_CONFIG = {
             'CÁRNEOS': { name: 'LUIS ADRIANO', password: 'carneospass123' },
             'LACTEOS': { name: 'VITOR MACHADO', password: 'lacteospass456' },
@@ -369,6 +396,13 @@
         const loadingMessage = document.getElementById('loading-message');
         const dashboardContent = document.getElementById('dashboard-content');
 
+        // Notificações
+        const notificationBtn = document.getElementById('notification-btn');
+        const notificationBadge = document.getElementById('notification-badge');
+        const notificationModal = document.getElementById('notification-modal');
+        const notificationList = document.getElementById('notification-list');
+        const closeNotificationBtn = document.getElementById('close-notification-btn');
+
         // KPIs
         const kpiPendingSamples = document.getElementById('kpi-pending-samples');
         const kpiSellersCount = document.getElementById('kpi-sellers-count');
@@ -389,7 +423,8 @@
         const feedbackSamplesModal = document.getElementById('feedback-samples-modal');
         const closeFeedbackSamplesBtn = document.getElementById('close-feedback-samples-btn');
 
-        // Modal de Resposta (Feed)
+
+        // Modal de Resposta
         const replyModal = document.getElementById('reply-modal');
         const replyModalProduct = document.getElementById('reply-modal-product');
         const replyModalSeller = document.getElementById('reply-modal-seller');
@@ -402,25 +437,26 @@
         // Seção de Acessos (Admin)
         const adminAccessSection = document.getElementById('admin-access-section');
         const managerAccessTbody = document.getElementById('manager-access-tbody');
-        
-        // Notificações (Sino)
-        const notificationBellBtn = document.getElementById('notification-bell-btn');
-        const notificationBadge = document.getElementById('notification-badge');
-        const notificationsModal = document.getElementById('notifications-modal');
-        const notificationsList = document.getElementById('notifications-list');
-        const closeNotificationsBtn = document.getElementById('close-notifications-btn');
+
+        // Seção de Foco no Vendedor
+        const focusViewHeader = document.getElementById('focus-view-header');
+        const focusViewTitle = document.getElementById('focus-view-title');
+        const clearFocusBtn = document.getElementById('clear-focus-btn');
+        const focusSamplesSection = document.getElementById('focus-samples-section');
+        const focusSamplesTitle = document.getElementById('focus-samples-title');
+        const focusSamplesTbody = document.getElementById('focus-samples-tbody');
 
         // === ESTADO GLOBAL ===
         let currentUser = null; // { name: 'LUIS ADRIANO', segment: 'CÁRNEOS', role: 'manager' } ou { name: 'Gestora', segment: 'TODOS', role: 'admin' }
         let currentSegmentToLogin = null;
         let currentSessionId = null;
+        let currentFocusedSeller = null; // Nome do vendedor em foco
 
         let allSamples = []; // Todas as amostras de todos os vendedores
-        let currentFilteredSamples = []; // Amostras filtradas pelo segmento atual
         let sellerSegmentsCache = {}; // Cache: { "NOME_NORMALIZADO": "SEGMENTO" }
         let allManagerReplies = []; // Cache de respostas dos gerentes (notificacoesVendedor)
         let allSellerReplies = []; // Cache de respostas dos vendedores (respostasVendedor)
-        let unreadSellerRepliesCache = []; // Cache de respostas de vendedores NÃO LIDAS
+        let allUnreadSellerReplies = []; // Cache de respostas *não lidas* dos vendedores
 
         let chartInstances = {};
         
@@ -429,7 +465,6 @@
         let segmentListenerUnsubscribe = null;
         let managerRepliesListenerUnsubscribe = null;
         let sellerRepliesListenerUnsubscribe = null;
-        let unreadRepliesListenerUnsubscribe = null; // Listener dedicado para o sino
 
         // === FUNÇÕES DE UTILIDADE ===
         const normalizeText = (text = '') => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
@@ -524,18 +559,18 @@
             // Limpa estado
             currentUser = null;
             currentSessionId = null;
+            currentFocusedSeller = null;
             allSamples = [];
             sellerSegmentsCache = {};
             allManagerReplies = [];
             allSellerReplies = [];
-            unreadSellerRepliesCache = [];
+            allUnreadSellerReplies = [];
 
             // Para todos os listeners
             if (dataListenerUnsubscribe) dataListenerUnsubscribe();
             if (segmentListenerUnsubscribe) segmentListenerUnsubscribe();
             if (managerRepliesListenerUnsubscribe) managerRepliesListenerUnsubscribe();
             if (sellerRepliesListenerUnsubscribe) sellerRepliesListenerUnsubscribe();
-            if (unreadRepliesListenerUnsubscribe) unreadRepliesListenerUnsubscribe(); // Para o listener do sino
             
             // Reseta a UI
             dashboardView.classList.add('hidden');
@@ -543,7 +578,7 @@
             loadingMessage.textContent = 'Aguardando dados da sessão ativa...';
             loadingMessage.classList.remove('hidden');
             loginView.classList.remove('opacity-0', 'pointer-events-none');
-            notificationBadge.classList.add('hidden'); // Esconde o badge
+            clearFocusView(); // Garante que a visão de foco seja limpa
         }
 
         // === CONFIGURAÇÃO DO PAINEL ===
@@ -592,41 +627,43 @@
         }
 
         // 2. Inicia todos os listeners de dados
-        async function startAllListeners(sessionId) {
+        function startAllListeners(sessionId) {
             // Para listeners antigos se existirem
             if (dataListenerUnsubscribe) dataListenerUnsubscribe();
             if (segmentListenerUnsubscribe) segmentListenerUnsubscribe();
             if (managerRepliesListenerUnsubscribe) managerRepliesListenerUnsubscribe();
             if (sellerRepliesListenerUnsubscribe) sellerRepliesListenerUnsubscribe();
-            if (unreadRepliesListenerUnsubscribe) unreadRepliesListenerUnsubscribe();
 
-            // Correção da Condição de Corrida (Race Condition)
-            // Primeiro, buscamos os segmentos UMA VEZ.
-            try {
-                const segmentsQuery = collection(db, "vendedorConfig");
-                const segmentsSnapshot = await getDocs(segmentsQuery);
+            // Listener para Segmentos (de 'vendedorConfig')
+            const segmentsQuery = collection(db, "vendedorConfig");
+            segmentListenerUnsubscribe = onSnapshot(segmentsQuery, (segmentSnapshot) => {
                 const segments = {};
-                segmentsSnapshot.docs.forEach(doc => {
+                segmentSnapshot.docs.forEach(doc => {
                     segments[doc.id] = doc.data().segmento; // doc.id é o NOME_NORMALIZADO
                 });
                 sellerSegmentsCache = segments;
-                console.log("Cache de segmentos carregado:", sellerSegmentsCache);
+                console.log("Cache de Segmentos atualizado:", sellerSegmentsCache);
 
                 // Popula o filtro do admin
                 populateAdminFilter();
                 
-                // Agora que temos os segmentos, iniciamos os outros listeners
+                // Agora que temos os segmentos, podemos ouvir os dados das amostras
+                if (dataListenerUnsubscribe) dataListenerUnsubscribe(); // Para o listener antigo de dados
                 
-                // Listener para todos os dados de vendedores (amostras)
                 const dataQuery = collection(db, "sessoes", sessionId, "vendedores");
-                dataListenerUnsubscribe = onSnapshot(dataQuery, (snapshot) => {
-                    allSamples = snapshot.docs.flatMap(doc => {
+                dataListenerUnsubscribe = onSnapshot(dataQuery, (dataSnapshot) => {
+                    allSamples = dataSnapshot.docs.flatMap(doc => {
                         const data = doc.data();
                         const originalName = data.originalName || doc.id; 
                         const normalizedId = doc.id; // ID normalizado
                         
-                        // Mapeia o segmento usando o cache já carregado
+                        // Tenta mapear o segmento usando o ID normalizado
                         const segment = sellerSegmentsCache[normalizedId];
+                        
+                        // Debug: Log se um vendedor não tiver segmento
+                        if (!segment && data.amostras && data.amostras.length > 0) {
+                             console.warn(`Vendedor "${originalName}" (ID: ${normalizedId}) tem ${data.amostras.length} amostras mas NÃO foi encontrado no cache de segmentos.`);
+                        }
                         
                         return (data.amostras || []).map(sample => ({
                             ...sample,
@@ -640,38 +677,135 @@
                     dashboardContent.classList.remove('hidden');
                     renderDashboard(); // Renderiza o painel com os novos dados
                 });
+            });
 
-                // Listener para respostas dos GERENTES (para o feed)
-                const managerRepliesQuery = collection(db, "sessoes", sessionId, "notificacoesVendedor");
-                managerRepliesListenerUnsubscribe = onSnapshot(managerRepliesQuery, (snapshot) => {
-                    allManagerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderDashboard(); // Re-renderiza o feed
-                });
+            // Listener para respostas dos GERENTES (para o feed)
+            const managerRepliesQuery = collection(db, "sessoes", sessionId, "notificacoesVendedor");
+            managerRepliesListenerUnsubscribe = onSnapshot(managerRepliesQuery, (snapshot) => {
+                allManagerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderDashboard(); // Re-renderiza o feed
+            });
 
-                // Listener para TODAS as respostas dos VENDEDORES (para o feed)
-                const sellerRepliesQuery = query(collection(db, "sessoes", sessionId, "respostasVendedor"));
-                sellerRepliesListenerUnsubscribe = onSnapshot(sellerRepliesQuery, (snapshot) => {
-                    allSellerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderDashboard(); // Re-renderiza o feed
+            // Listener para respostas dos VENDEDORES (para o feed e notificações)
+            const sellerRepliesQuery = query(collection(db, "sessoes", sessionId, "respostasVendedor"));
+            sellerRepliesListenerUnsubscribe = onSnapshot(sellerRepliesQuery, (snapshot) => {
+                // Atualiza o cache de todas as respostas
+                allSellerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Filtra as não lidas para o modal/badge
+                const newUnreadReplies = [];
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === "added") {
+                        const data = change.doc.data();
+                        if (!data.readByManager) {
+                            newUnreadReplies.push({ id: change.doc.id, ...data });
+                        }
+                    }
                 });
                 
-                // Listener DEDICADO para respostas NÃO LIDAS (para o SINO)
-                const unreadRepliesQuery = query(
-                    collection(db, "sessoes", sessionId, "respostasVendedor"),
-                    where("readByManager", "==", false)
+                // Lida com as novas respostas não lidas
+                if (newUnreadReplies.length > 0) {
+                    handleNewSellerReplies(newUnreadReplies);
+                }
+                
+                // Atualiza o cache global de não lidas
+                allUnreadSellerReplies = allSellerReplies.filter(r => !r.readByManager);
+                
+                renderDashboard(); // Re-renderiza o feed e o badge
+            });
+        }
+        
+        // === LÓGICA DE NOTIFICAÇÃO ===
+        
+        function handleNewSellerReplies(newReplies) {
+            // Lógica para decidir se mostra uma notificação
+            // (Pode ser mais complexa, ex: notificar apenas se a resposta for para o gerente logado)
+            console.log("Novas respostas de vendedores:", newReplies);
+            // A renderização do badge é chamada no renderDashboard()
+        }
+        
+        function renderNotificationBadge() {
+            if (!currentUser) return;
+            
+            let relevantUnreadReplies = [];
+            
+            if (currentUser.role === 'admin') {
+                // Admin vê todas
+                relevantUnreadReplies = allUnreadSellerReplies;
+            } else {
+                // Gerente vê apenas as respostas para ele
+                relevantUnreadReplies = allUnreadSellerReplies.filter(
+                    reply => reply.originalManagerName === currentUser.name
                 );
-                unreadRepliesListenerUnsubscribe = onSnapshot(unreadRepliesQuery, (snapshot) => {
-                    unreadSellerRepliesCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    console.log("Respostas não lidas:", unreadSellerRepliesCache.length);
-                    // Atualiza o sino
-                    updateNotificationBadge();
-                    // Processa novas notificações (para o modal)
-                    handleNewSellerReplies(snapshot.docChanges());
-                });
-
+            }
+            
+            if (relevantUnreadReplies.length > 0) {
+                notificationBadge.textContent = relevantUnreadReplies.length;
+                notificationBadge.classList.remove('hidden');
+            } else {
+                notificationBadge.classList.add('hidden');
+            }
+        }
+        
+        function openNotificationModal() {
+            if (!currentUser) return;
+            
+            let relevantUnreadReplies = [];
+            if (currentUser.role === 'admin') {
+                relevantUnreadReplies = allUnreadSellerReplies;
+            } else {
+                relevantUnreadReplies = allUnreadSellerReplies.filter(
+                    reply => reply.originalManagerName === currentUser.name
+                );
+            }
+            
+            // Ordena por data
+            relevantUnreadReplies.sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0));
+            
+            if (relevantUnreadReplies.length === 0) {
+                notificationList.innerHTML = '<p class="text-gray-500">Nenhuma resposta nova.</p>';
+            } else {
+                notificationList.innerHTML = relevantUnreadReplies.map(reply => {
+                    const time = reply.timestamp?.toDate() ? reply.timestamp.toDate().toLocaleString('pt-BR') : '';
+                    return `
+                        <div class="p-3 rounded-lg border bg-gray-50">
+                            <p class="text-sm">
+                                <strong>${reply.sellerName}</strong> respondeu a <strong>${reply.originalManagerName}</strong> sobre <strong>${reply.produto}</strong>:
+                            </p>
+                            <p class="text-gray-700 italic my-2">"${reply.replyMessage}"</p>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-gray-400">${time}</span>
+                                <button class="mark-as-read-btn text-blue-600 hover:text-blue-800 font-medium" data-reply-id="${reply.id}">
+                                    ✓ Marcar como lida
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            notificationModal.classList.remove('hidden');
+        }
+        
+        async function markReplyAsRead(e) {
+            const replyId = e.target.dataset.replyId;
+            if (!replyId || !currentSessionId) return;
+            
+            e.target.disabled = true;
+            e.target.textContent = 'Marcando...';
+            
+            const replyRef = doc(db, "sessoes", currentSessionId, "respostasVendedor", replyId);
+            try {
+                await updateDoc(replyRef, { readByManager: true });
+                // O listener do Firebase vai atualizar a UI
+                // Mas podemos fechar o modal se for a última notificação
+                if (allUnreadSellerReplies.length === 1 && allUnreadSellerReplies[0].id === replyId) {
+                    notificationModal.classList.add('hidden');
+                }
             } catch (error) {
-                console.error("Erro ao buscar segmentos:", error);
-                loadingMessage.textContent = "Erro ao carregar configuração de segmentos.";
+                console.error("Erro ao marcar como lida:", error);
+                e.target.disabled = false;
+                e.target.textContent = '✓ Marcar como lida';
             }
         }
 
@@ -679,9 +813,7 @@
 
         // Função principal de renderização
         function renderDashboard() {
-            if (!currentUser) {
-                return;
-            }
+            if (!currentUser) return;
             
             // 0. Limpa o painel se não houver dados
             if (allSamples.length === 0) {
@@ -702,34 +834,44 @@
             const visibleSegment = currentUser.role === 'admin' 
                 ? adminSegmentFilter.value 
                 : currentUser.segment;
-            
-            // Log de Depuração (Verifica se o segmento está sendo encontrado)
-            // console.log(`Renderizando para: ${currentUser.name}. Segmento visível: ${visibleSegment}`);
 
-            // 2. Filtra as amostras
-            const filteredSamples = allSamples.filter(sample => {
+            // 2. Filtra as amostras baseadas no segmento
+            let segmentSamples = allSamples.filter(sample => {
                 if (visibleSegment === 'TODOS') return true; // Admin vendo tudo
                 return sample.sellerSegment === visibleSegment; // Manager vendo seu segmento
             });
-            
-            // console.log(`Amostras filtradas: ${filteredSamples.length} de ${allSamples.length}`);
 
-            // Salva as amostras filtradas para uso nos filtros e modais
-            currentFilteredSamples = filteredSamples;
+            // 3. Filtra as amostras baseadas no VENDEDOR EM FOCO (se houver)
+            let filteredSamples;
+            if (currentFocusedSeller) {
+                filteredSamples = segmentSamples.filter(
+                    s => s.sellerOriginalName === currentFocusedSeller
+                );
+            } else {
+                filteredSamples = segmentSamples; // Usa todas do segmento
+            }
 
-            // 3. Obtém lista única de vendedores para o KPI e a lista
+            // 4. Obtém lista única de vendedores (apenas do segmento)
             const visibleSellers = [...new Set(
-                filteredSamples.map(s => s.sellerOriginalName)
+                segmentSamples.map(s => s.sellerOriginalName)
             )];
 
-            // 4. Popula o filtro de feedback (antes de renderizar o feed)
+            // 5. Popula o filtro de feedback (com base nas amostras filtradas)
             populateFeedbackFilter(filteredSamples);
 
-            // 5. Renderiza os componentes com os dados filtrados
+            // 6. Renderiza os componentes com os dados filtrados
             renderKPIs(filteredSamples, visibleSellers.length);
             renderCharts(filteredSamples);
-            renderSellersList(filteredSamples, visibleSellers);
-            renderObservationsFeed(filteredSamples);
+            renderSellersList(segmentSamples, visibleSellers); // Lista de vendedores usa dados do *segmento*
+            renderObservationsFeed(filteredSamples); // Feed usa dados *filtrados* (segmento ou vendedor)
+            
+            // 7. Renderiza a tabela de foco (se houver)
+            if (currentFocusedSeller) {
+                renderFocusSamplesTable(filteredSamples);
+            }
+            
+            // 8. Renderiza o badge de notificação
+            renderNotificationBadge();
         }
 
         // Renderiza os KPIs
@@ -738,7 +880,10 @@
             const feedbacksReceived = samples.filter(s => s.feedback && s.feedback.trim() !== '').length;
 
             kpiPendingSamples.textContent = pendingSamples;
-            kpiSellersCount.textContent = sellerCount;
+            // O KPI de contagem de vendedores não muda ao focar em um
+            if (!currentFocusedSeller) {
+                kpiSellersCount.textContent = sellerCount;
+            }
             kpiFeedbacksCount.textContent = feedbacksReceived;
         }
 
@@ -849,7 +994,7 @@
         }
 
         // Renderiza a Lista de Vendedores
-        function renderSellersList(samples, sellerNames) {
+        function renderSellersList(segmentSamples, sellerNames) {
             const searchTerm = normalizeText(sellerSearchInput.value);
             
             const filteredSellerNames = sellerNames.filter(name => 
@@ -863,18 +1008,22 @@
 
             sellersList.innerHTML = '';
             filteredSellerNames.sort().forEach(name => {
-                const sellerSamples = samples.filter(s => s.sellerOriginalName === name);
+                const sellerSamples = segmentSamples.filter(s => s.sellerOriginalName === name);
                 const pendingCount = sellerSamples.filter(s => s.isPending).length;
-                const totalCount = sellerSamples.length;
+                const respondedCount = sellerSamples.length - pendingCount;
                 
                 const card = document.createElement('div');
-                card.className = 'p-3 rounded-lg border border-gray-200 bg-gray-50';
+                card.className = `seller-card p-4 rounded-lg border-2 border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-all ${name === currentFocusedSeller ? 'selected' : ''}`;
+                card.dataset.sellerName = name;
                 card.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="font-semibold text-gray-800">${name}</span>
-                        <span class="text-sm font-bold ${pendingCount > 0 ? 'text-yellow-600' : 'text-green-600'}">
-                            ${pendingCount} / ${totalCount}
-                        </span>
+                    <div class="font-semibold text-gray-800">${name}</div>
+                    <div class="flex justify-between items-center mt-2 text-sm">
+                        <span class="font-medium text-gray-600">Respondidas:</span>
+                        <span class="font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">${respondedCount}</span>
+                    </div>
+                    <div class="flex justify-between items-center mt-1 text-sm">
+                        <span class="font-medium text-gray-600">Pendentes:</span>
+                        <span class="font-bold bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">${pendingCount}</span>
                     </div>
                 `;
                 sellersList.appendChild(card);
@@ -934,7 +1083,7 @@
                 const card = document.createElement('div');
                 card.className = 'p-4 rounded-lg border bg-white shadow-sm';
                 
-                // Encontra respostas relevantes (usando o cache 'allManagerReplies')
+                // Encontra respostas relevantes
                 const managerReply = allManagerReplies
                     .filter(r => r.sellerName === sample.sellerOriginalName && r.pedido === sample.pedido && r.produto === sample.produto && r.originalObservation === sample.observation)
                     .sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0))[0];
@@ -948,7 +1097,6 @@
                             <p class="text-xs text-gray-400 text-right">${managerTime}</p>
                         </div>`;
                     
-                    // Encontra respostas do vendedor (usando o cache 'allSellerReplies')
                     const sellerReply = allSellerReplies
                         .filter(r => r.originalManagerMessage === managerReply.replyMessage && r.pedido === sample.pedido && r.produto === sample.produto)
                         .sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0))[0];
@@ -983,7 +1131,76 @@
             });
         }
         
-        // === LÓGICA DE RESPOSTA (FEED) ===
+        // === LÓGICA DE FOCO NO VENDEDOR ===
+        
+        function setFocusView(sellerName) {
+            currentFocusedSeller = sellerName;
+            focusViewHeader.classList.remove('hidden');
+            focusViewHeader.classList.add('flex');
+            focusViewTitle.textContent = `Visão Detalhada: ${sellerName}`;
+            focusSamplesSection.classList.remove('hidden');
+            focusSamplesTitle.textContent = `Todas as Amostras de ${sellerName}`;
+            
+            // Atualiza os filtros para não ficarem "presos"
+            observationStatusFilter.value = 'TODOS';
+            observationFeedbackFilter.value = 'TODOS';
+
+            renderDashboard(); // Re-renderiza todo o painel com o foco
+        }
+        
+        function clearFocusView() {
+            currentFocusedSeller = null;
+            focusViewHeader.classList.add('hidden');
+            focusViewHeader.classList.remove('flex');
+            focusSamplesSection.classList.add('hidden');
+            focusSamplesTbody.innerHTML = '';
+            
+            // Atualiza os filtros para não ficarem "presos"
+            observationStatusFilter.value = 'TODOS';
+            observationFeedbackFilter.value = 'TODOS';
+
+            renderDashboard(); // Re-renderiza todo o painel sem foco
+        }
+        
+        function renderFocusSamplesTable(samples) {
+            focusSamplesTbody.innerHTML = '';
+            
+            if (samples.length === 0) {
+                focusSamplesTbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Nenhuma amostra encontrada para este vendedor.</td></tr>';
+                return;
+            }
+            
+            // Ordena por pendente primeiro, depois por pedido
+            samples.sort((a, b) => {
+                if (a.isPending && !b.isPending) return -1;
+                if (!a.isPending && b.isPending) return 1;
+                return a.pedido.localeCompare(b.pedido);
+            });
+            
+            samples.forEach(sample => {
+                const row = document.createElement('tr');
+                row.className = sample.isPending ? 'bg-yellow-50' : 'bg-white';
+                
+                let feedbackDisplay = '<span class="text-gray-400">Pendente</span>';
+                if (!sample.isPending) {
+                    feedbackDisplay = `<span class="font-semibold">${sample.feedback || 'N/A'}</span>`;
+                    if (sample.observation) {
+                        feedbackDisplay += `<p class="text-xs text-gray-500 italic">"${sample.observation}"</p>`;
+                    }
+                }
+                
+                row.innerHTML = `
+                    <td class="px-4 py-3">${sample.pedido}</td>
+                    <td class="px-4 py-3">${sample.razaoSocial}</td>
+                    <td class="px-4 py-3">${sample.produto}</td>
+                    <td class="px-4 py-3">${sample.originalStatus}</td>
+                    <td class="px-4 py-3">${feedbackDisplay}</td>
+                `;
+                focusSamplesTbody.appendChild(row);
+            });
+        }
+        
+        // === LÓGICA DE RESPOSTA ===
         
         let currentSampleForReply = null;
         
@@ -1053,9 +1270,11 @@
             
             if (!feedbackSamplesList || !feedbackSamplesTitle || !feedbackSamplesModal) return;
 
-            const filtered = currentFilteredSamples.filter(sample => {
-                return getCanonicalFeedback(sample.feedback) === feedbackText;
-            });
+            // Filtra amostras baseado na visão ATUAL (segmento ou vendedor)
+            const filtered = (currentFocusedSeller ? allSamples.filter(s => s.sellerOriginalName === currentFocusedSeller) : currentFilteredSamples)
+                .filter(sample => {
+                    return getCanonicalFeedback(sample.feedback) === feedbackText;
+                });
             
             feedbackSamplesTitle.textContent = `Amostras com: "${feedbackText}" (${filtered.length})`;
             
@@ -1089,6 +1308,7 @@
                 observationFeedbackFilter.innerHTML += `<option value="${f}">${f}</option>`;
             });
             
+            // Mantém o filtro selecionado se ele ainda existir na lista
             if ([...observationFeedbackFilter.options].some(o => o.value === currentVal)) {
                  observationFeedbackFilter.value = currentVal;
             } else {
@@ -1097,8 +1317,9 @@
         }
 
         function populateAdminFilter() {
-            // Usa o sellerSegmentsCache que foi carregado primeiro
-            const segments = [...new Set(Object.values(sellerSegmentsCache))].filter(Boolean).sort();
+            // Usa a CONFIG para garantir que todos os segmentos estejam lá
+            const segments = Object.keys(MANAGERS_CONFIG).filter(seg => seg !== 'ADMIN').sort();
+            
             adminSegmentFilter.innerHTML = '<option value="TODOS">Todos os Segmentos</option>';
             segments.forEach(segment => {
                 const option = document.createElement('option');
@@ -1108,7 +1329,7 @@
             });
         }
 
-        // === FUNÇÃO: RENDERIZAR TABELA DE ACESSOS (ADMIN) ===
+        // === NOVA FUNÇÃO: RENDERIZAR TABELA DE ACESSOS (ADMIN) ===
 
         function renderManagerAccessTable() {
             managerAccessTbody.innerHTML = '';
@@ -1131,131 +1352,6 @@
                 managerAccessTbody.appendChild(row);
             });
         }
-        
-        // === FUNÇÕES DE NOTIFICAÇÃO (SINO) ===
-
-        // Processa novas respostas de vendedores (para o modal)
-        function handleNewSellerReplies(docChanges) {
-            // Apenas adiciona ao modal as notificações que acabaram de chegar
-            // A lógica de "lida" acontece ao clicar no botão "Marcar como lida"
-            // O cache 'unreadSellerRepliesCache' já foi atualizado pelo listener
-            
-            // Aqui, podemos opcionalmente disparar uma notificação visual (toast)
-            // se o usuário for o gerente correto
-            
-            docChanges.forEach(change => {
-                if (change.type === "added") {
-                    const reply = change.doc.data();
-                    
-                    // Se for admin, sempre notifica
-                    if (currentUser.role === 'admin') {
-                         console.log("Nova resposta para o Admin:", reply.sellerName);
-                    } 
-                    // Se for gerente, verifica se a resposta foi para ele
-                    else if (currentUser.name === reply.originalManagerName) {
-                         console.log(`Nova resposta para ${currentUser.name}:`, reply.sellerName);
-                    }
-                }
-            });
-        }
-
-        // Atualiza o número no badge do sino
-        function updateNotificationBadge() {
-            if (!currentUser) return;
-            
-            let unreadCount = 0;
-            
-            if (currentUser.role === 'admin') {
-                // Admin vê todas as não lidas
-                unreadCount = unreadSellerRepliesCache.length;
-            } else {
-                // Gerente vê apenas as não lidas direcionadas a ele
-                unreadCount = unreadSellerRepliesCache.filter(reply => 
-                    reply.originalManagerName === currentUser.name
-                ).length;
-            }
-
-            if (unreadCount > 0) {
-                notificationBadge.textContent = unreadCount;
-                notificationBadge.classList.remove('hidden');
-            } else {
-                notificationBadge.classList.add('hidden');
-            }
-        }
-        
-        // Mostra o modal com as notificações não lidas
-        function showNotificationsModal() {
-            notificationsList.innerHTML = '';
-            
-            let repliesToShow = [];
-            
-            if (currentUser.role === 'admin') {
-                 repliesToShow = [...unreadSellerRepliesCache];
-            } else {
-                 repliesToShow = unreadSellerRepliesCache.filter(reply => 
-                    reply.originalManagerName === currentUser.name
-                 );
-            }
-            
-            // Ordena por data (mais recente primeiro)
-             repliesToShow.sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0));
-            
-            if (repliesToShow.length === 0) {
-                 notificationsList.innerHTML = '<p class="text-gray-500">Nenhuma resposta nova.</p>';
-            } else {
-                repliesToShow.forEach(reply => {
-                    const item = document.createElement('div');
-                    item.className = 'p-3 border rounded-lg bg-blue-50';
-                    item.innerHTML = `
-                        <p class="text-sm">
-                            <strong>${reply.sellerName}</strong> respondeu sobre <strong>${reply.produto}</strong> (Pedido: ${reply.pedido}):
-                        </p>
-                        <p class="text-sm italic my-1 p-2 bg-white rounded">"${reply.replyMessage}"</p>
-                        <p class="text-xs text-gray-500 mb-2">Sua msg original: "${reply.originalManagerMessage}"</p>
-                        <div class="text-right">
-                            <button class="mark-as-read-btn bg-blue-600 text-white text-xs font-semibold py-1 px-3 rounded-lg hover:bg-blue-700" data-reply-id="${reply.id}">
-                                ✓ Marcar como lida
-                            </button>
-                        </div>
-                    `;
-                    notificationsList.appendChild(item);
-                });
-            }
-            
-            notificationsModal.classList.remove('hidden');
-        }
-        
-        // Marca uma notificação como lida no Firebase
-        async function markReplyAsRead(e) {
-            const replyId = e.target.dataset.replyId;
-            if (!replyId || !currentSessionId) return;
-            
-            e.target.disabled = true;
-            e.target.textContent = 'Marcando...';
-            
-            const replyRef = doc(db, "sessoes", currentSessionId, "respostasVendedor", replyId);
-            
-            try {
-                await updateDoc(replyRef, {
-                    readByManager: true
-                });
-                // O listener 'unreadRepliesListenerUnsubscribe' vai atualizar o cache
-                // e o badge automaticamente.
-                // Apenas removemos o item do modal visualmente.
-                e.target.closest('.p-3.border').remove();
-                
-                // Verifica se foi o último item
-                 if (notificationsList.children.length === 0) {
-                     notificationsList.innerHTML = '<p class="text-gray-500">Nenhuma resposta nova.</p>';
-                 }
-                
-            } catch (error) {
-                console.error("Erro ao marcar como lida:", error);
-                e.target.disabled = false;
-                e.target.textContent = '✓ Marcar como lida';
-            }
-        }
-
 
         // === LISTENERS DE EVENTOS ===
         
@@ -1274,16 +1370,36 @@
         
         // Dashboard
         logoutBtn.addEventListener('click', handleLogout);
-        adminSegmentFilter.addEventListener('change', renderDashboard);
+        adminSegmentFilter.addEventListener('change', () => {
+             clearFocusView(); // Limpa o foco do vendedor se o admin mudar de segmento
+             renderDashboard();
+        });
         sellerSearchInput.addEventListener('input', () => {
             // Re-renderiza apenas a lista de vendedores
-            const visibleSellers = [...new Set(currentFilteredSamples.map(s => s.sellerOriginalName))];
-            renderSellersList(currentFilteredSamples, visibleSellers);
+            const visibleSegment = currentUser.role === 'admin' 
+                ? adminSegmentFilter.value 
+                : currentUser.segment;
+            
+            const segmentSamples = allSamples.filter(sample => {
+                if (visibleSegment === 'TODOS') return true;
+                return sample.sellerSegment === visibleSegment;
+            });
+            const visibleSellers = [...new Set(segmentSamples.map(s => s.sellerOriginalName))];
+            renderSellersList(segmentSamples, visibleSellers);
         });
 
         // Filtros do Feed de Observação
-        observationStatusFilter.addEventListener('change', () => renderObservationsFeed(currentFilteredSamples));
-        observationFeedbackFilter.addEventListener('change', () => renderObservationsFeed(currentFilteredSamples));
+        observationStatusFilter.addEventListener('change', () => renderDashboard());
+        observationFeedbackFilter.addEventListener('change', () => renderDashboard());
+        
+        // Foco no Vendedor
+        sellersList.addEventListener('click', (e) => {
+            const card = e.target.closest('.seller-card');
+            if (card) {
+                setFocusView(card.dataset.sellerName);
+            }
+        });
+        clearFocusBtn.addEventListener('click', clearFocusView);
 
         // Modal de Amostras (do Gráfico)
         closeFeedbackSamplesBtn.addEventListener('click', () => {
@@ -1297,6 +1413,14 @@
         });
         cancelReplyBtn.addEventListener('click', () => replyModal.classList.add('hidden'));
         sendReplyBtn.addEventListener('click', sendReplyToSeller);
+        
+        // Modal de Notificações
+        notificationBtn.addEventListener('click', openNotificationModal);
+        closeNotificationBtn.addEventListener('click', () => notificationModal.classList.add('hidden'));
+        notificationList.addEventListener('click', (e) => {
+            const button = e.target.closest('.mark-as-read-btn');
+            if (button) markReplyAsRead({ target: button });
+        });
 
         // Tabela de Acessos (Admin)
         managerAccessTbody.addEventListener('click', (e) => {
@@ -1316,14 +1440,6 @@
                 }
             }
         });
-        
-        // Notificações (Sino)
-        notificationBellBtn.addEventListener('click', showNotificationsModal);
-        closeNotificationsBtn.addEventListener('click', () => notificationsModal.classList.add('hidden'));
-        notificationsList.addEventListener('click', (e) => {
-             const button = e.target.closest('.mark-as-read-btn');
-             if (button) markReplyAsRead(e);
-        });
 
         // --- INICIALIZAÇÃO ---
         (async () => {
@@ -1339,6 +1455,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 
