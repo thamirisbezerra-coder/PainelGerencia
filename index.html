@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ... (cabeçalho inalterado) ... -->
     <title>Painel de Gerentes</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -241,10 +242,14 @@
                         <table class="min-w-full text-sm">
                             <thead class="bg-gray-50 text-left">
                                 <tr>
-                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase">Pedido</th>
-                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase">Cliente</th>
-                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase">Produto</th>
-                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase">Status Original</th>
+                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase whitespace-nowrap">Pedido</th>
+                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase whitespace-nowrap">Cliente</th>
+                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase whitespace-nowrap">Produto</th>
+                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase whitespace-nowrap">Descrição</th>
+                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase whitespace-nowrap">Qtde</th>
+                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase whitespace-nowrap">Nota Fiscal</th>
+                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase whitespace-nowrap">Emissão</th>
+                                    <th class="px-4 py-3 font-medium text-gray-500 uppercase whitespace-nowrap">Status Original</th>
                                     <th class="px-4 py-3 font-medium text-gray-500 uppercase">Feedback</th>
                                 </tr>
                             </thead>
@@ -1166,7 +1171,7 @@
             focusSamplesTbody.innerHTML = '';
             
             if (samples.length === 0) {
-                focusSamplesTbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Nenhuma amostra encontrada para este vendedor.</td></tr>';
+                focusSamplesTbody.innerHTML = '<tr><td colspan="9" class="p-4 text-center text-gray-500">Nenhuma amostra encontrada para este vendedor.</td></tr>';
                 return;
             }
             
@@ -1185,15 +1190,19 @@
                 if (!sample.isPending) {
                     feedbackDisplay = `<span class="font-semibold">${sample.feedback || 'N/A'}</span>`;
                     if (sample.observation) {
-                        feedbackDisplay += `<p class="text-xs text-gray-500 italic">"${sample.observation}"</p>`;
+                        feedbackDisplay += `<p class="text-xs text-gray-500 italic">"${sample.observation || ''}"</p>`; // Added check
                     }
                 }
                 
                 row.innerHTML = `
-                    <td class="px-4 py-3">${sample.pedido}</td>
-                    <td class="px-4 py-3">${sample.razaoSocial}</td>
-                    <td class="px-4 py-3">${sample.produto}</td>
-                    <td class="px-4 py-3">${sample.originalStatus}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${sample.pedido}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${sample.razaoSocial || ''}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${sample.produto || ''}</td>
+                    <td class="px-4 py-3 text-xs whitespace-nowrap">${sample.descricao || ''}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${sample.qtde || ''}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${sample.notaFiscal || ''}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${sample.emissaoNF || ''}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${sample.originalStatus || ''}</td>
                     <td class="px-4 py-3">${feedbackDisplay}</td>
                 `;
                 focusSamplesTbody.appendChild(row);
@@ -1211,9 +1220,9 @@
             
             currentSampleForReply = sample;
             
-            replyModalProduct.textContent = `${sample.produto} (${sample.pedido})`;
-            replyModalSeller.textContent = `Observação de: ${sample.sellerOriginalName}`;
-            replyModalObservation.textContent = `"${sample.observation}"`;
+            replyModalProduct.textContent = `${sample.produto || ''} ${sample.descricao ? '- ' + sample.descricao : ''}`;
+            replyModalSeller.textContent = `Vendedor: ${sample.sellerOriginalName} | Pedido: ${sample.pedido} | NF: ${sample.notaFiscal || 'N/A'}`;
+            replyModalObservation.textContent = `"${sample.observation || ''}"`; // Added check
             replyMessageInput.value = '';
             
             replyModal.classList.remove('hidden');
@@ -1239,7 +1248,7 @@
                 const notificationData = {
                     managerName: managerName,
                     replyMessage: replyMessage,
-                    originalObservation: currentSampleForReply.observation,
+                    originalObservation: currentSampleForReply.observation || '', // Added check
                     sellerName: currentSampleForReply.sellerOriginalName, 
                     pedido: currentSampleForReply.pedido,
                     produto: currentSampleForReply.produto,
@@ -1271,10 +1280,13 @@
             if (!feedbackSamplesList || !feedbackSamplesTitle || !feedbackSamplesModal) return;
 
             // Filtra amostras baseado na visão ATUAL (segmento ou vendedor)
-            const filtered = (currentFocusedSeller ? allSamples.filter(s => s.sellerOriginalName === currentFocusedSeller) : currentFilteredSamples)
-                .filter(sample => {
-                    return getCanonicalFeedback(sample.feedback) === feedbackText;
-                });
+            const currentViewSamples = currentFocusedSeller 
+                ? allSamples.filter(s => s.sellerOriginalName === currentFocusedSeller) 
+                : allSamples.filter(s => s.sellerSegment === (currentUser.role === 'admin' ? adminSegmentFilter.value : currentUser.segment) || (currentUser.role === 'admin' && adminSegmentFilter.value === 'TODOS'));
+
+            const filtered = currentViewSamples.filter(sample => {
+                return getCanonicalFeedback(sample.feedback) === feedbackText;
+            });
             
             feedbackSamplesTitle.textContent = `Amostras com: "${feedbackText}" (${filtered.length})`;
             
@@ -1283,10 +1295,16 @@
             } else {
                 feedbackSamplesList.innerHTML = filtered.map(sample => `
                     <div class="feedback-sample-item">
-                        <p class="font-semibold">${sample.produto}</p>
+                        <p class="font-semibold">${sample.produto || ''}</p>
+                        <p class="text-xs text-gray-600">${sample.descricao || ''}</p>
                         <p><strong>Vendedor:</strong> ${sample.sellerOriginalName} (Pedido: ${sample.pedido})</p>
-                        <p><strong>Cliente:</strong> ${sample.razaoSocial}</p>
-                        ${sample.observation ? `<p class="text-xs text-gray-600 mt-1 italic">Obs: ${sample.observation}</p>` : ''}
+                        <p><strong>Cliente:</strong> ${sample.razaoSocial || ''}</p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            ${sample.qtde ? `<strong>Qtde:</strong> ${sample.qtde}` : ''}
+                            ${sample.notaFiscal ? ` | <strong>NF:</strong> ${sample.notaFiscal}` : ''}
+                            ${sample.emissaoNF ? ` | <strong>Emissão:</strong> ${sample.emissaoNF}` : ''}
+                        </p>
+                        ${sample.observation ? `<p class="text-xs text-gray-600 mt-1 italic">Obs: ${sample.observation || ''}</p>` : ''} 
                     </div>
                 `).join('');
             }
@@ -1455,6 +1473,9 @@
     </script>
 </body>
 </html>
+
+
+
 
 
 
