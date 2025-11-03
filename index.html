@@ -10,13 +10,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .seller-list-container {
-            max-height: 448px; /* 28rem, mesma altura do feed de observações */
+
+        /* Barra de rolagem para Feed e Lista de Vendedores */
+        /* CORREÇÃO: A lista de vendedores agora é .seller-list-container */
+        #sellers-list-container, #observations-feed-list {
+            max-height: 448px; /* 28rem */
             overflow-y: auto;
         }
+
+        /* Ocultar scrollbar mas manter rolagem (opcional, mas limpo) */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .manager-reply, .seller-reply {
+
+        /* Estilos para o feed de observações e respostas */
+        .manager-reply, .seller-reply, .pd-note {
             margin-top: 0.5rem;
             padding: 0.5rem 0.75rem;
             border-radius: 0.375rem; /* rounded-md */
@@ -30,6 +37,13 @@
             border-left: 3px solid #60a5fa; /* border-blue-400 */
             margin-left: 1rem; /* Indent seller reply */
         }
+         .pd-note {
+            background-color: #fffbeb; /* bg-amber-50 */
+            border-left: 3px solid #fcd34d; /* border-amber-300 */
+            margin-left: 0.5rem;
+        }
+
+        /* Estilo para Amostra destacada no modal */
         .feedback-sample-item {
             border-bottom: 1px solid #e5e7eb;
             padding-bottom: 0.75rem;
@@ -39,18 +53,61 @@
         .feedback-sample-item.highlight {
             background-color: #fffbeb; /* bg-amber-50 */
         }
+
+        /* Estilo para os cards de login (sem ícone) */
+        .login-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            background-color: #f9fafb; /* bg-gray-50 */
+            border: 1px solid #e5e7eb; /* border-gray-200 */
+            border-radius: 0.5rem; /* rounded-lg */
+            font-weight: 600; /* font-semibold */
+            color: #374151; /* text-gray-700 */
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            text-align: left;
+        }
+        .login-card:hover {
+            background-color: #f3f4f6; /* bg-gray-100 */
+            border-color: #d1d5db; /* border-gray-300 */
+        }
+        .login-card.selected {
+            background-color: #3b82f6; /* bg-blue-600 */
+            color: white;
+            border-color: #2563eb; /* border-blue-700 */
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .login-card-name {
+            font-size: 0.875rem; /* text-sm */
+            color: #6b7280; /* text-gray-500 */
+            font-weight: 500; /* font-medium */
+        }
+        .login-card.selected .login-card-name {
+            color: #dbeafe; /* text-blue-100 */
+        }
     </style>
 </head>
 <body class="text-gray-800">
 
     <!-- Tela de Login -->
     <div id="login-view" class="grid place-items-center min-h-screen p-4">
-        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 w-full max-w-lg p-8">
-            <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">Painel de Gerentes (v2)</h1>
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 w-full max-w-2xl p-8">
+            <div class="flex justify-center items-center gap-3 mb-6">
+                <!-- ÍCONE: Malinha (Briefcase) -->
+                <div class="p-3 bg-indigo-100 rounded-full">
+                    <svg class="w-8 h-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.05c0 .621-.504 1.125-1.125 1.125H4.875A1.125 1.125 0 0 1 3.75 18.2V14.15m16.5 0v-2.175c0-.621-.504-1.125-1.125-1.125H4.875A1.125 1.125 0 0 0 3.75 11.975V14.15m16.5 0A1.125 1.125 0 0 0 21 13.025V9.75A1.125 1.125 0 0 0 19.875 8.625H4.125A1.125 1.125 0 0 0 3 9.75v3.275c0 .621.504 1.125 1.125 1.125M15 8.625V6a1.875 1.875 0 1 0-3.75 0V8.625m3.75 0H9m6 0v-2.625c0-1.036-.84-1.875-1.875-1.875H9.875C8.84 4.125 8 4.964 8 6v2.625m6 0H9" />
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800 text-center">Painel de Gerentes (v2)</h1>
+            </div>
             <p class="text-gray-600 text-center mb-8">Selecione o seu segmento para aceder ao painel.</p>
             
+            <!-- LAYOUT DE LOGIN (CARDS) -->
             <div id="manager-login-buttons" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Botões de login serão inseridos aqui pelo JS -->
+                <!-- Cards de login serão inseridos aqui pelo JS -->
             </div>
             
             <div class="mt-8">
@@ -64,23 +121,27 @@
     <!-- Tela Principal (Dashboard) -->
     <div id="dashboard" class="hidden container mx-auto p-4 md:p-8">
         
-        <header class="flex justify-between items-center mb-8">
+        <header class="flex flex-col md:flex-row justify-between md:items-center mb-8 gap-4">
             <h1 id="dashboard-title" class="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-5 rounded-lg text-sm hover:bg-red-600">Sair</button>
+            <div class="flex items-center gap-4">
+                <input id="global-search-input" type="text" placeholder="Pesquisar em todas as amostras..." class="border-gray-300 rounded-lg shadow-sm text-sm p-2 w-full md:w-64">
+                <!-- Sino de Notificação (será adicionado aqui) -->
+                <button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-5 rounded-lg text-sm hover:bg-red-600">Sair</button>
+            </div>
         </header>
 
-        <!-- Estado de Carregamento (NOVO) -->
+        <!-- Estado de Carregamento -->
         <div id="loading-state" class="hidden text-center p-12">
             <h2 class="text-2xl font-semibold text-gray-700">A carregar dados...</h2>
             <p id="loading-message" class="text-gray-500 mt-2">A processar amostras. Isto pode demorar um momento...</p>
         </div>
 
-        <!-- Conteúdo do Dashboard (NOVO) -->
+        <!-- Conteúdo do Dashboard -->
         <div id="dashboard-content" class="hidden">
             <!-- Gráficos -->
             <section class="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border">
-                    <h3 class="font-bold text-lg mb-2 text-center">Status do Segmento</h3>
+                    <h3 class="font-bold text-lg mb-2 text-center">Status (Amostras do Segmento)</h3>
                     <div style="height: 250px;"><canvas id="segment-status-chart"></canvas></div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl shadow-sm border">
@@ -91,35 +152,42 @@
 
             <!-- Feeds Lado a Lado -->
             <section class="grid grid-cols-1 md:grid-cols-2 md:items-start gap-6 mb-10">
-                <!-- Coluna Vendedores -->
-                <section>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Vendedores do Segmento</h2>
-                    <input id="seller-search-input" type="text" placeholder="Procurar vendedor..." class="border-gray-300 rounded-lg shadow-sm text-sm w-full mb-4">
-                    <div id="sellers-list" class="seller-list-container space-y-3 bg-white p-4 rounded-2xl shadow-sm border no-scrollbar">
-                        <p class="text-gray-500 placeholder-seller">Nenhum vendedor encontrado para este segmento.</p>
-                    </div>
-                </section>
                 
                 <!-- Coluna Feed Observações -->
                 <section>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Feed de Observações</h2>
-                    <div class="mb-4">
-                        <input id="observation-search-input" type="text" placeholder="Pesquisar por cliente, produto..." class="border-gray-300 rounded-lg shadow-sm text-sm w-full">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-gray-900">Feed de Observações</h2>
+                        <!-- Filtro de Segmento (do Vendedor) removido, pois o gerente já vê seu segmento -->
                     </div>
-                    <div id="observations-feed-list" class="space-y-4 h-[28rem] overflow-y-auto bg-white p-4 rounded-2xl shadow-sm border no-scrollbar">
+                    <!-- ID adicionado e classes de barra de rolagem -->
+                    <div id="observations-feed-list" class="space-y-4 bg-white p-4 rounded-2xl shadow-sm border no-scrollbar">
                         <p class="text-gray-500 placeholder-observation">Nenhuma observação encontrada.</p>
+                    </div>
+                </section>
+
+                <!-- Coluna Vendedores do Segmento -->
+                <section>
+                    <div class="flex justify-between items-center mb-4">
+                         <h2 class="text-2xl font-bold text-gray-900">Vendedores do Segmento</h2>
+                         <input id="seller-search-input" type="text" placeholder="Procurar vendedor..." class="border-gray-300 rounded-lg shadow-sm text-sm p-1">
+                    </div>
+                    <!-- Classe de barra de rolagem adicionada. REMOVIDO p-4 e space-y-3. Adicionado bg-white e rounded-2xl -->
+                    <div id="sellers-list-container" class="bg-white rounded-2xl shadow-sm border no-scrollbar">
+                        <!-- Itens da lista agora são gerados com borda interna -->
+                        <p class="text-gray-500 placeholder-seller p-4">Nenhum vendedor encontrado.</p>
                     </div>
                 </section>
             </section>
 
             <!-- Tabela de Acessos (Admin) -->
             <section id="admin-access-section" class="hidden bg-white p-6 rounded-2xl shadow-sm border mb-10">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">Acessos de Gerentes (Admin)</h2>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Acessos dos Gerentes (Admin)</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Segmento</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gerente</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Senha</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ação</th>
                             </tr>
@@ -135,37 +203,37 @@
 
     <!-- Modais -->
     
-    <!-- Modal de Amostras por Feedback -->
+    <!-- Modal de Amostras por Feedback (Genérico) -->
     <div id="feedback-samples-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-30">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl p-6">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h3 id="feedback-samples-title" class="text-xl font-bold">Amostras com Feedback:</h3>
+                <h3 id="feedback-samples-title" class="text-xl font-bold">Amostras</h3>
                 <button id="close-feedback-samples-btn" class="text-2xl font-bold text-gray-500 hover:text-gray-800">&times;</button>
             </div>
-            <div id="feedback-samples-list" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+            <div id="feedback-samples-list" class="space-y-3 max-h-[70vh] overflow-y-auto pr-2">
                 <p class="text-gray-500">A carregar detalhes...</p>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Resposta à Observação -->
+    <!-- Modal de Resposta do Gerente -->
     <div id="reply-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-40">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-xl p-6">
-            <h3 class="text-xl font-bold mb-4">Responder à Observação</h3>
+            <h3 class="text-xl font-bold mb-4">Responder ao Vendedor</h3>
             <div class="mb-4 p-3 bg-gray-100 rounded border text-sm">
                 <p class="font-semibold" id="reply-modal-product"></p>
                 <p class="text-xs text-gray-600 mb-1" id="reply-modal-seller"></p>
                 <p class="italic" id="reply-modal-observation">"${' '}"</p>
             </div>
             <div class="space-y-4">
-                <div>
-                  <label for="reply-message-input" class="block text-sm font-medium text-gray-700">Sua Resposta</label>
-                  <textarea id="reply-message-input" rows="3" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm" placeholder="Digite sua resposta aqui..."></textarea>
-                </div>
+                  <div>
+                       <label for="reply-message-input" class="block text-sm font-medium text-gray-700">Sua Resposta (Gerente)</label>
+                       <textarea id="reply-message-input" rows="3" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm" placeholder="Digite sua resposta aqui..."></textarea>
+                  </div>
             </div>
             <div class="mt-6 flex justify-end space-x-3">
-                <button id="cancel-reply-btn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-5 rounded-lg">Cancelar</button>
-                <button id="send-reply-btn" class="bg-blue-600 text-white font-bold py-2 px-5 rounded-lg">Enviar Resposta</button>
+                 <button id="cancel-reply-btn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-5 rounded-lg">Cancelar</button>
+                 <button id="send-reply-btn" class="bg-blue-600 text-white font-bold py-2 px-5 rounded-lg">Enviar Resposta</button>
             </div>
         </div>
     </div>
@@ -174,11 +242,11 @@
     <div id="notification-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-40">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6">
             <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <h3 class="text-xl font-bold">Respostas dos Vendedores</h3>
+                <h3 class="text-xl font-bold">Respostas de Vendedores</h3>
                 <button id="close-notification-btn" class="text-2xl font-bold text-gray-500 hover:text-gray-800">&times;</button>
             </div>
             <div id="notification-list" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                <p class="text-gray-500">Nenhuma resposta recebida.</p>
+                <p class="text-gray-500">Nenhuma resposta nova.</p>
             </div>
         </div>
     </div>
@@ -200,8 +268,7 @@
         import { 
             getFirestore, collection, onSnapshot, doc, getDoc, getDocs, 
             updateDoc, query, orderBy, serverTimestamp, addDoc, limit, where,
-            collectionGroup, // Importar collectionGroup
-            Timestamp // Importar Timestamp
+            collectionGroup, Timestamp, runTransaction, writeBatch
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -222,18 +289,20 @@
 
         // Definições de Acesso
         const MANAGER_PASSWORDS = {
-            'CÁRNEOS': 'carneospass123',
-            'LACTEOS': 'lacteospass456',
-            'NUTRICAO ANIMAL': 'nutricaopass303',
-            'PANIFICACAO': 'panificacaopass101',
-            'SMB': 'smbpass202',
-            'SORVETES': 'sorvetespass789',
-            'ADMIN': 'admin123' // Senha de Admin
+            'CÁRNEOS': { name: 'LUIS ADRIANO', pass: 'carneospass123' },
+            'LACTEOS': { name: 'VITOR MACHADO', pass: 'lacteospass456' },
+            'NUTRICAO ANIMAL': { name: 'DANILO TREMOLCOLDI', pass: 'nutricaopass303' },
+            'PANIFICACAO': { name: 'MARISTELA', pass: 'panificacaopass101' },
+            'SMB': { name: 'GUSTAVO BONFIM', pass: 'smbpass202' },
+            'SORVETES': { name: 'VINICIUS MADALENO', pass: 'sorvetespass789' },
+            // Adicionar outros segmentos se necessário
+            'ADMIN': { name: 'Admin', pass: 'admin123' } // Senha de Admin
         };
         const PENDING_STATUSES = ['EM ANÁLISE', 'AMOSTRA SEM FEEDBACK', 'SEM RETORNO DO CLIENTE', 'AMOSTRA NÃO TESTADA', 'PENDENTE'];
         
         // --- Elementos DOM ---
         const loginView = document.getElementById('login-view');
+        // NOVO: IDs alterados de pd-* para manager-*
         const managerLoginButtons = document.getElementById('manager-login-buttons');
         const managerPasswordInput = document.getElementById('manager-password-input');
         const managerLoginBtn = document.getElementById('manager-login-btn');
@@ -241,13 +310,13 @@
         const dashboard = document.getElementById('dashboard');
         const dashboardTitle = document.getElementById('dashboard-title');
         const logoutBtn = document.getElementById('logout-btn');
+        const globalSearchInput = document.getElementById('global-search-input');
         const loadingState = document.getElementById('loading-state');
         const loadingMessage = document.getElementById('loading-message');
         const dashboardContent = document.getElementById('dashboard-content');
-        const sellersList = document.getElementById('sellers-list');
-        const sellerSearchInput = document.getElementById('seller-search-input');
         const observationsFeedList = document.getElementById('observations-feed-list');
-        const observationSearchInput = document.getElementById('observation-search-input');
+        const sellersListContainer = document.getElementById('sellers-list-container');
+        const sellerSearchInput = document.getElementById('seller-search-input');
         const adminAccessSection = document.getElementById('admin-access-section');
         const managerAccessTbody = document.getElementById('manager-access-tbody');
         const feedbackSamplesModal = document.getElementById('feedback-samples-modal');
@@ -271,19 +340,21 @@
 
         // --- Estado Global ---
         let currentSessionId = null;
-        let currentSegment = null; // Segmento do gerente logado
-        let currentManagerName = null; // Nome do gerente logado
+        let currentSegment = null; // Segmento do Gerente logado
+        let currentManagerName = null; // Nome do Gerente logado
         let allCurrentSamples = []; // Armazena TODAS as amostras carregadas
         let sellerSegmentsCache = {}; // Cache de segmentos de vendedores
-        let sellerRepliesListenerUnsubscribe = null; // Respostas dos vendedores (para o sino)
-        let managerRepliesListenerUnsubscribe = null; // Respostas dos gestores (para o feed)
-        let dataListenersUnsubscribe = []; // Array para armazenar todos os listeners de dados
+        let sellerRepliesListenerUnsubscribe = null; // Respostas dos vendedores
+        let managerRepliesListenerUnsubscribe = null; // Respostas dos gerentes (para P&D)
+        let pdPostitsListenerUnsubscribe = null; // Notas P&D (para feed)
+        let dataListenersUnsubscribe = [];
         let chartInstances = {};
         let currentSampleForReply = null;
-        let allManagerReplies = []; // Cache de respostas de gestores
-        let allSellerReplies = []; // Cache de respostas de vendedores
+        let allSellerReplies = []; // Respostas dos vendedores para o gerente
+        let allManagerReplies = []; // Respostas dos gerentes para os vendedores (para o feed)
+        let allPdPostits = []; // Post-its do P&D (para o feed)
         
-        // Classe para gerir carregamento de dados (evita "piscar")
+        // Classe de Gestão de Carga
         class DataLoadManager {
             constructor(totalItems, onComplete) {
                 this.totalItems = totalItems;
@@ -293,10 +364,8 @@
                 this.hasCompleted = false;
             }
 
-            // Chamado para cada vendedor
             sellerLoaded(sellerName, samples) {
                 this.loadedItems++;
-                // Adiciona o nome do vendedor a cada amostra
                 const samplesWithOwner = samples.map(s => ({ ...s, sellerName }));
                 this.allData = this.allData.concat(samplesWithOwner);
                 
@@ -305,21 +374,8 @@
 
                 if (this.loadedItems === this.totalItems && !this.hasCompleted) {
                     this.hasCompleted = true;
-                    // Filtra amostras pelo segmento ANTES de completar
-                    const filteredSamples = this.filterSamplesBySegment(this.allData, currentSegment);
-                    this.onComplete(filteredSamples);
+                    this.onComplete(this.allData);
                 }
-            }
-
-            // Filtra as amostras com base no segmento do gerente
-            filterSamplesBySegment(allSamples, segmentFilter) {
-                if (segmentFilter === 'ADMIN') {
-                    return allSamples; // Admin vê tudo
-                }
-                return allSamples.filter(sample => {
-                    const normalizedSellerName = normalizeText(sample.sellerName);
-                    return sellerSegmentsCache[normalizedSellerName] === segmentFilter;
-                });
             }
         }
 
@@ -328,7 +384,7 @@
 
         function showAlert(message, title = "Erro na Operação", color = "text-red-600") {
             customAlertTitle.textContent = title;
-            customAlertMessage.innerHTML = message;
+            customAlertMessage.innerHTML = message; // Usar innerHTML para permitir <br>
             customAlertTitle.className = `text-xl font-bold mb-4 ${color}`;
             customAlert.classList.remove('hidden');
         }
@@ -341,7 +397,7 @@
             let color = "text-red-600";
 
             if (error.code === 'resource-exhausted' || (error.message && error.message.includes('Quota exceeded'))) {
-                message = "O limite diário de uso do banco de dados foi atingido (Quota Exceeded). Novas alterações não serão salvas hoje.<br><br>Por favor, tente novamente amanhã.";
+                message = "O limite diário de uso do banco de dados foi atingido (Quota Exceeded). Novas alterações não serão salvas hoje.<br><br>Por favor, tente novamente amanhã ou contate o suporte.";
                 title = "Limite da Plataforma Atingido";
                 color = "text-amber-600";
             } else if (error.code === 'permission-denied') {
@@ -351,6 +407,60 @@
         }
 
         // --- Lógica de Carregamento de Dados (v2) ---
+        
+        // NOVO: Listeners para o feed de observações
+        function listenForManagerReplies(sessionId) {
+            if (managerRepliesListenerUnsubscribe) managerRepliesListenerUnsubscribe();
+            const q = query(collection(db, "sessoes", sessionId, "notificacoesVendedor"));
+            
+            managerRepliesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+                 allManagerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                 if (!dashboardContent.classList.contains('hidden')) {
+                     renderObservationsFeed(allCurrentSamples);
+                 }
+            }, (error) => handleFirestoreError(error, "ouvir respostas dos gestores (feed)"));
+        }
+        
+        function listenForSellerRepliesFeed(sessionId) {
+            // Este listener é diferente do da notificação, pois precisa de TODOS os dados
+            const q = query(collection(db, "sessoes", sessionId, "respostasVendedor"));
+            
+            const unsub = onSnapshot(q, (snapshot) => {
+                 allSellerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                 if (!dashboardContent.classList.contains('hidden')) {
+                     renderObservationsFeed(allCurrentSamples);
+                 }
+            }, (error) => handleFirestoreError(error, "ouvir respostas dos vendedores (feed)"));
+            // Este listener não precisa ser parado no logout, mas vamos adicioná-lo
+            dataListenersUnsubscribe.push(unsub);
+        }
+
+        function listenForPdPostits(sessionId) {
+            if (pdPostitsListenerUnsubscribe) pdPostitsListenerUnsubscribe();
+            const q = query(collection(db, "sessoes", sessionId, "pdPostits"));
+            
+            pdPostitsListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+                 allPdPostits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                 if (!dashboardContent.classList.contains('hidden')) {
+                     renderObservationsFeed(allCurrentSamples);
+                 }
+            }, (error) => handleFirestoreError(error, "ouvir post-its P&D (feed)"));
+        }
+
+        // Listener de Notificações (Sino)
+        function listenForSellerReplies(sessionId) {
+            if (sellerRepliesListenerUnsubscribe) sellerRepliesListenerUnsubscribe();
+            // O Gerente só se importa com respostas NÃO LIDAS
+            const q = query(
+                collection(db, "sessoes", sessionId, "respostasVendedor"),
+                where("readByManager", "==", false)
+            );
+            
+            sellerRepliesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+                 renderNotificationBell(snapshot.docs.length);
+            }, (error) => handleFirestoreError(error, "ouvir respostas de vendedores (notificação)"));
+        }
+
         
         async function getActiveSessionId() {
             try {
@@ -380,7 +490,7 @@
             }
         }
 
-        async function loadAllData(sessionId, segmentFilter) {
+        async function loadAllData(sessionId) {
             dashboard.classList.remove('hidden');
             loadingState.classList.remove('hidden');
             dashboardContent.classList.add('hidden');
@@ -392,15 +502,17 @@
             currentSessionId = sessionId;
             allCurrentSamples = [];
 
-            // 1. Carrega os segmentos primeiro
+            // 1. Carrega os segmentos
             await loadSellerSegments();
 
-            // 2. Ouve as respostas (Gestor e Vendedor)
-            // Estas são ouvidas primeiro para popular o cache para o feed
+            // 2. Ouve as notificações (Sino)
+            listenForSellerReplies(sessionId);
+            // 3. Ouve as threads de comunicação (Feed)
             listenForManagerReplies(sessionId);
-            listenForSellerReplies(sessionId, segmentFilter);
+            listenForSellerRepliesFeed(sessionId);
+            listenForPdPostits(sessionId);
 
-            // 3. Busca todos os vendedores da sessão (o filtro de segmento será aplicado no DataLoadManager)
+            // 4. Busca todos os vendedores da sessão
             const sellersQuery = query(collection(db, "sessoes", sessionId, "vendedores"));
             const sellersSnapshot = await getDocs(sellersQuery);
             const sellerDocs = sellersSnapshot.docs;
@@ -413,17 +525,32 @@
                  return;
             }
 
-            // 4. Usa o DataLoadManager para carregar as sub-coleções
-            const loadManager = new DataLoadManager(sellerDocs.length, (filteredSamples) => {
-                allCurrentSamples = filteredSamples; // Armazena apenas amostras do segmento
-                processAndDisplayDashboard(allCurrentSamples);
+            // 5. Usa o DataLoadManager para carregar as sub-coleções
+            const loadManager = new DataLoadManager(sellerDocs.length, (allSamples) => {
+                
+                // --- FILTRO DO GERENTE ---
+                let filteredSamples;
+                if (currentSegment === 'ADMIN') {
+                    filteredSamples = allSamples; // Admin vê tudo
+                } else {
+                    // Gerente vê apenas vendedores do seu segmento
+                    filteredSamples = allSamples.filter(sample => {
+                        const sellerSegment = sellerSegmentsCache[normalizeText(sample.sellerName)];
+                        return sellerSegment === currentSegment;
+                    });
+                }
+                // --- FIM DO FILTRO ---
+
+                allCurrentSamples = filteredSamples; // Armazena SOMENTE as amostras filtradas
+                processAndDisplayDashboard(allCurrentSamples); // Passa somente as amostras filtradas
+                
                 loadingState.classList.add('hidden');
                 dashboardContent.classList.remove('hidden');
             });
             
             loadingMessage.textContent = `A preparar para carregar ${sellerDocs.length} vendedores...`;
 
-            // 5. Ouve as 'amostras' de cada vendedor
+            // 6. Ouve as 'amostras' de cada vendedor
             sellerDocs.forEach(sellerDoc => {
                 const sellerData = sellerDoc.data();
                 const samplesQuery = query(
@@ -433,34 +560,51 @@
                 const unsub = onSnapshot(samplesQuery, (samplesSnapshot) => {
                     const samples = samplesSnapshot.docs.map(sampleDoc => ({
                         ...sampleDoc.data(),
-                        id: sampleDoc.id
-                        // sellerName será adicionado pelo sellerLoaded
+                        id: sampleDoc.id,
+                        sellerDocRef: sellerDoc.ref.path // Guarda a referência do vendedor
                     }));
-                    // Passa o nome original para o manager
                     loadManager.sellerLoaded(sellerData.originalName, samples);
                 }, (error) => {
                     handleFirestoreError(error, `ouvir amostras de ${sellerData.originalName}`);
-                    loadManager.sellerLoaded(sellerData.originalName, []); // Continua mesmo se um falhar
+                    loadManager.sellerLoaded(sellerData.originalName, []);
                 });
                 dataListenersUnsubscribe.push(unsub);
             });
         }
 
         // --- Lógica de Login ---
+        
+        // NOVO: `populateManagerButtons` com cards profissionais
         function populateManagerButtons() {
             managerLoginButtons.innerHTML = '';
-            Object.keys(MANAGER_PASSWORDS).forEach(segment => {
-                const button = document.createElement('button');
-                button.className = "p-4 bg-gray-100 rounded-lg font-semibold text-gray-700 hover:bg-blue-100 border border-transparent hover:border-blue-300 transition";
-                button.textContent = segment;
-                button.dataset.segment = segment;
-                button.addEventListener('click', () => {
-                    managerLoginButtons.querySelectorAll('button').forEach(btn => btn.classList.remove('bg-blue-600', 'text-white'));
-                    button.classList.add('bg-blue-600', 'text-white');
+
+            Object.entries(MANAGER_PASSWORDS).forEach(([segment, data]) => {
+                const card = document.createElement('button');
+                card.className = "login-card";
+                card.dataset.segment = segment;
+                
+                // HTML sem o span do ícone
+                card.innerHTML = `
+                    <div>
+                        <p>${segment}</p>
+                        <span class="login-card-name">${data.name}</span>
+                    </div>
+                    <svg class="w-5 h-5 opacity-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" />
+                    </svg>
+                `;
+                
+                card.addEventListener('click', () => {
+                    managerLoginButtons.querySelectorAll('.login-card').forEach(c => {
+                        c.classList.remove('selected');
+                        c.querySelector('svg:last-child').classList.add('opacity-0');
+                    });
+                    card.classList.add('selected');
+                    card.querySelector('svg:last-child').classList.remove('opacity-0');
                     currentSegment = segment;
-                    currentManagerName = segment;
+                    currentManagerName = data.name; // Guarda o nome do gerente
                 });
-                managerLoginButtons.appendChild(button);
+                managerLoginButtons.appendChild(card);
             });
         }
 
@@ -471,12 +615,12 @@
                 return;
             }
             
-            if (MANAGER_PASSWORDS[currentSegment] === password) {
+            if (MANAGER_PASSWORDS[currentSegment].pass === password) {
                 loginError.textContent = '';
                 managerLoginBtn.disabled = true;
                 managerLoginBtn.textContent = 'A carregar...';
 
-                localStorage.setItem('managerSegment', currentSegment);
+                localStorage.setItem('managerSegment', currentSegment); 
                 
                 const sessionId = await getActiveSessionId();
                 if (!sessionId) {
@@ -486,13 +630,13 @@
                     return;
                 }
                 
-                dashboardTitle.textContent = `Painel: ${currentSegment}`;
+                dashboardTitle.textContent = `Painel Gerente: ${currentSegment}`;
                 if (currentSegment === 'ADMIN') {
                     adminAccessSection.classList.remove('hidden');
                     renderAccessTable();
                 }
                 
-                await loadAllData(sessionId, currentSegment);
+                await loadAllData(sessionId);
 
             } else {
                 loginError.textContent = 'Senha incorreta.';
@@ -507,10 +651,12 @@
             allCurrentSamples = [];
             allManagerReplies = [];
             allSellerReplies = [];
+            allPdPostits = [];
             dataListenersUnsubscribe.forEach(unsub => unsub());
             dataListenersUnsubscribe = [];
             if(sellerRepliesListenerUnsubscribe) sellerRepliesListenerUnsubscribe();
             if(managerRepliesListenerUnsubscribe) managerRepliesListenerUnsubscribe();
+            if(pdPostitsListenerUnsubscribe) pdPostitsListenerUnsubscribe();
             
             dashboard.classList.add('hidden');
             loginView.classList.remove('hidden');
@@ -518,7 +664,10 @@
             managerLoginBtn.disabled = false;
             managerLoginBtn.textContent = 'Entrar';
             adminAccessSection.classList.add('hidden');
-            managerLoginButtons.querySelectorAll('button').forEach(btn => btn.classList.remove('bg-blue-600', 'text-white'));
+            managerLoginButtons.querySelectorAll('.login-card').forEach(c => {
+                 c.classList.remove('selected');
+                 c.querySelector('svg:last-child').classList.add('opacity-0');
+            });
             
             // Remove o sino
             document.getElementById('notification-btn')?.parentElement.remove();
@@ -528,13 +677,12 @@
         function processAndDisplayDashboard(samples) {
             if (!samples) return;
             renderCharts(samples);
-            renderSellersList(samples);
             renderObservationsFeed(samples);
+            renderSellersList(samples);
         }
 
         function renderCharts(samples) {
             let pending = 0, resolved = 0, approved = 0, rejected = 0, events = 0;
-            const feedbackCounts = {};
             const APPROVED_PREFIX = 'A -';
             const REJECTED_PREFIX = 'R -';
             const EVENTS_PREFIX = 'E -';
@@ -545,21 +693,25 @@
                 } else {
                     resolved++;
                     const feedback = s.feedback || '';
-                    if (feedback) {
-                        feedbackCounts[feedback] = (feedbackCounts[feedback] || 0) + 1;
-                        if (feedback.startsWith(APPROVED_PREFIX)) approved++;
-                        else if (feedback.startsWith(REJECTED_PREFIX)) rejected++;
-                        else if (feedback.startsWith(EVENTS_PREFIX)) events++;
-                    }
+                    if (feedback.startsWith(APPROVED_PREFIX)) approved++;
+                    else if (feedback.startsWith(REJECTED_PREFIX)) rejected++;
+                    else if (feedback.startsWith(EVENTS_PREFIX)) events++;
                 }
             });
+
+            const statusTitle = document.querySelector('#segment-status-chart').closest('.bg-white').querySelector('h3');
+            if (currentSegment !== 'ADMIN') {
+                 statusTitle.textContent = "Status (Amostras do Segmento)";
+            }
 
             renderChart('segment-status-chart', 'doughnut', {
                 labels: ['Pendentes', 'Resolvidos'],
                 datasets: [{ data: [pending, resolved], backgroundColor: ['#facc15', '#3b82f6'] }]
             });
 
-            if (approved === 0 && rejected === 0 && events === 0) {
+            if (approved === 0 && rejected === 0 && events === 0 && resolved > 0) {
+                 renderChart('rejection-rate-chart', 'doughnut', { labels: ['Aguardando Feedbacks'], datasets: [{ data: [resolved], backgroundColor: ['#e5e7eb'] }] });
+            } else if (approved === 0 && rejected === 0 && events === 0) {
                  renderChart('rejection-rate-chart', 'doughnut', { labels: ['Aguardando Respostas'], datasets: [{ data: [1], backgroundColor: ['#e5e7eb'] }] });
             } else {
                 renderChart('rejection-rate-chart', 'doughnut', {
@@ -594,102 +746,68 @@
             });
         }
         
-        function renderSellersList(samples) {
-            const sellersMap = new Map();
-            samples.forEach(s => {
-                if (!sellersMap.has(s.sellerName)) {
-                    sellersMap.set(s.sellerName, { name: s.sellerName, total: 0, pending: 0 });
-                }
-                const seller = sellersMap.get(s.sellerName);
-                seller.total++;
-                if (s.isPending) seller.pending++;
-            });
-            
-            const sortedSellers = Array.from(sellersMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-            
-            sellersList.innerHTML = '';
-            if(sortedSellers.length === 0) {
-                 sellersList.innerHTML = '<p class="text-gray-500 placeholder-seller">Nenhum vendedor encontrado para este segmento.</p>';
-                 return;
-            }
-            
-            sortedSellers.forEach(seller => {
-                const item = document.createElement('div');
-                item.className = "p-3 rounded-lg border bg-white flex justify-between items-center";
-                item.dataset.sellerName = seller.name;
-                
-                const progress = seller.total > 0 ? (seller.total - seller.pending) / seller.total : 0;
-                const percentage = (progress * 100).toFixed(0);
-                const color = progress === 1 ? 'green' : (progress > 0.5 ? 'blue' : 'yellow');
-                
-                item.innerHTML = `
-                    <div>
-                        <p class="font-semibold">${seller.name}</p>
-                        <p class="text-xs ${seller.pending > 0 ? 'text-red-500' : 'text-green-600'}">
-                            ${seller.pending > 0 ? `${seller.pending} pendente(s)` : 'Concluído'}
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                         <span class="text-sm font-semibold text-${color}-600">${percentage}%</span>
-                         <div class="w-16 h-2 bg-gray-200 rounded-full">
-                            <div class="h-2 bg-${color}-500 rounded-full" style="width: ${percentage}%"></div>
-                         </div>
-                    </div>
-                `;
-                sellersList.appendChild(item);
-            });
-            filterSellersList(); // Aplicar filtro
-        }
-        
-        function filterSellersList() {
-             const searchTerm = normalizeText(sellerSearchInput.value);
-             sellersList.querySelectorAll('div[data-seller-name]').forEach(item => {
-                 const name = normalizeText(item.dataset.sellerName);
-                 item.style.display = name.includes(searchTerm) ? 'flex' : 'none';
-             });
-        }
-
-        // ATUALIZADO: renderObservationsFeed agora inclui a "thread"
+        // Feed de Observações (Melhorado)
         function renderObservationsFeed(samples) {
-            const searchTerm = normalizeText(observationSearchInput.value);
+            const globalSearch = normalizeText(globalSearchInput.value);
             
-            const filteredSamples = samples.filter(s => 
-                s.observation && (
-                    !searchTerm ||
-                    normalizeText(s.sellerName).includes(searchTerm) ||
-                    normalizeText(s.produto).includes(searchTerm) ||
-                    normalizeText(s.descricao).includes(searchTerm) ||
-                    normalizeText(s.razaoSocial).includes(searchTerm) ||
-                    normalizeText(s.observation).includes(searchTerm)
-                )
-            ).sort((a, b) => (b.lastUpdate?.toDate ? b.lastUpdate.toDate().getTime() : 0) - (a.lastUpdate?.toDate ? a.lastUpdate.toDate().getTime() : 0));
+            const filteredSamples = samples.filter(s => {
+                if (!s.observation) return false;
+                
+                // Filtro de Pesquisa Global
+                if (globalSearch) {
+                    return (
+                        normalizeText(s.sellerName).includes(globalSearch) ||
+                        normalizeText(s.produto).includes(globalSearch) ||
+                        normalizeText(s.descricao).includes(globalSearch) ||
+                        normalizeText(s.razaoSocial).includes(globalSearch) ||
+                        normalizeText(s.observation).includes(globalSearch) ||
+                        normalizeText(s.pedido).includes(globalSearch)
+                    );
+                }
+                return true;
+                
+            }).sort((a, b) => (b.lastUpdate?.toDate ? b.lastUpdate.toDate().getTime() : 0) - (a.lastUpdate?.toDate ? a.lastUpdate.toDate().getTime() : 0));
             
             observationsFeedList.innerHTML = '';
             if (filteredSamples.length === 0) {
-                 observationsFeedList.innerHTML = '<p class="text-gray-500 placeholder-observation">Nenhuma observação encontrada.</p>';
+                 const msg = globalSearch ? 'Nenhum resultado para a pesquisa.' : 'Nenhuma observação encontrada.';
+                 observationsFeedList.innerHTML = `<p class="text-gray-500 placeholder-observation p-4">${msg}</p>`; // Adicionado p-4
                  return;
             }
             
             filteredSamples.forEach(sample => {
                  const card = document.createElement('div');
-                 card.className = "p-4 rounded-lg border bg-white"; // Fundo branco para destacar
+                 // ALTERADO: removido bg-white e rounded-lg. Adicionado padding e borda
+                 card.className = "p-4 border-b border-gray-100 last:border-b-0";
                  const time = sample.lastUpdate?.toDate() ? sample.lastUpdate.toDate().toLocaleString('pt-BR') : 'data inválida';
                  
-                 // --- Lógica da Thread ---
+                 // --- Lógica da Thread de Comunicação ---
                  let repliesHtml = '';
-                 // 1. Encontra a resposta do gestor (a mais recente)
+                 
+                 // 1. Nota P&D (se houver)
+                 const pdNote = allPdPostits.find(p => p.contextId === sample.id);
+                 if (pdNote) {
+                      repliesHtml += `
+                         <div class="pd-note">
+                             <p><strong>Nota P&D (${pdNote.pdManagerName}):</strong> ${pdNote.message}</p>
+                         </div>
+                     `;
+                 }
+                 
+                 // 2. Resposta do Gestor (incluindo P&D)
                  const managerReply = allManagerReplies
                     .filter(r => r.sellerName === sample.sellerName && r.pedido === sample.pedido && r.produto === sample.produto && r.originalObservation === sample.observation)
                     .sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0))[0];
                  
                  if (managerReply) {
+                     const isPD = managerReply.managerName.includes('P&D');
                      repliesHtml += `
-                         <div class="manager-reply">
+                         <div class="${isPD ? 'pd-note' : 'manager-reply'}">
                              <p><strong>${managerReply.managerName} respondeu:</strong> ${managerReply.replyMessage}</p>
                          </div>
                      `;
                      
-                     // 2. Encontra a resposta do vendedor a ESSA resposta do gestor
+                     // 3. Resposta do Vendedor (a essa resposta)
                      const sellerReply = allSellerReplies
                         .filter(r => r.originalManagerMessage === managerReply.replyMessage && r.pedido === sample.pedido && r.produto === sample.produto)
                         .sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0))[0];
@@ -697,51 +815,179 @@
                      if (sellerReply) {
                          repliesHtml += `
                              <div class="seller-reply">
-                                 <p><strong>${sellerReply.sellerName} respondeu:</strong> ${sellerReply.replyMessage}</p>
+                                 <p><strong>${sellerReply.sellerName} (Vendedor) respondeu:</strong> ${sellerReply.replyMessage}</p>
                              </div>
                          `;
                      }
                  }
                  // --- Fim da Lógica da Thread ---
-
+                 
                  card.innerHTML = `
                     <div class="mb-2">
                         <p class="font-bold text-gray-800">${sample.produto}</p>
-                        <!-- DESCRIÇÃO ADICIONADA -->
+                        <!-- NOVO: Descrição adicionada -->
                         <p class="text-sm text-gray-600">${sample.descricao || 'Sem descrição'}</p>
                         <p class="text-xs text-gray-500">${sample.razaoSocial || 'Cliente N/A'}</p>
                     </div>
                     <p class="text-gray-700 mb-3 italic">"${sample.observation}"</p>
                     
-                    <!-- THREAD ADICIONADA -->
                     ${repliesHtml}
 
                     <div class="flex justify-between items-end text-xs text-gray-500 mt-3 pt-3 border-t">
                          <div>
                              <p>- ${sample.sellerName} (Pedido: ${sample.pedido})</p>
-                             <p class="text-gray-400">${time}</p>
+                             <p class="text-gray-400">Obs.: ${time}</p>
                          </div>
-                        <button class="reply-observation-btn bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded text-xs font-semibold" data-sample-id="${sample.id}">
-                            ${managerReply ? 'Responder Novamente' : 'Responder'}
-                        </button>
+                         <div class="flex gap-2">
+                             <button class="reply-btn bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded text-xs font-semibold" data-sample-id="${sample.id}">
+                                 Responder
+                             </button>
+                         </div>
                     </div>
                  `;
                  observationsFeedList.appendChild(card);
             });
             
-            observationsFeedList.querySelectorAll('.reply-observation-btn').forEach(btn => {
+            // Listeners
+            observationsFeedList.querySelectorAll('.reply-btn').forEach(btn => {
                  btn.addEventListener('click', openReplyModal);
             });
         }
         
+        // Lista de Vendedores (Layout Compacto)
+        function renderSellersList(samples) {
+            const searchTerm = normalizeText(sellerSearchInput.value);
+            
+            // 1. Agrupar amostras por vendedor (mesma lógica)
+            const sellers = samples.reduce((acc, sample) => {
+                if (!acc[sample.sellerName]) {
+                    acc[sample.sellerName] = {
+                        name: sample.sellerName,
+                        total: 0,
+                        pending: 0,
+                        finalizedByVendor: true,
+                        systemStatus: 'baixado'
+                    };
+                }
+                acc[sample.sellerName].total++;
+                if (sample.isPending) {
+                    acc[sample.sellerName].pending++;
+                    acc[sample.sellerName].finalizedByVendor = false;
+                }
+                if (sample.systemStatus !== 'baixado') {
+                    acc[sample.sellerName].systemStatus = 'pending';
+                }
+                return acc;
+            }, {});
+
+            // 2. Filtrar vendedores pelo nome (mesma lógica)
+            const filteredSellers = Object.values(sellers).filter(seller => {
+                 if (searchTerm) {
+                     return normalizeText(seller.name).includes(searchTerm);
+                 }
+                 return true;
+            }).sort((a, b) => a.name.localeCompare(b.name));
+
+            sellersListContainer.innerHTML = ''; // Limpa o container
+            if (filteredSellers.length === 0) {
+                 const msg = searchTerm ? 'Nenhum vendedor encontrado.' : 'Nenhum vendedor neste segmento.';
+                 sellersListContainer.innerHTML = `<p class="text-gray-500 placeholder-seller p-4">${msg}</p>`; // Adiciona p-4 ao placeholder
+                 return;
+            }
+
+            // 3. Renderizar ITENS DE LISTA (em vez de cards)
+            filteredSellers.forEach(seller => {
+                const item = document.createElement('div');
+                
+                let statusColor = 'yellow'; // Padrão: Pendente
+                let statusHTML = `<span class="text-xs text-gray-500">${seller.pending} pendente(s)</span>`;
+
+                if (seller.finalizedByVendor && seller.systemStatus === 'pending') {
+                    statusColor = 'green';
+                    statusHTML = `
+                         <label class="flex items-center space-x-2 cursor-pointer text-sm">
+                             <input type="checkbox" class="system-check-btn rounded" data-seller-name="${seller.name}">
+                             <span class="text-xs">Dar Baixa</span>
+                         </label>`;
+                } else if (seller.systemStatus === 'baixado') {
+                    statusColor = 'purple';
+                    statusHTML = `<span class="text-sm font-semibold text-purple-600">✓ Baixado</span>`;
+                }
+
+                // NOVO: Layout de item de lista
+                item.className = `flex justify-between items-center p-3 border-b border-gray-100 last:border-b-0`;
+                item.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="h-2 w-2 rounded-full bg-${statusColor}-500 flex-shrink-0"></span>
+                        <span class="font-medium text-sm text-gray-800">${seller.name}</span>
+                    </div>
+                    <div class="text-xs text-right flex-shrink-0 ml-2">
+                        ${statusHTML}
+                        <span class="text-gray-400 ml-1">(${seller.pending}/${seller.total})</span>
+                    </div>`;
+                
+                sellersListContainer.appendChild(item);
+            });
+
+            // 4. Adicionar Listeners (mesma lógica)
+            sellersListContainer.querySelectorAll('.system-check-btn').forEach(checkbox => {
+                 checkbox.addEventListener('change', (e) => darBaixaVendedor(e, checkbox.dataset.sellerName));
+            });
+        }
+        
+        async function darBaixaVendedor(event, sellerName) {
+            const checkbox = event.target;
+            if (!checkbox.checked) return; // Só processa se estiver a marcar
+            
+            checkbox.disabled = true;
+            const originalLabel = checkbox.parentElement.querySelector('span');
+            originalLabel.textContent = 'A guardar...';
+            
+            try {
+                const normalizedSellerName = normalizeText(sellerName);
+                // Pega a referência do vendedor na sessão atual
+                const sellerSessionRef = doc(db, "sessoes", currentSessionId, "vendedores", normalizedSellerName);
+                
+                // Pega todas as amostras (que não são 'isPending') deste vendedor
+                const samplesToUpdateQuery = query(
+                    collection(db, sellerSessionRef.path, "amostras"),
+                    where("isPending", "==", false),
+                    where("systemStatus", "==", "pending") // Apenas as que estão pendentes
+                );
+                
+                const samplesSnapshot = await getDocs(samplesToUpdateQuery);
+                
+                if (samplesSnapshot.empty) {
+                     showAlert("Nenhuma amostra finalizada encontrada para este vendedor.", "Aviso", "text-amber-600");
+                     // Não reverte, pois o listener vai confirmar o estado
+                } else {
+                    const batch = writeBatch(db);
+                    samplesSnapshot.forEach(sampleDoc => {
+                        batch.update(sampleDoc.ref, { systemStatus: 'baixado' });
+                    });
+                    await batch.commit();
+                }
+                
+                // O listener (onSnapshot) vai atualizar a UI
+                
+            } catch(error) {
+                 handleFirestoreError(error, `dar baixa para ${sellerName}`);
+                 // Reverte em caso de erro
+                 checkbox.disabled = false;
+                 checkbox.checked = false;
+                 originalLabel.textContent = 'Dar Baixa';
+            }
+        }
+        
         function renderAccessTable() {
              managerAccessTbody.innerHTML = '';
-             Object.entries(MANAGER_PASSWORDS).forEach(([segment, password]) => {
+             Object.entries(MANAGER_PASSWORDS).forEach(([segment, data]) => {
                  if(segment === 'ADMIN') return;
                  const row = document.createElement('tr');
                  row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${segment}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 password-cell" data-password="${password}">••••••</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${data.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 password-cell" data-password="${data.pass}">••••••</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button class="toggle-password-btn text-blue-600 hover:text-blue-800" data-state="hidden">Visualizar</button>
                     </td>
@@ -755,10 +1001,7 @@
         function openReplyModal(e) {
              const sampleId = e.currentTarget.dataset.sampleId;
              currentSampleForReply = allCurrentSamples.find(s => s.id === sampleId);
-             if (!currentSampleForReply) {
-                 showAlert("Erro: Amostra não encontrada.");
-                 return;
-             }
+             if (!currentSampleForReply) return showAlert("Erro: Amostra não encontrada.");
              
              replyModalProduct.textContent = `${currentSampleForReply.produto} (${currentSampleForReply.pedido})`;
              replyModalSeller.textContent = `Observação de: ${currentSampleForReply.sellerName}`;
@@ -767,21 +1010,21 @@
              replyModal.classList.remove('hidden');
         }
 
-        async function sendReplyToSeller() {
+        async function sendReplyToManager() {
             if (!currentSampleForReply || !currentSessionId) return;
             
             const replyMessage = replyMessageInput.value.trim();
             if (!replyMessage || !currentManagerName) {
-                showAlert("A mensagem de resposta não pode estar vazia.");
-                return;
+                return showAlert("A mensagem de resposta não pode estar vazia.");
             }
 
             sendReplyBtn.disabled = true;
             sendReplyBtn.textContent = 'A Enviar...';
 
             try {
+                // O gerente envia para a coleção 'notificacoesVendedor'
                 const notificationData = {
-                    managerName: currentManagerName,
+                    managerName: currentManagerName, // Nome do Gerente
                     replyMessage: replyMessage,
                     originalObservation: currentSampleForReply.observation,
                     sellerName: currentSampleForReply.sellerName,
@@ -791,6 +1034,7 @@
                     descricao: currentSampleForReply.descricao || '',
                     timestamp: serverTimestamp(),
                     read: false,
+                    readByPd: false
                 };
 
                 const sellerNotifsRef = collection(db, "sessoes", currentSessionId, "notificacoesVendedor");
@@ -808,73 +1052,14 @@
             }
         }
         
-        // NOVO: Ouve as respostas dos gestores (para o cache)
-        function listenForManagerReplies(sessionId) {
-            if (managerRepliesListenerUnsubscribe) managerRepliesListenerUnsubscribe();
-            
-            const q = query(
-                collection(db, "sessoes", sessionId, "notificacoesVendedor"),
-                orderBy("timestamp", "desc")
-            );
-            
-            managerRepliesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
-                 allManagerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                 // Re-renderiza o feed se já estiver visível
-                 if (!dashboardContent.classList.contains('hidden')) {
-                     renderObservationsFeed(allCurrentSamples);
-                 }
-            }, (error) => {
-                 handleFirestoreError(error, "ouvir respostas dos gestores");
-            });
-        }
-        
-        // Ouve respostas dos vendedores (para o sino e para o cache)
-        function listenForSellerReplies(sessionId, segmentFilter) {
-            if (sellerRepliesListenerUnsubscribe) sellerRepliesListenerUnsubscribe();
-            
-            // O cache (allSellerReplies) deve conter TODAS as respostas,
-            // mas o sino (unreadReplies) só deve contar as do segmento.
-            
-            const qAll = query(collection(db, "sessoes", sessionId, "respostasVendedor"));
-            
-            sellerRepliesListenerUnsubscribe = onSnapshot(qAll, (snapshot) => {
-                 allSellerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                 
-                 // Filtra as não lidas PARA O SINO
-                 const sellerNamesInSegment = (segmentFilter === 'ADMIN')
-                    ? null // Admin vê tudo
-                    : Object.entries(sellerSegmentsCache)
-                        .filter(([normalizedName, segment]) => segment === segmentFilter)
-                        .map(([normalizedName]) => {
-                            const sample = allCurrentSamples.find(s => normalizeText(s.sellerName) === normalizedName);
-                            return sample ? sample.sellerName : normalizedName;
-                        });
-
-                 const unreadReplies = allSellerReplies.filter(reply => {
-                     if (reply.readByManager) return false;
-                     if (segmentFilter === 'ADMIN') return true;
-                     return sellerNamesInSegment.includes(reply.sellerName);
-                 });
-                 
-                 renderNotificationBell(unreadReplies);
-                 
-                 // Re-renderiza o feed se já estiver visível
-                 if (!dashboardContent.classList.contains('hidden')) {
-                     renderObservationsFeed(allCurrentSamples);
-                 }
-                 
-            }, (error) => {
-                handleFirestoreError(error, "ouvir respostas dos vendedores");
-            });
-        }
-        
-        function renderNotificationBell(unreadReplies) {
-             const unreadCount = unreadReplies.length;
-             let bellBtn = document.getElementById('notification-btn');
+        // Sino de Notificação (mostra respostas de Vendedores)
+        let bellBtn = null; // Mover para escopo mais alto
+        function renderNotificationBell(unreadCount) {
              let countBadge = document.getElementById('notification-count-badge');
              
              if (!bellBtn) {
-                const header = document.querySelector('#dashboard header');
+                const header = document.querySelector('#dashboard header .flex.items-center.gap-4');
+                if (!header) return; // Header pode não existir se o logout for rápido
                 const bellWrapper = document.createElement('div');
                 bellWrapper.className = "relative";
                 bellWrapper.innerHTML = `
@@ -886,10 +1071,8 @@
                 header.insertBefore(bellWrapper, logoutBtn);
                 bellBtn = document.getElementById('notification-btn');
                 countBadge = document.getElementById('notification-count-badge');
-                bellBtn.addEventListener('click', () => openNotificationModal(unreadReplies)); // Passa apenas as não lidas
-             } else {
-                 // Atualiza o listener com as respostas não lidas mais recentes
-                 bellBtn.onclick = () => openNotificationModal(unreadReplies);
+                
+                bellBtn.addEventListener('click', openNotificationModal);
              }
              
              if (unreadCount > 0) {
@@ -900,66 +1083,131 @@
              }
         }
         
-        function openNotificationModal(unreadReplies) {
+        async function openNotificationModal() {
              notificationList.innerHTML = '';
-             if (unreadReplies.length === 0) {
-                 notificationList.innerHTML = '<p class="text-gray-500">Nenhuma resposta nova dos vendedores.</p>';
+             
+             const q = query(
+                collection(db, "sessoes", currentSessionId, "respostasVendedor"),
+                where("readByManager", "==", false),
+                orderBy("timestamp", "desc")
+             );
+             
+             const snapshot = await getDocs(q);
+             const replies = snapshot.docs;
+
+             if (replies.length === 0) {
+                 notificationList.innerHTML = '<p class="text-gray-500">Nenhuma resposta nova.</p>';
                  notificationModal.classList.remove('hidden');
                  return;
              }
              
-             unreadReplies.sort((a,b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0));
+             const batch = writeBatch(db);
              
-             unreadReplies.forEach(reply => {
+             replies.forEach(replyDoc => {
+                 const reply = replyDoc.data();
                  const item = document.createElement('div');
                  item.className = "p-3 border-b border-gray-100";
                  item.innerHTML = `
-                    <p class="font-semibold">${reply.sellerName} respondeu:</p>
+                    <p><span class="font-semibold text-green-600">${reply.sellerName}</span> (Vendedor) respondeu:</p>
                     <p class="italic text-gray-700 my-1">"${reply.replyMessage}"</p>
                     <p class="text-xs text-gray-500">Ref: ${reply.produto} (Pedido: ${reply.pedido})</p>
                     <p class="text-xs text-gray-400">Mensagem original: "${reply.originalManagerMessage}"</p>
-                    <div class="text-right mt-2">
-                        <button class="mark-as-read-btn bg-gray-200 text-gray-700 text-xs font-semibold py-1 px-3 rounded hover:bg-gray-300" data-reply-id="${reply.id}">Marcar como Lida</button>
-                    </div>
                  `;
                  notificationList.appendChild(item);
+                 
+                 // Marca como lida
+                 batch.update(replyDoc.ref, { readByManager: true });
              });
+             
              notificationModal.classList.remove('hidden');
+             await batch.commit();
+             // O listener vai atualizar o sino
         }
         
-        async function markReplyAsRead(e) {
-             const button = e.target;
-             const replyId = button.dataset.replyId;
-             button.disabled = true;
-             button.textContent = 'A marcar...';
-             
-             try {
-                 const replyRef = doc(db, "sessoes", currentSessionId, "respostasVendedor", replyId);
-                 await updateDoc(replyRef, { readByManager: true });
-                 // O listener 'listenForSellerReplies' vai atualizar o sino e o cache
-                 notificationModal.classList.add('hidden'); // Fecha o modal
-             } catch (error) {
-                 handleFirestoreError(error, "marcar resposta como lida");
-                 button.disabled = false;
-                 button.textContent = 'Marcar como Lida';
-             }
+        // --- Modal de Amostras (Pesquisa Global) ---
+        function openGlobalSearchModal(samples) {
+            feedbackSamplesTitle.textContent = `Resultados da Pesquisa: "${globalSearchInput.value}" (${samples.length})`;
+            feedbackSamplesList.innerHTML = '';
+            
+            if (samples.length === 0) {
+                 feedbackSamplesList.innerHTML = '<p class="text-gray-500">Nenhum resultado encontrado.</p>';
+                 feedbackSamplesModal.classList.remove('hidden');
+                 return;
+            }
+            
+            samples.forEach(sample => {
+                 const itemDiv = document.createElement('div');
+                 itemDiv.className = `feedback-sample-item text-sm`;
+                 
+                 let repliesHtml = '';
+                 const pdNote = allPdPostits.find(p => p.contextId === sample.id);
+                 if (pdNote) repliesHtml += `<div class="pd-note"><p><strong>Nota P&D:</strong> ${pdNote.message}</p></div>`;
+                 const managerReply = allManagerReplies.find(r => r.sellerName === sample.sellerName && r.pedido === sample.pedido && r.produto === sample.produto && r.originalObservation === sample.observation);
+                 if (managerReply) {
+                     repliesHtml += `<div class="manager-reply"><p><strong>${managerReply.managerName}:</strong> ${managerReply.replyMessage}</p></div>`;
+                     const sellerReply = allSellerReplies.find(r => r.originalManagerMessage === managerReply.replyMessage && r.pedido === sample.pedido);
+                     if (sellerReply) repliesHtml += `<div class="seller-reply"><p><strong>${sellerReply.sellerName}:</strong> ${sellerReply.replyMessage}</p></div>`;
+                 }
+
+                 itemDiv.innerHTML = `
+                     <div class="flex justify-between items-start">
+                         <div>
+                             <p class="font-semibold">${sample.produto} (${sample.razaoSocial})</p>
+                             <p class="text-xs text-gray-600">${sample.descricao}</p>
+                             <p class="text-xs text-gray-500 mt-1">
+                                 Vendedor: ${sample.sellerName} | Pedido: ${sample.pedido} | NF: ${sample.emissaoNF || 'N/A'}
+                             </p>
+                             <p class="font-medium text-gray-800 mt-1">Feedback: ${sample.feedback || 'Pendente'}</p>
+                         </div>
+                         <!-- Botão de Destaque removido do painel do gerente -->
+                     </div>
+                     ${sample.observation ? `<p class="text-xs text-gray-600 mt-1 italic">Obs: ${sample.observation}</p>` : ''}
+                     ${repliesHtml}
+                 `;
+                 feedbackSamplesList.appendChild(itemDiv);
+            });
+            
+            feedbackSamplesModal.classList.remove('hidden');
         }
 
 
         // --- Event Listeners Globais ---
         managerLoginBtn.addEventListener('click', login);
         logoutBtn.addEventListener('click', logout);
-        sellerSearchInput.addEventListener('input', filterSellersList);
-        observationSearchInput.addEventListener('input', () => renderObservationsFeed(allCurrentSamples));
-        closeFeedbackSamplesBtn.addEventListener('click', () => feedbackSamplesModal.classList.add('hidden'));
-        cancelReplyBtn.addEventListener('click', () => replyModal.classList.add('hidden'));
-        sendReplyBtn.addEventListener('click', sendReplyToSeller);
-        closeNotificationBtn.addEventListener('click', () => notificationModal.classList.add('hidden'));
-        notificationList.addEventListener('click', (e) => {
-            const button = e.target.closest('.mark-as-read-btn');
-            if (button) markReplyAsRead({ target: button });
+        sellerSearchInput.addEventListener('input', () => renderSellersList(allCurrentSamples));
+        
+        globalSearchInput.addEventListener('keyup', (e) => {
+            // Se pressionar Enter, abre o modal de pesquisa
+            if (e.key === 'Enter') {
+                const searchTerm = normalizeText(globalSearchInput.value);
+                if (!searchTerm) {
+                    renderObservationsFeed(allCurrentSamples);
+                    return;
+                }
+                const filteredSamples = allCurrentSamples.filter(s => 
+                    normalizeText(s.sellerName).includes(searchTerm) ||
+                    normalizeText(s.produto).includes(searchTerm) ||
+                    normalizeText(s.descricao).includes(searchTerm) ||
+                    normalizeText(s.razaoSocial).includes(searchTerm) ||
+                    (s.observation && normalizeText(s.observation).includes(searchTerm)) ||
+                    normalizeText(s.pedido).includes(searchTerm)
+                ).sort((a, b) => (b.lastUpdate?.toDate ? b.lastUpdate.toDate().getTime() : 0) - (a.lastUpdate?.toDate ? a.lastUpdate.toDate().getTime() : 0));
+                
+                openGlobalSearchModal(filteredSamples);
+                
+            } else { // Pesquisa em tempo real nos feeds
+                renderObservationsFeed(allCurrentSamples);
+            }
         });
 
+        // Modais
+        closeFeedbackSamplesBtn.addEventListener('click', () => feedbackSamplesModal.classList.add('hidden'));
+        cancelReplyBtn.addEventListener('click', () => replyModal.classList.add('hidden'));
+        sendReplyBtn.addEventListener('click', sendReplyToManager);
+        
+        // Modal de Notificações
+        closeNotificationBtn.addEventListener('click', () => notificationModal.classList.add('hidden'));
+        
         // Tabela de Acessos (Admin)
         managerAccessTbody.addEventListener('click', (e) => {
             const button = e.target.closest('.toggle-password-btn');
@@ -982,33 +1230,41 @@
         // --- INICIALIZAÇÃO ---
         (async () => {
             try {
-                await signInAnonymously(auth);
-                populateManagerButtons();
+                await signInAnonymously(auth); // Garante que estamos autenticados no Firebase
+                populateManagerButtons(); // Preenche os botões de login
                 
                 // Tenta fazer login automático se já esteve logado
                 const savedSegment = localStorage.getItem('managerSegment');
-                if (savedSegment) {
+                if (savedSegment && MANAGER_PASSWORDS[savedSegment]) {
                     currentSegment = savedSegment;
-                    currentManagerName = savedSegment;
+                    currentManagerName = MANAGER_PASSWORDS[savedSegment].name;
                     managerLoginBtn.disabled = true;
                     managerLoginBtn.textContent = 'A carregar...';
+                    
+                    // Simula o clique no card correto para o feedback visual
+                    managerLoginButtons.querySelectorAll('.login-card').forEach(c => {
+                         if(c.dataset.segment === savedSegment) {
+                             c.classList.add('selected');
+                             c.querySelector('svg:last-child').classList.remove('opacity-0');
+                         }
+                    });
                     
                     const sessionId = await getActiveSessionId();
                     if (!sessionId) {
                         loginError.textContent = 'Nenhuma sessão ativa encontrada. Contate o administrador.';
-                        logout(); // Limpa o estado
+                        logout();
                         return;
                     }
                     
-                    dashboardTitle.textContent = `Painel: ${currentSegment}`;
+                    dashboardTitle.textContent = `Painel Gerente: ${currentSegment}`;
                     if (currentSegment === 'ADMIN') {
                         adminAccessSection.classList.remove('hidden');
                         renderAccessTable();
                     }
                     
-                    await loadAllData(sessionId, currentSegment);
+                    await loadAllData(sessionId);
                 }
-                
+
             } catch (error) {
                 console.error("Firebase Auth Error:", error);
                 document.body.innerHTML = '<p class="text-center text-red-500 p-8">Erro crítico ao conectar com o Firebase. Verifique a configuração.</p>';
@@ -1018,6 +1274,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 
