@@ -45,7 +45,7 @@
 
     <!-- Tela de Login -->
     <div id="login-view" class="grid place-items-center min-h-screen p-4">
-        <div class_ ="bg-white rounded-2xl shadow-lg border border-gray-200 w-full max-w-lg p-8">
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 w-full max-w-lg p-8">
             <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">Painel de Gerentes (v2)</h1>
             <p class="text-gray-600 text-center mb-8">Selecione o seu segmento para aceder ao painel.</p>
             
@@ -200,7 +200,8 @@
         import { 
             getFirestore, collection, onSnapshot, doc, getDoc, getDocs, 
             updateDoc, query, orderBy, serverTimestamp, addDoc, limit, where,
-            collectionGroup // Importar collectionGroup
+            collectionGroup, // Importar collectionGroup
+            Timestamp // Importar Timestamp
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -274,10 +275,13 @@
         let currentManagerName = null; // Nome do gerente logado
         let allCurrentSamples = []; // Armazena TODAS as amostras carregadas
         let sellerSegmentsCache = {}; // Cache de segmentos de vendedores
-        let sellerRepliesListenerUnsubscribe = null;
+        let sellerRepliesListenerUnsubscribe = null; // Respostas dos vendedores (para o sino)
+        let managerRepliesListenerUnsubscribe = null; // Respostas dos gestores (para o feed)
         let dataListenersUnsubscribe = []; // Array para armazenar todos os listeners de dados
         let chartInstances = {};
         let currentSampleForReply = null;
+        let allManagerReplies = []; // Cache de respostas de gestores
+        let allSellerReplies = []; // Cache de respostas de vendedores
         
         // Classe para gerir carregamento de dados (evita "piscar")
         class DataLoadManager {
@@ -289,17 +293,33 @@
                 this.hasCompleted = false;
             }
 
-            itemLoaded(data) {
+            // Chamado para cada vendedor
+            sellerLoaded(sellerName, samples) {
                 this.loadedItems++;
-                this.allData = this.allData.concat(data);
+                // Adiciona o nome do vendedor a cada amostra
+                const samplesWithOwner = samples.map(s => ({ ...s, sellerName }));
+                this.allData = this.allData.concat(samplesWithOwner);
                 
                 const progress = this.totalItems > 0 ? (this.loadedItems / this.totalItems) * 100 : 100;
                 loadingMessage.textContent = `A processar... (${this.loadedItems}/${this.totalItems} vendedores carregados)`;
 
                 if (this.loadedItems === this.totalItems && !this.hasCompleted) {
                     this.hasCompleted = true;
-                    this.onComplete(this.allData);
+                    // Filtra amostras pelo segmento ANTES de completar
+                    const filteredSamples = this.filterSamplesBySegment(this.allData, currentSegment);
+                    this.onComplete(filteredSamples);
                 }
+            }
+
+            // Filtra as amostras com base no segmento do gerente
+            filterSamplesBySegment(allSamples, segmentFilter) {
+                if (segmentFilter === 'ADMIN') {
+                    return allSamples; // Admin vê tudo
+                }
+                return allSamples.filter(sample => {
+                    const normalizedSellerName = normalizeText(sample.sellerName);
+                    return sellerSegmentsCache[normalizedSellerName] === segmentFilter;
+                });
             }
         }
 
@@ -332,7 +352,6 @@
 
         // --- Lógica de Carregamento de Dados (v2) ---
         
-        // Busca a sessão ativa (v2)
         async function getActiveSessionId() {
             try {
                 const activeSessionRef = doc(db, "configuracoes", "sessaoAtiva");
@@ -348,13 +367,11 @@
             }
         }
 
-        // Carrega os segmentos de todos os vendedores (v2)
         async function loadSellerSegments() {
             sellerSegmentsCache = {};
             try {
                 const segmentsSnap = await getDocs(collection(db, "vendedorConfig"));
                 segmentsSnap.forEach(doc => {
-                    // ID do doc é o nome normalizado
                     sellerSegmentsCache[doc.id] = doc.data().segmento;
                 });
                 console.log("Cache de segmentos carregado:", sellerSegmentsCache);
@@ -363,14 +380,12 @@
             }
         }
 
-        // Carrega TODOS os dados da sessão (v2)
         async function loadAllData(sessionId, segmentFilter) {
             dashboard.classList.remove('hidden');
             loadingState.classList.remove('hidden');
             dashboardContent.classList.add('hidden');
             loginView.classList.add('hidden');
             
-            // Limpa listeners antigos
             dataListenersUnsubscribe.forEach(unsub => unsub());
             dataListenersUnsubscribe = [];
             
@@ -380,46 +395,27 @@
             // 1. Carrega os segmentos primeiro
             await loadSellerSegments();
 
-            // 2. Busca todos os vendedores da sessão
-            let sellersQuery;
-            if (segmentFilter === 'ADMIN') {
-                sellersQuery = query(collection(db, "sessoes", sessionId, "vendedores"));
-            } else {
-                // Se não for admin, pré-filtra os vendedores pelo segmento
-                const sellerIdsInSegment = Object.entries(sellerSegmentsCache)
-                    .filter(([normalizedName, segment]) => segment === segmentFilter)
-                    .map(([normalizedName]) => normalizedName);
-                
-                if (sellerIdsInSegment.length === 0) {
-                     console.warn(`Nenhum vendedor encontrado para o segmento ${segmentFilter}`);
-                     loadingState.classList.add('hidden');
-                     dashboardContent.classList.remove('hidden');
-                     processAndDisplayDashboard([]);
-                     listenForSellerReplies(sessionId, segmentFilter); // Ainda ouve respostas
-                     return;
-                }
-                
-                sellersQuery = query(
-                    collection(db, "sessoes", sessionId, "vendedores"),
-                    where('id', 'in', sellerIdsInSegment) // 'id' aqui é o nome normalizado
-                );
-            }
-            
+            // 2. Ouve as respostas (Gestor e Vendedor)
+            // Estas são ouvidas primeiro para popular o cache para o feed
+            listenForManagerReplies(sessionId);
+            listenForSellerReplies(sessionId, segmentFilter);
+
+            // 3. Busca todos os vendedores da sessão (o filtro de segmento será aplicado no DataLoadManager)
+            const sellersQuery = query(collection(db, "sessoes", sessionId, "vendedores"));
             const sellersSnapshot = await getDocs(sellersQuery);
             const sellerDocs = sellersSnapshot.docs;
             
             if (sellerDocs.length === 0) {
-                 console.log("Nenhum vendedor encontrado para esta sessão/segmento.");
+                 console.log("Nenhum vendedor encontrado para esta sessão.");
                  loadingState.classList.add('hidden');
                  dashboardContent.classList.remove('hidden');
                  processAndDisplayDashboard([]);
-                 listenForSellerReplies(sessionId, segmentFilter);
                  return;
             }
 
-            // 3. Usa o DataLoadManager para carregar as sub-coleções
-            const loadManager = new DataLoadManager(sellerDocs.length, (allSamples) => {
-                allCurrentSamples = allSamples;
+            // 4. Usa o DataLoadManager para carregar as sub-coleções
+            const loadManager = new DataLoadManager(sellerDocs.length, (filteredSamples) => {
+                allCurrentSamples = filteredSamples; // Armazena apenas amostras do segmento
                 processAndDisplayDashboard(allCurrentSamples);
                 loadingState.classList.add('hidden');
                 dashboardContent.classList.remove('hidden');
@@ -427,7 +423,7 @@
             
             loadingMessage.textContent = `A preparar para carregar ${sellerDocs.length} vendedores...`;
 
-            // 4. Ouve as 'amostras' de cada vendedor
+            // 5. Ouve as 'amostras' de cada vendedor
             sellerDocs.forEach(sellerDoc => {
                 const sellerData = sellerDoc.data();
                 const samplesQuery = query(
@@ -437,19 +433,17 @@
                 const unsub = onSnapshot(samplesQuery, (samplesSnapshot) => {
                     const samples = samplesSnapshot.docs.map(sampleDoc => ({
                         ...sampleDoc.data(),
-                        id: sampleDoc.id,
-                        sellerName: sellerData.originalName // Adiciona o nome original
+                        id: sampleDoc.id
+                        // sellerName será adicionado pelo sellerLoaded
                     }));
-                    loadManager.itemLoaded(samples);
+                    // Passa o nome original para o manager
+                    loadManager.sellerLoaded(sellerData.originalName, samples);
                 }, (error) => {
                     handleFirestoreError(error, `ouvir amostras de ${sellerData.originalName}`);
-                    loadManager.itemLoaded([]); // Continua mesmo se um falhar
+                    loadManager.sellerLoaded(sellerData.originalName, []); // Continua mesmo se um falhar
                 });
                 dataListenersUnsubscribe.push(unsub);
             });
-            
-            // 5. Ouve as respostas dos vendedores
-            listenForSellerReplies(sessionId, segmentFilter);
         }
 
         // --- Lógica de Login ---
@@ -464,7 +458,7 @@
                     managerLoginButtons.querySelectorAll('button').forEach(btn => btn.classList.remove('bg-blue-600', 'text-white'));
                     button.classList.add('bg-blue-600', 'text-white');
                     currentSegment = segment;
-                    currentManagerName = segment; // Define o nome do gerente
+                    currentManagerName = segment;
                 });
                 managerLoginButtons.appendChild(button);
             });
@@ -482,10 +476,8 @@
                 managerLoginBtn.disabled = true;
                 managerLoginBtn.textContent = 'A carregar...';
 
-                // Salva o segmento
                 localStorage.setItem('managerSegment', currentSegment);
                 
-                // Carrega a sessão ativa e os dados
                 const sessionId = await getActiveSessionId();
                 if (!sessionId) {
                     loginError.textContent = 'Nenhuma sessão ativa encontrada. Contate o administrador.';
@@ -513,9 +505,12 @@
             currentSegment = null;
             currentManagerName = null;
             allCurrentSamples = [];
+            allManagerReplies = [];
+            allSellerReplies = [];
             dataListenersUnsubscribe.forEach(unsub => unsub());
             dataListenersUnsubscribe = [];
             if(sellerRepliesListenerUnsubscribe) sellerRepliesListenerUnsubscribe();
+            if(managerRepliesListenerUnsubscribe) managerRepliesListenerUnsubscribe();
             
             dashboard.classList.add('hidden');
             loginView.classList.remove('hidden');
@@ -524,6 +519,9 @@
             managerLoginBtn.textContent = 'Entrar';
             adminAccessSection.classList.add('hidden');
             managerLoginButtons.querySelectorAll('button').forEach(btn => btn.classList.remove('bg-blue-600', 'text-white'));
+            
+            // Remove o sino
+            document.getElementById('notification-btn')?.parentElement.remove();
         }
 
         // --- Processamento e Renderização do Dashboard ---
@@ -651,6 +649,7 @@
              });
         }
 
+        // ATUALIZADO: renderObservationsFeed agora inclui a "thread"
         function renderObservationsFeed(samples) {
             const searchTerm = normalizeText(observationSearchInput.value);
             
@@ -673,23 +672,57 @@
             
             filteredSamples.forEach(sample => {
                  const card = document.createElement('div');
-                 card.className = "p-4 rounded-lg border bg-gray-50";
+                 card.className = "p-4 rounded-lg border bg-white"; // Fundo branco para destacar
                  const time = sample.lastUpdate?.toDate() ? sample.lastUpdate.toDate().toLocaleString('pt-BR') : 'data inválida';
                  
+                 // --- Lógica da Thread ---
+                 let repliesHtml = '';
+                 // 1. Encontra a resposta do gestor (a mais recente)
+                 const managerReply = allManagerReplies
+                    .filter(r => r.sellerName === sample.sellerName && r.pedido === sample.pedido && r.produto === sample.produto && r.originalObservation === sample.observation)
+                    .sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0))[0];
+                 
+                 if (managerReply) {
+                     repliesHtml += `
+                         <div class="manager-reply">
+                             <p><strong>${managerReply.managerName} respondeu:</strong> ${managerReply.replyMessage}</p>
+                         </div>
+                     `;
+                     
+                     // 2. Encontra a resposta do vendedor a ESSA resposta do gestor
+                     const sellerReply = allSellerReplies
+                        .filter(r => r.originalManagerMessage === managerReply.replyMessage && r.pedido === sample.pedido && r.produto === sample.produto)
+                        .sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0))[0];
+                     
+                     if (sellerReply) {
+                         repliesHtml += `
+                             <div class="seller-reply">
+                                 <p><strong>${sellerReply.sellerName} respondeu:</strong> ${sellerReply.replyMessage}</p>
+                             </div>
+                         `;
+                     }
+                 }
+                 // --- Fim da Lógica da Thread ---
+
                  card.innerHTML = `
                     <div class="mb-2">
                         <p class="font-bold text-gray-800">${sample.produto}</p>
+                        <!-- DESCRIÇÃO ADICIONADA -->
+                        <p class="text-sm text-gray-600">${sample.descricao || 'Sem descrição'}</p>
                         <p class="text-xs text-gray-500">${sample.razaoSocial || 'Cliente N/A'}</p>
                     </div>
-                    <p class="text-gray-700 mb-3">"${sample.observation}"</p>
-                    <!-- Respostas serão adicionadas aqui por outro listener, se necessário -->
-                    <div class="flex justify-between items-end text-xs text-gray-500 mt-3">
+                    <p class="text-gray-700 mb-3 italic">"${sample.observation}"</p>
+                    
+                    <!-- THREAD ADICIONADA -->
+                    ${repliesHtml}
+
+                    <div class="flex justify-between items-end text-xs text-gray-500 mt-3 pt-3 border-t">
                          <div>
                              <p>- ${sample.sellerName} (Pedido: ${sample.pedido})</p>
                              <p class="text-gray-400">${time}</p>
                          </div>
                         <button class="reply-observation-btn bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded text-xs font-semibold" data-sample-id="${sample.id}">
-                            Responder
+                            ${managerReply ? 'Responder Novamente' : 'Responder'}
                         </button>
                     </div>
                  `;
@@ -704,7 +737,7 @@
         function renderAccessTable() {
              managerAccessTbody.innerHTML = '';
              Object.entries(MANAGER_PASSWORDS).forEach(([segment, password]) => {
-                 if(segment === 'ADMIN') return; // Não mostrar Admin na tabela
+                 if(segment === 'ADMIN') return;
                  const row = document.createElement('tr');
                  row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${segment}</td>
@@ -747,7 +780,6 @@
             sendReplyBtn.textContent = 'A Enviar...';
 
             try {
-                // ATUALIZAÇÃO v2: Envia todos os dados para o modal do vendedor
                 const notificationData = {
                     managerName: currentManagerName,
                     replyMessage: replyMessage,
@@ -755,8 +787,8 @@
                     sellerName: currentSampleForReply.sellerName,
                     pedido: currentSampleForReply.pedido,
                     produto: currentSampleForReply.produto,
-                    razaoSocial: currentSampleForReply.razaoSocial || '', // NOVO
-                    descricao: currentSampleForReply.descricao || '', // NOVO
+                    razaoSocial: currentSampleForReply.razaoSocial || '',
+                    descricao: currentSampleForReply.descricao || '',
                     timestamp: serverTimestamp(),
                     read: false,
                 };
@@ -776,50 +808,72 @@
             }
         }
         
-        // Ouve respostas dos vendedores (para o sino)
+        // NOVO: Ouve as respostas dos gestores (para o cache)
+        function listenForManagerReplies(sessionId) {
+            if (managerRepliesListenerUnsubscribe) managerRepliesListenerUnsubscribe();
+            
+            const q = query(
+                collection(db, "sessoes", sessionId, "notificacoesVendedor"),
+                orderBy("timestamp", "desc")
+            );
+            
+            managerRepliesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+                 allManagerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                 // Re-renderiza o feed se já estiver visível
+                 if (!dashboardContent.classList.contains('hidden')) {
+                     renderObservationsFeed(allCurrentSamples);
+                 }
+            }, (error) => {
+                 handleFirestoreError(error, "ouvir respostas dos gestores");
+            });
+        }
+        
+        // Ouve respostas dos vendedores (para o sino e para o cache)
         function listenForSellerReplies(sessionId, segmentFilter) {
             if (sellerRepliesListenerUnsubscribe) sellerRepliesListenerUnsubscribe();
             
-            let q;
-            if (segmentFilter === 'ADMIN') {
-                 q = query(
-                     collection(db, "sessoes", sessionId, "respostasVendedor"),
-                     where("readByManager", "==", false)
-                 );
-            } else {
-                // Gerentes normais só veem respostas dos seus vendedores
-                const sellerNamesInSegment = Object.entries(sellerSegmentsCache)
-                    .filter(([normalizedName, segment]) => segment === segmentFilter)
-                    .map(([normalizedName]) => {
-                        // Tentar encontrar o nome original
-                        const sample = allCurrentSamples.find(s => normalizeText(s.sellerName) === normalizedName);
-                        return sample ? sample.sellerName : normalizedName; // Fallback para nome normalizado
-                    });
+            // O cache (allSellerReplies) deve conter TODAS as respostas,
+            // mas o sino (unreadReplies) só deve contar as do segmento.
+            
+            const qAll = query(collection(db, "sessoes", sessionId, "respostasVendedor"));
+            
+            sellerRepliesListenerUnsubscribe = onSnapshot(qAll, (snapshot) => {
+                 allSellerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                 
+                 // Filtra as não lidas PARA O SINO
+                 const sellerNamesInSegment = (segmentFilter === 'ADMIN')
+                    ? null // Admin vê tudo
+                    : Object.entries(sellerSegmentsCache)
+                        .filter(([normalizedName, segment]) => segment === segmentFilter)
+                        .map(([normalizedName]) => {
+                            const sample = allCurrentSamples.find(s => normalizeText(s.sellerName) === normalizedName);
+                            return sample ? sample.sellerName : normalizedName;
+                        });
 
-                if (sellerNamesInSegment.length === 0) return; // Não há vendedores, não ouve
-
-                 q = query(
-                     collection(db, "sessoes", sessionId, "respostasVendedor"),
-                     where("readByManager", "==", false),
-                     where("sellerName", "in", sellerNamesInSegment)
-                 );
-            }
-
-            sellerRepliesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
-                const replies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderNotificationBell(replies);
+                 const unreadReplies = allSellerReplies.filter(reply => {
+                     if (reply.readByManager) return false;
+                     if (segmentFilter === 'ADMIN') return true;
+                     return sellerNamesInSegment.includes(reply.sellerName);
+                 });
+                 
+                 renderNotificationBell(unreadReplies);
+                 
+                 // Re-renderiza o feed se já estiver visível
+                 if (!dashboardContent.classList.contains('hidden')) {
+                     renderObservationsFeed(allCurrentSamples);
+                 }
+                 
             }, (error) => {
                 handleFirestoreError(error, "ouvir respostas dos vendedores");
             });
         }
         
-        function renderNotificationBell(replies) {
-             const unreadCount = replies.length;
-             // CORREÇÃO: Mudar 'const' para 'let'
-             let bellBtn = document.getElementById('notification-btn'); // Botão do sino
+        function renderNotificationBell(unreadReplies) {
+             const unreadCount = unreadReplies.length;
+             let bellBtn = document.getElementById('notification-btn');
              let countBadge = document.getElementById('notification-count-badge');
              
-             if (!bellBtn) { // Cria o botão se não existir
+             if (!bellBtn) {
                 const header = document.querySelector('#dashboard header');
                 const bellWrapper = document.createElement('div');
                 bellWrapper.className = "relative";
@@ -832,7 +886,10 @@
                 header.insertBefore(bellWrapper, logoutBtn);
                 bellBtn = document.getElementById('notification-btn');
                 countBadge = document.getElementById('notification-count-badge');
-                bellBtn.addEventListener('click', () => openNotificationModal(replies));
+                bellBtn.addEventListener('click', () => openNotificationModal(unreadReplies)); // Passa apenas as não lidas
+             } else {
+                 // Atualiza o listener com as respostas não lidas mais recentes
+                 bellBtn.onclick = () => openNotificationModal(unreadReplies);
              }
              
              if (unreadCount > 0) {
@@ -843,16 +900,17 @@
              }
         }
         
-        function openNotificationModal(replies) {
+        function openNotificationModal(unreadReplies) {
              notificationList.innerHTML = '';
-             if (replies.length === 0) {
+             if (unreadReplies.length === 0) {
                  notificationList.innerHTML = '<p class="text-gray-500">Nenhuma resposta nova dos vendedores.</p>';
+                 notificationModal.classList.remove('hidden');
                  return;
              }
              
-             replies.sort((a,b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0));
+             unreadReplies.sort((a,b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0));
              
-             replies.forEach(reply => {
+             unreadReplies.forEach(reply => {
                  const item = document.createElement('div');
                  item.className = "p-3 border-b border-gray-100";
                  item.innerHTML = `
@@ -878,7 +936,7 @@
              try {
                  const replyRef = doc(db, "sessoes", currentSessionId, "respostasVendedor", replyId);
                  await updateDoc(replyRef, { readByManager: true });
-                 // O listener de 'listenForSellerReplies' vai atualizar o sino automaticamente
+                 // O listener 'listenForSellerReplies' vai atualizar o sino e o cache
                  notificationModal.classList.add('hidden'); // Fecha o modal
              } catch (error) {
                  handleFirestoreError(error, "marcar resposta como lida");
@@ -960,6 +1018,9 @@
     </script>
 </body>
 </html>
+
+
+
 
 
 
