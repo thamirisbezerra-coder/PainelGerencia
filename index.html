@@ -134,8 +134,35 @@
 
         <!-- Conteúdo do Dashboard -->
         <div id="dashboard-content" class="hidden">
+            
+            <!-- NOVO: Seção de Orientações (MOVIDA PARA O TOPO E ESTILIZADA) -->
+            <section id="orientacoes-section" class="bg-blue-50 border border-blue-200 p-6 rounded-2xl mb-8"> <!-- Estilo alterado -->
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Como Usar este Painel</h2>
+                <div class="text-gray-700 space-y-4 text-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-semibold text-base mb-2 text-blue-800">Funcionalidades Principais</h3> <!-- Cor do título alterada -->
+                            <ul class="list-disc list-inside space-y-2">
+                                <li><strong>Gráficos de Status:</strong> Os gráficos no topo mostram o status geral (Pendentes vs. Resolvidos) e a "Distribuição de Feedbacks" (Aprovadas, Reprovadas, etc.).</li>
+                                <li><strong>Feed de Observações:</strong> Exibe as observações mais recentes dos vendedores do seu segmento. Use o filtro para ver um vendedor específico ou clique em "Responder" para enviar uma mensagem.</li>
+                                <li><strong>Vendedores do Segmento:</strong> Lista todos os vendedores do seu segmento, o status das amostras (pendentes/total) e permite "Dar Baixa" nas amostras finalizadas.</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-base mb-2 text-blue-800">Análise e Interação</h3> <!-- Cor do título alterada -->
+                            <ul class="list-disc list-inside space-y-2">
+                                <li><strong>Análise de Tipos de Feedback:</strong> Na seção inferior, clique em uma barra do gráfico (ex: "Preço Alto") para carregar instantaneamente todas as amostras com esse feedback na lista ao lado.</li>
+                                <li><strong>Respostas Interativas:</strong> Você pode clicar em "Responder" em qualquer amostra, seja no Feed, no modal da "Distribuição de Feedbacks" ou na lista de "Análise de Tipos de Feedback".</li>
+                                <li><strong>Sino de Notificação (Topo):</strong> O sino tocará e mostrará um número vermelho quando houver novas respostas de vendedores às suas mensagens.</li>
+                                <li><strong>Pesquisa Global:</strong> Use a barra "Pesquisar em todas as amostras..." para encontrar amostras por nome de produto, cliente, vendedor, pedido ou observação. Pressione "Enter" para ver os resultados.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Fim da Seção de Orientações -->
+
             <!-- Gráficos -->
-            <!-- ALTERAÇÃO: Grid agora com 2 colunas. O 3º gráfico foi movido para baixo -->
             <section class="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border">
                     <h3 class="font-bold text-lg mb-2 text-center">Status (Amostras do Segmento)</h3>
@@ -218,12 +245,13 @@
                     </table>
                 </div>
             </section>
+
         </div>
     </div>
 
     <!-- Modais -->
     
-    <!-- Modal de Amostras por Feedback (Genérico) -->
+    <!-- Modal de Amostras (Genérico) -->
     <div id="feedback-samples-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-30">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
@@ -249,6 +277,14 @@
                   <div>
                        <label for="reply-message-input" class="block text-sm font-medium text-gray-700">Sua Resposta (Gerente)</label>
                        <textarea id="reply-message-input" rows="3" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm" placeholder="Digite sua resposta aqui..."></textarea>
+                       <p class="mt-2 text-xs text-gray-500">
+                           <strong>Orientações:</strong>
+                           <ul class="list-disc list-inside ml-2 mt-1">
+                               <li>Seja claro e objetivo na sua resposta.</li>
+                               <li>Esta mensagem será enviada ao vendedor.</li>
+                               <li>Se a observação já foi tratada, informe o vendedor.</li>
+                           </ul>
+                       </p>
                   </div>
             </div>
             <div class="mt-6 flex justify-end space-x-3">
@@ -1210,9 +1246,15 @@
         // --- Lógica de Resposta e Notificação ---
         
         function openReplyModal(e) {
-             const sampleId = e.currentTarget.dataset.sampleId;
+             // CORREÇÃO: Achar o botão clicado, seja ele o target ou o currentTarget
+             const button = e.target.closest('.reply-btn') || e.currentTarget;
+             const sampleId = button.dataset.sampleId;
              currentSampleForReply = allCurrentSamples.find(s => s.id === sampleId);
-             if (!currentSampleForReply) return showAlert("Erro: Amostra não encontrada.");
+             
+             if (!currentSampleForReply) {
+                console.error("Amostra não encontrada. ID:", sampleId, "Evento:", e);
+                return showAlert("Erro: Amostra não encontrada.");
+             }
              
              replyModalProduct.textContent = `${currentSampleForReply.produto} (${currentSampleForReply.pedido})`;
              replyModalSeller.textContent = `Observação de: ${currentSampleForReply.sellerName}`;
