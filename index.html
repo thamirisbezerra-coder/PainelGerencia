@@ -1100,7 +1100,7 @@
             return repliesHtml;
         }
 
-        // MUDANÇA: Removido NF e Data Faturamento
+        // MUDANÇA: Re-adicionado NF e data alterada para dataEmissao
         function renderFeedbackSamplesForType(feedbackLabel) {
             if (!feedbackLabel) {
                 feedbackTypesList.innerHTML = '';
@@ -1156,7 +1156,7 @@
                     </button>
                 `;
 
-                // MUDANÇA: Removido NF, mantido Data Faturamento
+                // MUDANÇA: NF readicionada, e data usa dataEmissao
                 itemDiv.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div>
@@ -1165,9 +1165,9 @@
                             <p class="text-xs text-gray-500 mt-1">
                                 Vendedor: ${sample.sellerName} | Pedido: ${sample.pedido}
                             </p>
-                            <!-- NF Removida -->
+                            <!-- NF e Data Faturamento (dataEmissao) adicionados -->
                             <p class="text-xs text-gray-500">
-                                Faturado: ${formatFirebaseDate(sample.dataFaturamento)}
+                                NF: ${sample.emissaoNF || 'N/A'} | Faturado: ${formatFirebaseDate(sample.dataEmissao)}
                             </p>
                             <p class="font-medium text-gray-800 mt-1">Feedback: ${sample.feedback}</p>
                         </div>
@@ -1184,7 +1184,7 @@
             });
         }
 
-        // MUDANÇA: Função do feed de observações atualizada (NF Removida)
+        // MUDANÇA: Função do feed de observações atualizada (NF readicionada, dataEmissao)
         function renderObservationsFeed(samples) {
             const globalSearch = normalizeText(globalSearchInput.value);
             const sellerFilter = sellerFeedFilter.value; 
@@ -1262,7 +1262,7 @@
                     feedbackHtml = `<p class="font-semibold ${color} mt-1">Feedback: ${sample.feedback}</p>`;
                  }
                  
-                 // MUDANÇA: Adicionado NF e Data Faturamento
+                 // MUDANÇA: Adicionado NF e Data Faturamento (dataEmissao)
                  card.innerHTML = `
                     <div class="mb-2">
                         <p class="font-bold text-gray-800">${sample.produto}</p>
@@ -1278,9 +1278,9 @@
                     <div class="flex justify-between items-end text-xs text-gray-500 mt-3 pt-3 border-t">
                          <div>
                              <p>- ${sample.sellerName} (Pedido: ${sample.pedido})</p>
-                             <!-- NF Removida -->
+                             <!-- NF e Data Faturamento (dataEmissao) adicionados -->
                              <p class="text-gray-500">
-                                Faturado: ${formatFirebaseDate(sample.dataFaturamento)}
+                                NF: ${sample.emissaoNF || 'N/A'} | Faturado: ${formatFirebaseDate(sample.dataEmissao)}
                              </p>
                              <p class="text-gray-400">Obs.: ${time}</p>
                          </div>
@@ -1650,7 +1650,7 @@
              await batch.commit();
         }
         
-        // MUDANÇA: Adicionado NF e Data Faturamento
+        // MUDANÇA: Adicionado NF e Data Faturamento (dataEmissao)
         function openSamplesModal(samples, title) {
             feedbackSamplesTitle.textContent = title;
             feedbackSamplesList.innerHTML = '';
@@ -1683,7 +1683,7 @@
                     </button>
                  `;
 
-                // MUDANÇA: Removido NF, mantido Data Faturamento
+                // MUDANÇA: NF readicionada, e data usa dataEmissao
                  itemDiv.innerHTML = `
                      <div class="flex justify-between items-start">
                          <div>
@@ -1692,9 +1692,9 @@
                              <p class="text-xs text-gray-500 mt-1">
                                  Vendedor: ${sample.sellerName} | Pedido: ${sample.pedido}
                              </p>
-                             <!-- NF Removida -->
+                             <!-- NF e Data Faturamento (dataEmissao) adicionados -->
                              <p class="text-xs text-gray-500">
-                                Faturado: ${formatFirebaseDate(sample.dataFaturamento)}
+                                NF: ${sample.emissaoNF || 'N/A'} | Faturado: ${formatFirebaseDate(sample.dataEmissao)}
                              </p>
                              <p class="font-medium text-gray-800 mt-1">Feedback: ${sample.feedback || 'Pendente'}</p>
                          </div>
