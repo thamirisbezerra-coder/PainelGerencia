@@ -142,25 +142,27 @@
         <!-- Conteúdo do Dashboard -->
         <div id="dashboard-content" class="hidden">
             
-            <!-- NOVO: Seção de Orientações (MOVIDA PARA O TOPO E ESTILIZADA) -->
-            <section id="orientacoes-section" class="bg-blue-50 border border-blue-200 p-6 rounded-2xl mb-8"> <!-- Estilo alterado -->
+            <!-- MUDANÇA: Seção de Orientações com texto atualizado -->
+            <section id="orientacoes-section" class="bg-blue-50 border border-blue-200 p-6 rounded-2xl mb-8">
                 <h2 class="text-2xl font-bold text-gray-900 mb-4">Como Usar este Painel</h2>
                 <div class="text-gray-700 space-y-4 text-sm">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <h3 class="font-semibold text-base mb-2 text-blue-800">Funcionalidades Principais</h3> <!-- Cor do título alterada -->
+                            <h3 class="font-semibold text-base mb-2 text-blue-800">Funcionalidades Principais</h3>
                             <ul class="list-disc list-inside space-y-2">
                                 <li><strong>Gráficos de Status:</strong> Os gráficos no topo mostram o status geral (Pendentes vs. Resolvidos) e a "Distribuição de Feedbacks" (Aprovadas, Reprovadas, etc.).</li>
                                 <li><strong>Feed de Observações:</strong> Exibe as observações mais recentes dos vendedores do seu segmento. Use o filtro para ver um vendedor específico ou clique em "Responder" para enviar uma mensagem.</li>
-                                <li><strong>Vendedores do Segmento:</strong> Lista todos os vendedores do seu segmento, o status das amostras (pendentes/total) e permite "Dar Baixa" nas amostras finalizadas.</li>
+                                <!-- Texto atualizado: removido "dar baixa" -->
+                                <li><strong>Vendedores do Segmento:</strong> Lista todos os vendedores do seu segmento e o status das amostras (pendentes/total). Use os filtros para ver apenas vendedores pendentes ou finalizados.</li>
                             </ul>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-base mb-2 text-blue-800">Análise e Interação</h3> <!-- Cor do título alterada -->
+                            <h3 class="font-semibold text-base mb-2 text-blue-800">Análise e Interação</h3>
                             <ul class="list-disc list-inside space-y-2">
-                                <li><strong>Análise de Tipos de Feedback:</strong> Na seção inferior, clique em uma barra do gráfico (ex: "Preço Alto") para carregar instantaneamente todas as amostras com esse feedback na lista ao lado.</li>
+                                <!-- Texto atualizado: novo exemplo -->
+                                <li><strong>Análise de Tipos de Feedback:</strong> Na seção inferior, clique em uma barra do gráfico (ex: "FORA DO PERFIL DO CLIENTE") para carregar instantaneamente todas as amostras com esse feedback na lista ao lado.</li>
                                 <li><strong>Respostas Interativas:</strong> Você pode clicar em "Responder" em qualquer amostra, seja no Feed, no modal da "Distribuição de Feedbacks" ou na lista de "Análise de Tipos de Feedback".</li>
-                                <li><strong>Sino de Notificação (Topo):</strong> O sino tocará e mostrará um número vermelho when houver novas respostas de vendedores às suas mensagens.</li>
+                                <li><strong>Sino de Notificação (Topo):</strong> O sino tocará e mostrará um número vermelho quando houver novas respostas de vendedores às suas mensagens.</li>
                                 <li><strong>Pesquisa Global:</strong> Use a barra "Pesquisar em todas as amostras..." para encontrar amostras por nome de produto, cliente, vendedor, pedido ou observação. Pressione "Enter" para ver os resultados.</li>
                             </ul>
                         </div>
@@ -195,7 +197,7 @@
                                 <!-- Opções adicionadas via JS -->
                             </select>
                             <select id="feed-filter" class="border-gray-300 rounded-lg shadow-sm text-sm p-1 w-full sm:w-auto">
-                                <option value="all">Mostrar Tudo</option>
+                                <option value="all">Todos os Status</option> <!-- Texto alterado -->
                                 <option value="replied">Comentários Respondidos</option>
                                 <option value="notes">Com Notas Internas</option>
                             </select>
@@ -511,6 +513,28 @@
         // --- Funções Utilitárias ---
         const normalizeText = (text = '') => text ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : '';
 
+        // MUDANÇA: Adicionada função para formatar datas (se existirem)
+        function formatFirebaseDate(fbDate) {
+            if (!fbDate) return 'N/A';
+            try {
+                // Tenta converter se for timestamp do Firestore
+                if (fbDate.toDate) {
+                    return fbDate.toDate().toLocaleDateString('pt-BR');
+                }
+                // Tenta converter se for string ISO (YYYY-MM-DD)
+                const date = new Date(fbDate);
+                if (!isNaN(date)) {
+                    // Adiciona 1 dia para corrigir fuso horário (comum em strings YYYY-MM-DD)
+                    date.setDate(date.getDate() + 1);
+                    return date.toLocaleDateString('pt-BR');
+                }
+                return fbDate; // Retorna a string original se não for data
+            } catch (e) {
+                return fbDate; // Retorna o valor original em caso de erro
+            }
+        }
+
+
         function showAlert(message, title = "Erro na Operação", color = "text-red-600") {
             customAlertTitle.textContent = title;
             customAlertMessage.innerHTML = message; // Usar innerHTML para permitir <br>
@@ -546,7 +570,17 @@
                 if (currentSelectedBar) {
                     renderFeedbackSamplesForType(currentSelectedBar.dataset.label);
                 }
-                // Atualiza o modal de distribuição se estiver aberto (difícil de fazer sem reabrir, mas o feed principal é o mais importante)
+                // Atualiza o modal de distribuição se estiver aberto
+                if (!feedbackSamplesModal.classList.contains('hidden')) {
+                     const currentTitle = feedbackSamplesTitle.textContent;
+                     // Se o modal estiver aberto, atualiza o conteúdo
+                     if(currentTitle.includes("Amostras:")) {
+                         const feedbackType = currentTitle.split(":")[1].split("(")[0].trim();
+                         showSamplesForFeedback(feedbackType); // Re-renderiza o modal
+                     } else if (currentTitle.includes("Pesquisa:")) {
+                         // Re-renderiza a pesquisa (difícil sem o termo)
+                     }
+                }
             }
         }
 
@@ -1066,7 +1100,7 @@
             return repliesHtml;
         }
 
-        
+        // MUDANÇA: Adicionado NF e Data Faturamento
         function renderFeedbackSamplesForType(feedbackLabel) {
             if (!feedbackLabel) {
                 feedbackTypesList.innerHTML = '';
@@ -1122,13 +1156,18 @@
                     </button>
                 `;
 
+                // MUDANÇA: Adicionado NF e Data Faturamento
                 itemDiv.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div>
                             <p class="font-semibold">${sample.produto} (${sample.razaoSocial})</p>
                             <p class="text-xs text-gray-600">${sample.descricao}</p>
                             <p class="text-xs text-gray-500 mt-1">
-                                Vendedor: ${sample.sellerName} | Pedido: ${sample.pedido} | NF: ${sample.emissaoNF || 'N/A'}
+                                Vendedor: ${sample.sellerName} | Pedido: ${sample.pedido}
+                            </p>
+                            <!-- NF e Data Faturamento adicionados -->
+                            <p class="text-xs text-gray-500">
+                                NF: ${sample.emissaoNF || 'N/A'} | Faturado: ${formatFirebaseDate(sample.dataFaturamento)}
                             </p>
                             <p class="font-medium text-gray-800 mt-1">Feedback: ${sample.feedback}</p>
                         </div>
@@ -1145,7 +1184,7 @@
             });
         }
 
-        // MUDANÇA: Função do feed de observações atualizada com filtros
+        // MUDANÇA: Função do feed de observações atualizada com NF e Data
         function renderObservationsFeed(samples) {
             const globalSearch = normalizeText(globalSearchInput.value);
             const sellerFilter = sellerFeedFilter.value; 
@@ -1223,6 +1262,7 @@
                     feedbackHtml = `<p class="font-semibold ${color} mt-1">Feedback: ${sample.feedback}</p>`;
                  }
                  
+                 // MUDANÇA: Adicionado NF e Data Faturamento
                  card.innerHTML = `
                     <div class="mb-2">
                         <p class="font-bold text-gray-800">${sample.produto}</p>
@@ -1238,6 +1278,10 @@
                     <div class="flex justify-between items-end text-xs text-gray-500 mt-3 pt-3 border-t">
                          <div>
                              <p>- ${sample.sellerName} (Pedido: ${sample.pedido})</p>
+                             <!-- NF e Data Faturamento adicionados -->
+                             <p class="text-gray-500">
+                                NF: ${sample.emissaoNF || 'N/A'} | Faturado: ${formatFirebaseDate(sample.dataFaturamento)}
+                             </p>
                              <p class="text-gray-400">Obs.: ${time}</p>
                          </div>
                          <div class="flex gap-2 items-center">
@@ -1606,7 +1650,7 @@
              await batch.commit();
         }
         
-        // --- Modal de Amostras (Genérico) ---
+        // MUDANÇA: Adicionado NF e Data Faturamento
         function openSamplesModal(samples, title) {
             feedbackSamplesTitle.textContent = title;
             feedbackSamplesList.innerHTML = '';
@@ -1639,13 +1683,18 @@
                     </button>
                  `;
 
+                // MUDANÇA: Adicionado NF e Data Faturamento
                  itemDiv.innerHTML = `
                      <div class="flex justify-between items-start">
                          <div>
                              <p class="font-semibold">${sample.produto} (${sample.razaoSocial})</p>
                              <p class="text-xs text-gray-600">${sample.descricao}</p>
                              <p class="text-xs text-gray-500 mt-1">
-                                 Vendedor: ${sample.sellerName} | Pedido: ${sample.pedido} | NF: ${sample.emissaoNF || 'N/A'}
+                                 Vendedor: ${sample.sellerName} | Pedido: ${sample.pedido}
+                             </p>
+                             <!-- NF e Data Faturamento adicionados -->
+                             <p class="text-xs text-gray-500">
+                                NF: ${sample.emissaoNF || 'N/A'} | Faturado: ${formatFirebaseDate(sample.dataFaturamento)}
                              </p>
                              <p class="font-medium text-gray-800 mt-1">Feedback: ${sample.feedback || 'Pendente'}</p>
                          </div>
