@@ -18,7 +18,7 @@
         }
 
         /* Estilos para o feed de observações e respostas */
-        .manager-reply, .seller-reply, .pd-note {
+        .manager-reply, .seller-reply, .pd-note, .manager-note { /* Adicionado .manager-note */
             margin-top: 0.5rem;
             padding: 0.5rem 0.75rem;
             border-radius: 0.375rem; /* rounded-md */
@@ -37,6 +37,13 @@
             border-left: 3px solid #fcd34d; /* border-amber-300 */
             margin-left: 0.5rem;
         }
+        /* NOVO: Estilo do post-it do gerente */
+        .manager-note {
+            background-color: #fef9c3; /* bg-yellow-100 */
+            border-left: 3px solid #fde047; /* border-yellow-400 */
+            margin-left: 0.5rem;
+        }
+
 
         /* Estilo para Amostra destacada no modal */
         .feedback-sample-item {
@@ -294,6 +301,31 @@
         </div>
     </div>
 
+    <!-- NOVO: Modal da Nota Interna do Gerente -->
+    <div id="manager-note-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-40">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-xl p-6">
+            <h3 class="text-xl font-bold mb-4">Nota Interna (Apenas Gerentes)</h3>
+            <div class="mb-4 p-3 bg-gray-100 rounded border text-sm">
+                <p class="font-semibold" id="manager-note-modal-product"></p>
+                <p class="text-xs text-gray-600 mb-1" id="manager-note-modal-observation">"${' '}"</p>
+            </div>
+            <div class="space-y-4">
+                  <div>
+                       <label for="manager-note-input" class="block text-sm font-medium text-gray-700">Sua Nota (Post-it)</label>
+                       <textarea id="manager-note-input" rows="3" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm" placeholder="Digite algo para se lembrar..."></textarea>
+                       <p class="mt-2 text-xs text-gray-500">
+                           <strong>Aviso:</strong> Esta nota é visível apenas para si e outros gerentes. Para apagar, deixe o campo vazio e clique em "Salvar".
+                       </p>
+                  </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                 <button id="cancel-manager-note-btn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-5 rounded-lg">Cancelar</button>
+                 <button id="send-manager-note-btn" class="bg-yellow-500 text-white font-bold py-2 px-5 rounded-lg">Salvar Nota</button>
+            </div>
+        </div>
+    </div>
+    <!-- Fim do Modal da Nota Interna -->
+
     <!-- Modal de Notificações (Respostas dos Vendedores) -->
     <div id="notification-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-40">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6">
@@ -324,7 +356,7 @@
         import { 
             getFirestore, collection, onSnapshot, doc, getDoc, getDocs, 
             updateDoc, query, orderBy, serverTimestamp, addDoc, limit, where,
-            collectionGroup, Timestamp, runTransaction, writeBatch
+            collectionGroup, Timestamp, runTransaction, writeBatch, deleteDoc
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -379,7 +411,6 @@
         const feedbackSamplesTitle = document.getElementById('feedback-samples-title');
         const feedbackSamplesList = document.getElementById('feedback-samples-list');
         const closeFeedbackSamplesBtn = document.getElementById('close-feedback-samples-btn');
-        // NOVO: Elementos da seção de análise
         const feedbackTypesList = document.getElementById('feedback-types-list');
         const feedbackTypesListPlaceholder = document.getElementById('feedback-types-list-placeholder');
         const replyModal = document.getElementById('reply-modal');
@@ -396,6 +427,14 @@
         const customAlertTitle = document.getElementById('custom-alert-title');
         const customAlertMessage = document.getElementById('custom-alert-message');
         const customAlertOkBtn = document.getElementById('custom-alert-ok-btn');
+        // NOVO: Elementos do Modal de Nota Interna
+        const managerNoteModal = document.getElementById('manager-note-modal');
+        const managerNoteModalProduct = document.getElementById('manager-note-modal-product');
+        const managerNoteModalObservation = document.getElementById('manager-note-modal-observation');
+        const managerNoteInput = document.getElementById('manager-note-input');
+        const cancelManagerNoteBtn = document.getElementById('cancel-manager-note-btn'); // <-- CORREÇÃO
+        const sendManagerNoteBtn = document.getElementById('send-manager-note-btn'); // <-- CORREÇÃO
+
 
         // --- Estado Global ---
         let currentSessionId = null;
@@ -406,12 +445,15 @@
         let sellerRepliesListenerUnsubscribe = null; // Respostas dos vendedores
         let managerRepliesListenerUnsubscribe = null; // Respostas dos gerentes (para P&D)
         let pdPostitsListenerUnsubscribe = null; // Notas P&D (para feed)
+        let managerNotesListenerUnsubscribe = null; // NOVO: Notas internas do gerente
         let dataListenersUnsubscribe = [];
         let chartInstances = {};
         let currentSampleForReply = null;
+        let currentSampleForNote = null; // NOVO: Estado para o modal de nota
         let allSellerReplies = []; // Respostas dos vendedores para o gerente
         let allManagerReplies = []; // Respostas dos gerentes para os vendedores (para o feed)
         let allPdPostits = []; // Post-its do P&D (para o feed)
+        let allManagerNotes = []; // NOVO: Notas internas do gerente
         
         // Classe de Gestão de Carga
         class DataLoadManager {
@@ -467,20 +509,26 @@
 
         // --- Lógica de Carregamento de Dados (v2) ---
         
+        // Atualiza o feed e as listas quando as notas do gerente mudam
+        function updateUIsOnNoteChange() {
+            if (!dashboardContent.classList.contains('hidden')) {
+                renderObservationsFeed(allCurrentSamples);
+                // Atualiza a lista de análise se estiver visível
+                const currentSelectedBar = document.querySelector('#feedback-types-chart.active-bar-label');
+                if (currentSelectedBar) {
+                    renderFeedbackSamplesForType(currentSelectedBar.dataset.label);
+                }
+                // Atualiza o modal de distribuição se estiver aberto (difícil de fazer sem reabrir, mas o feed principal é o mais importante)
+            }
+        }
+
         function listenForManagerReplies(sessionId) {
             if (managerRepliesListenerUnsubscribe) managerRepliesListenerUnsubscribe();
             const q = query(collection(db, "sessoes", sessionId, "notificacoesVendedor"));
             
             managerRepliesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
                  allManagerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                 if (!dashboardContent.classList.contains('hidden')) {
-                     renderObservationsFeed(allCurrentSamples);
-                     // NOVO: Atualiza a lista de análise se estiver visível
-                     const currentSelectedBar = document.querySelector('#feedback-types-chart.active-bar-label');
-                     if (currentSelectedBar) {
-                         renderFeedbackSamplesForType(currentSelectedBar.dataset.label);
-                     }
-                 }
+                 updateUIsOnNoteChange();
             }, (error) => handleFirestoreError(error, "ouvir respostas dos gestores (feed)"));
         }
         
@@ -489,14 +537,7 @@
             
             const unsub = onSnapshot(q, (snapshot) => {
                  allSellerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                 if (!dashboardContent.classList.contains('hidden')) {
-                     renderObservationsFeed(allCurrentSamples);
-                     // NOVO: Atualiza a lista de análise se estiver visível
-                     const currentSelectedBar = document.querySelector('#feedback-types-chart.active-bar-label');
-                     if (currentSelectedBar) {
-                         renderFeedbackSamplesForType(currentSelectedBar.dataset.label);
-                     }
-                 }
+                 updateUIsOnNoteChange();
             }, (error) => handleFirestoreError(error, "ouvir respostas dos vendedores (feed)"));
             dataListenersUnsubscribe.push(unsub);
         }
@@ -507,16 +548,31 @@
             
             pdPostitsListenerUnsubscribe = onSnapshot(q, (snapshot) => {
                  allPdPostits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                 if (!dashboardContent.classList.contains('hidden')) {
-                     renderObservationsFeed(allCurrentSamples);
-                     // NOVO: Atualiza a lista de análise se estiver visível
-                     const currentSelectedBar = document.querySelector('#feedback-types-chart.active-bar-label');
-                     if (currentSelectedBar) {
-                         renderFeedbackSamplesForType(currentSelectedBar.dataset.label);
-                     }
-                 }
+                 updateUIsOnNoteChange();
             }, (error) => handleFirestoreError(error, "ouvir post-its P&D (feed)"));
         }
+
+        // NOVO: Listener para as notas internas
+        function listenForManagerNotes(sessionId) {
+            if (managerNotesListenerUnsubscribe) managerNotesListenerUnsubscribe();
+            // Nova coleção: 'gerentePostits'
+            const q = query(collection(db, "sessoes", sessionId, "gerentePostits"));
+            
+            managerNotesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+                 const notes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                 
+                 // NOVO: Filtrar notas com base no segmento/nome do gerente
+                 if (currentSegment === 'ADMIN') {
+                     allManagerNotes = notes; // Admin vê tudo
+                 } else {
+                     // Gerente normal só vê as suas próprias notas
+                     allManagerNotes = notes.filter(note => note.managerName === currentManagerName);
+                 }
+                 
+                 updateUIsOnNoteChange();
+            }, (error) => handleFirestoreError(error, "ouvir notas internas do gerente"));
+        }
+
 
         function listenForSellerReplies(sessionId) {
             if (sellerRepliesListenerUnsubscribe) sellerRepliesListenerUnsubscribe();
@@ -571,10 +627,12 @@
             allCurrentSamples = [];
 
             await loadSellerSegments();
-            listenForSellerReplies(sessionId);
-            listenForManagerReplies(sessionId);
-            listenForSellerRepliesFeed(sessionId);
-            listenForPdPostits(sessionId);
+            // Listeners de Comunicação
+            listenForSellerReplies(sessionId); // Sino
+            listenForManagerReplies(sessionId); // Respostas do Gerente (para vendedor)
+            listenForSellerRepliesFeed(sessionId); // Respostas do Vendedor (para gerente)
+            listenForPdPostits(sessionId); // Notas de P&D
+            listenForManagerNotes(sessionId); // NOVO: Notas internas do Gerente
 
             const sellersQuery = query(collection(db, "sessoes", sessionId, "vendedores"));
             const sellersSnapshot = await getDocs(sellersQuery);
@@ -713,11 +771,13 @@
             allManagerReplies = [];
             allSellerReplies = [];
             allPdPostits = [];
+            allManagerNotes = []; // NOVO: Limpar notas
             dataListenersUnsubscribe.forEach(unsub => unsub());
             dataListenersUnsubscribe = [];
             if(sellerRepliesListenerUnsubscribe) sellerRepliesListenerUnsubscribe();
             if(managerRepliesListenerUnsubscribe) managerRepliesListenerUnsubscribe();
             if(pdPostitsListenerUnsubscribe) pdPostitsListenerUnsubscribe();
+            if(managerNotesListenerUnsubscribe) managerNotesListenerUnsubscribe(); // NOVO: Parar listener
             
             dashboard.classList.add('hidden');
             loginView.classList.remove('hidden');
@@ -919,7 +979,66 @@
             });
         }
         
-        // NOVO: Função para renderizar amostras na seção de análise
+        // Função que renderiza o HTML da nota interna (Post-it)
+        function getManagerNoteHtml(sampleId) {
+            // MUDANÇA: Usar filter() para pegar TODAS as notas daquela amostra
+            const managerNotes = allManagerNotes.filter(n => n.contextId === sampleId);
+            
+            if (managerNotes.length > 0) {
+                // Mapeia todas as notas encontradas para HTML
+                return managerNotes.map(managerNote => `
+                    <div class="manager-note">
+                        <p><strong>Nota Interna (${managerNote.managerName}):</strong> ${managerNote.message}</p>
+                    </div>
+                `).join(''); // Junta todas as notas em uma string
+            }
+            return '';
+        }
+
+        // Função que renderiza o HTML de todas as replies (P&D, Gerente, Vendedor)
+        function getRepliesHtml(sample) {
+            let repliesHtml = '';
+            
+            // 1. Nota P&D (se houver)
+            const pdNote = allPdPostits.find(p => p.contextId === sample.id);
+            if (pdNote) {
+                repliesHtml += `
+                    <div class="pd-note">
+                        <p><strong>Nota P&D (${pdNote.pdManagerName}):</strong> ${pdNote.message}</p>
+                    </div>
+                `;
+            }
+
+            // 2. Resposta do Gestor (incluindo P&D)
+            const managerReply = allManagerReplies
+                .filter(r => r.sellerName === sample.sellerName && r.pedido === sample.pedido && r.produto === sample.produto && r.originalObservation === sample.observation)
+                .sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0))[0];
+            
+            if (managerReply) {
+                const isPD = managerReply.managerName.includes('P&D');
+                repliesHtml += `
+                    <div class="${isPD ? 'pd-note' : 'manager-reply'}">
+                        <p><strong>${managerReply.managerName} respondeu:</strong> ${managerReply.replyMessage}</p>
+                    </div>
+                `;
+                
+                // 3. Resposta do Vendedor (a essa resposta)
+                const sellerReply = allSellerReplies
+                    .filter(r => r.originalManagerMessage === managerReply.replyMessage && r.pedido === sample.pedido && r.produto === sample.produto)
+                    .sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0))[0];
+                
+                if (sellerReply) {
+                    repliesHtml += `
+                        <div class="seller-reply">
+                            <p><strong>${sellerReply.sellerName} (Vendedor) respondeu:</strong> ${sellerReply.replyMessage}</p>
+                        </div>
+                    `;
+                }
+            }
+            return repliesHtml;
+        }
+
+        
         function renderFeedbackSamplesForType(feedbackLabel) {
             if (!feedbackLabel) {
                 feedbackTypesList.innerHTML = '';
@@ -943,7 +1062,7 @@
                 return false;
             }).sort((a, b) => (b.lastUpdate?.toDate ? b.lastUpdate.toDate().getTime() : 0) - (a.lastUpdate?.toDate ? a.lastUpdate.toDate().getTime() : 0));
 
-            feedbackTypesList.innerHTML = ''; // Limpa a lista
+            feedbackTypesList.innerHTML = ''; 
             
             if (filteredSamples.length === 0) {
                 feedbackTypesListPlaceholder.textContent = `Nenhuma amostra encontrada para "${feedbackLabel}".`;
@@ -951,53 +1070,51 @@
                 return;
             }
 
-            feedbackTypesListPlaceholder.classList.add('hidden'); // Oculta o placeholder
+            feedbackTypesListPlaceholder.classList.add('hidden'); 
 
             filteredSamples.forEach(sample => {
                 const itemDiv = document.createElement('div');
-                itemDiv.className = `feedback-sample-item text-sm`; // Reutiliza a classe do modal
+                itemDiv.className = `feedback-sample-item text-sm`;
                 
-                // Lógica de replies (copiada de openSamplesModal)
-                let repliesHtml = '';
-                const pdNote = allPdPostits.find(p => p.contextId === sample.id);
-                if (pdNote) repliesHtml += `<div class="pd-note"><p><strong>Nota P&D:</strong> ${pdNote.message}</p></div>`;
+                const managerNoteHtml = getManagerNoteHtml(sample.id); // NOVO: Pega nota interna
+                const repliesHtml = getRepliesHtml(sample); // Pega replies
                 
-                const managerReply = allManagerReplies.find(r => r.sellerName === sample.sellerName && r.pedido === sample.pedido && r.produto === sample.produto && r.originalObservation === sample.observation);
-                if (managerReply) {
-                    // CORREÇÃO: Usar replyMessage
-                    repliesHtml += `<div class="manager-reply"><p><strong>${managerReply.managerName}:</strong> ${managerReply.replyMessage}</p></div>`; 
-                    const sellerReply = allSellerReplies.find(r => r.originalManagerMessage === managerReply.replyMessage && r.pedido === sample.pedido);
-                    if (sellerReply) repliesHtml += `<div class="seller-reply"><p><strong>${sellerReply.sellerName}:</strong> ${sellerReply.replyMessage}</p></div>`;
-                }
-
-                // Botão de resposta (copiado de openSamplesModal)
                 const replyButtonHtml = `
                     <button class="reply-btn bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded text-xs font-semibold" data-sample-id="${sample.id}">
                         Responder
                     </button>
                 `;
 
-                // HTML do item (copiado de openSamplesModal)
+                // NOVO: Botão de Nota Interna
+                const noteButtonHtml = `
+                    <button class="manager-note-btn text-yellow-600 hover:text-yellow-800 p-1 rounded-full hover:bg-yellow-100" data-sample-id="${sample.id}" title="Adicionar nota interna">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                        </svg>
+                    </button>
+                `;
+
                 itemDiv.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="font-semibold">${sample.produto} (${sample.razaoSocial})</p>
+                            <p class="font-semibold">${sample.produto} (${sample.razoSocial})</p>
                             <p class="text-xs text-gray-600">${sample.descricao}</p>
                             <p class="text-xs text-gray-500 mt-1">
                                 Vendedor: ${sample.sellerName} | Pedido: ${sample.pedido} | NF: ${sample.emissaoNF || 'N/A'}
                             </p>
                             <p class="font-medium text-gray-800 mt-1">Feedback: ${sample.feedback}</p>
                         </div>
-                        <div class="flex-shrink-0 ml-4">
+                        <div class="flex-shrink-0 ml-4 flex items-center gap-1">
+                            ${noteButtonHtml}
                             ${sample.observation ? replyButtonHtml : ''}
                         </div>
                     </div>
                     ${sample.observation ? `<p class="text-xs text-gray-600 mt-1 italic">Obs: ${sample.observation}</p>` : ''}
-                    ${repliesHtml}
+                    ${managerNoteHtml} <!-- Nota interna primeiro -->
+                    ${repliesHtml} <!-- Respostas públicas depois -->
                 `;
                 feedbackTypesList.appendChild(itemDiv);
             });
-            // Listeners serão adicionados por delegação
         }
 
         function renderObservationsFeed(samples) {
@@ -1037,41 +1154,8 @@
                  card.className = "p-4 border-b border-gray-100 last:border-b-0";
                  const time = sample.lastUpdate?.toDate() ? sample.lastUpdate.toDate().toLocaleString('pt-BR') : 'data inválida';
                  
-                 let repliesHtml = '';
-                 
-                 const pdNote = allPdPostits.find(p => p.contextId === sample.id);
-                 if (pdNote) {
-                      repliesHtml += `
-                         <div class="pd-note">
-                             <p><strong>Nota P&D (${pdNote.pdManagerName}):</strong> ${pdNote.message}</p>
-                         </div>
-                     `;
-                 }
-                 
-                 const managerReply = allManagerReplies
-                    .filter(r => r.sellerName === sample.sellerName && r.pedido === sample.pedido && r.produto === sample.produto && r.originalObservation === sample.observation)
-                    .sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0))[0];
-                 
-                 if (managerReply) {
-                     const isPD = managerReply.managerName.includes('P&D');
-                     repliesHtml += `
-                         <div class="${isPD ? 'pd-note' : 'manager-reply'}">
-                             <p><strong>${managerReply.managerName} respondeu:</strong> ${managerReply.replyMessage}</p>
-                         </div>
-                     `;
-                     
-                     const sellerReply = allSellerReplies
-                        .filter(r => r.originalManagerMessage === managerReply.replyMessage && r.pedido === sample.pedido && r.produto === sample.produto)
-                        .sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0))[0];
-                     
-                     if (sellerReply) {
-                         repliesHtml += `
-                             <div class="seller-reply">
-                                 <p><strong>${sellerReply.sellerName} (Vendedor) respondeu:</strong> ${sellerReply.replyMessage}</p>
-                             </div>
-                         `;
-                     }
-                 }
+                 const managerNoteHtml = getManagerNoteHtml(sample.id); // NOVO: Pega nota interna
+                 const repliesHtml = getRepliesHtml(sample); // Pega replies
 
                  let feedbackHtml = '';
                  if (sample.feedback && !sample.isPending) {
@@ -1086,19 +1170,26 @@
                     <div class="mb-2">
                         <p class="font-bold text-gray-800">${sample.produto}</p>
                         <p class="text-sm text-gray-600">${sample.descricao || 'Sem descrição'}</p>
-                        <p class="text-xs text-gray-500">${sample.razaoSocial || 'Cliente N/A'}</p>
+                        <p class="text-xs text-gray-500">${sample.razoSocial || 'Cliente N/A'}</p>
                         ${feedbackHtml} 
                     </div>
                     <p class="text-gray-700 mb-3 italic">"${sample.observation}"</p>
                     
-                    ${repliesHtml}
+                    ${managerNoteHtml} <!-- Nota interna primeiro -->
+                    ${repliesHtml} <!-- Respostas públicas depois -->
 
                     <div class="flex justify-between items-end text-xs text-gray-500 mt-3 pt-3 border-t">
                          <div>
                              <p>- ${sample.sellerName} (Pedido: ${sample.pedido})</p>
                              <p class="text-gray-400">Obs.: ${time}</p>
                          </div>
-                         <div class="flex gap-2">
+                         <div class="flex gap-2 items-center">
+                             <!-- NOVO: Botão de Nota Interna -->
+                             <button class="manager-note-btn text-yellow-600 hover:text-yellow-800 p-1 rounded-full hover:bg-yellow-100" data-sample-id="${sample.id}" title="Adicionar nota interna">
+                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                                </svg>
+                             </button>
                              <button class="reply-btn bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded text-xs font-semibold" data-sample-id="${sample.id}">
                                  Responder
                              </button>
@@ -1108,35 +1199,29 @@
                  observationsFeedList.appendChild(card);
             });
             
-            observationsFeedList.querySelectorAll('.reply-btn').forEach(btn => {
-                 btn.addEventListener('click', openReplyModal);
-            });
+            // Listeners adicionados por delegação
         }
         
         function renderSellersList(samples) {
             const searchTerm = normalizeText(sellerSearchInput.value);
             
+            // 1. Agrupar amostras por vendedor (LÓGICA SIMPLIFICADA)
             const sellers = samples.reduce((acc, sample) => {
                 if (!acc[sample.sellerName]) {
                     acc[sample.sellerName] = {
                         name: sample.sellerName,
                         total: 0,
                         pending: 0,
-                        finalizedByVendor: true,
-                        systemStatus: 'baixado'
                     };
                 }
                 acc[sample.sellerName].total++;
                 if (sample.isPending) {
                     acc[sample.sellerName].pending++;
-                    acc[sample.sellerName].finalizedByVendor = false;
-                }
-                if (sample.systemStatus !== 'baixado') {
-                    acc[sample.sellerName].systemStatus = 'pending';
                 }
                 return acc;
             }, {});
 
+            // 2. Filtrar vendedores pelo nome
             const filteredSellers = Object.values(sellers).filter(seller => {
                  if (searchTerm) {
                      return normalizeText(seller.name).includes(searchTerm);
@@ -1144,87 +1229,52 @@
                  return true;
             }).sort((a, b) => a.name.localeCompare(b.name));
 
-            sellersListContainer.innerHTML = ''; 
+            sellersListContainer.innerHTML = ''; // Limpa o container
             if (filteredSellers.length === 0) {
                  const msg = searchTerm ? 'Nenhum vendedor encontrado.' : 'Nenhum vendedor neste segmento.';
                  sellersListContainer.innerHTML = `<p class="text-gray-500 placeholder-seller p-4">${msg}</p>`;
                  return;
             }
 
+            // 3. Renderizar ITENS DE LISTA (Layout atualizado)
             filteredSellers.forEach(seller => {
                 const item = document.createElement('div');
                 
-                let statusColor = 'yellow'; 
-                let statusHTML = `<span class="text-xs text-gray-500">${seller.pending} pendente(s)</span>`;
+                let statusColor, statusText, totalText, backgroundClass;
 
-                if (seller.finalizedByVendor && seller.systemStatus === 'pending') {
+                if (seller.pending === 0) {
+                    // Finalizado
                     statusColor = 'green';
-                    statusHTML = `
-                         <label class="flex items-center space-x-2 cursor-pointer text-sm">
-                             <input type="checkbox" class="system-check-btn rounded" data-seller-name="${seller.name}">
-                             <span class="text-xs">Dar Baixa</span>
-                         </label>`;
-                } else if (seller.systemStatus === 'baixado') {
-                    statusColor = 'purple';
-                    statusHTML = `<span class="text-sm font-semibold text-purple-600">✓ Baixado</span>`;
+                    statusText = `<span class="font-semibold text-green-700">Finalizado</span>`;
+                    backgroundClass = 'bg-green-50 hover:bg-green-100'; // Fundo verde
+                    totalText = `<span class="text-gray-400 ml-1">(${seller.total} total)</span>`;
+                } else {
+                    // Pendente
+                    statusColor = 'yellow';
+                    statusText = `<span class="font-semibold text-yellow-700">${seller.pending} pendente(s)</span>`;
+                    backgroundClass = 'hover:bg-gray-50'; // Fundo normal
+                    let respondidos = seller.total - seller.pending;
+                    totalText = `<span class="text-gray-400 ml-1">(${respondidos} resp / ${seller.total} total)</span>`;
                 }
 
-                item.className = `flex justify-between items-center p-3 border-b border-gray-100 last:border-b-0`;
+                item.className = `flex justify-between items-center p-3 border-b border-gray-100 last:border-b-0 ${backgroundClass} transition-colors duration-150`;
                 item.innerHTML = `
                     <div class="flex items-center gap-2">
                         <span class="h-2 w-2 rounded-full bg-${statusColor}-500 flex-shrink-0"></span>
                         <span class="font-medium text-sm text-gray-800">${seller.name}</span>
                     </div>
                     <div class="text-xs text-right flex-shrink-0 ml-2">
-                        ${statusHTML}
-                        <span class="text-gray-400 ml-1">(${seller.pending}/${seller.total})</span>
+                        ${statusText}
+                        ${totalText}
                     </div>`;
                 
                 sellersListContainer.appendChild(item);
             });
 
-            sellersListContainer.querySelectorAll('.system-check-btn').forEach(checkbox => {
-                 checkbox.addEventListener('change', (e) => darBaixaVendedor(e, checkbox.dataset.sellerName));
-            });
+            // 4. Listeners REMOVIDOS (não há mais checkbox)
         }
         
-        async function darBaixaVendedor(event, sellerName) {
-            const checkbox = event.target;
-            if (!checkbox.checked) return; 
-            
-            checkbox.disabled = true;
-            const originalLabel = checkbox.parentElement.querySelector('span');
-            originalLabel.textContent = 'A guardar...';
-            
-            try {
-                const normalizedSellerName = normalizeText(sellerName);
-                const sellerSessionRef = doc(db, "sessoes", currentSessionId, "vendedores", normalizedSellerName);
-                
-                const samplesToUpdateQuery = query(
-                    collection(db, sellerSessionRef.path, "amostras"),
-                    where("isPending", "==", false),
-                    where("systemStatus", "==", "pending")
-                );
-                
-                const samplesSnapshot = await getDocs(samplesToUpdateQuery);
-                
-                if (samplesSnapshot.empty) {
-                     showAlert("Nenhuma amostra finalizada encontrada para este vendedor.", "Aviso", "text-amber-600");
-                } else {
-                    const batch = writeBatch(db);
-                    samplesSnapshot.forEach(sampleDoc => {
-                        batch.update(sampleDoc.ref, { systemStatus: 'baixado' });
-                    });
-                    await batch.commit();
-                }
-                
-            } catch(error) {
-                 handleFirestoreError(error, `dar baixa para ${sellerName}`);
-                 checkbox.disabled = false;
-                 checkbox.checked = false;
-                 originalLabel.textContent = 'Dar Baixa';
-            }
-        }
+        // FUNÇÃO REMOVIDA: darBaixaVendedor(event, sellerName)
         
         function renderAccessTable() {
              managerAccessTbody.innerHTML = '';
@@ -1246,13 +1296,11 @@
         // --- Lógica de Resposta e Notificação ---
         
         function openReplyModal(e) {
-             // CORREÇÃO: Achar o botão clicado, seja ele o target ou o currentTarget
              const button = e.target.closest('.reply-btn') || e.currentTarget;
              const sampleId = button.dataset.sampleId;
              currentSampleForReply = allCurrentSamples.find(s => s.id === sampleId);
              
              if (!currentSampleForReply) {
-                console.error("Amostra não encontrada. ID:", sampleId, "Evento:", e);
                 return showAlert("Erro: Amostra não encontrada.");
              }
              
@@ -1262,6 +1310,29 @@
              replyMessageInput.value = '';
              replyModal.classList.remove('hidden');
         }
+
+        // NOVO: Abrir Modal da Nota Interna
+        function openManagerNoteModal(e) {
+             const button = e.target.closest('.manager-note-btn') || e.currentTarget;
+             const sampleId = button.dataset.sampleId;
+             currentSampleForNote = allCurrentSamples.find(s => s.id === sampleId);
+             
+             if (!currentSampleForNote) {
+                return showAlert("Erro: Amostra não encontrada.");
+             }
+             
+             managerNoteModalProduct.textContent = `${currentSampleForNote.produto} (${currentSampleForNote.pedido})`;
+             managerNoteModalObservation.textContent = `"${currentSampleForNote.observation || 'Sem observação'}"`;
+
+             // MUDANÇA: Achar a nota ESPECÍFICA do gerente ATUAL
+             const existingNote = allManagerNotes.find(n => 
+                 n.contextId === sampleId && n.managerName === currentManagerName
+             );
+             managerNoteInput.value = existingNote ? existingNote.message : '';
+             
+             managerNoteModal.classList.remove('hidden');
+        }
+
 
         async function sendReplyToManager() {
             if (!currentSampleForReply || !currentSessionId) return;
@@ -1282,7 +1353,7 @@
                     sellerName: currentSampleForReply.sellerName,
                     pedido: currentSampleForReply.pedido,
                     produto: currentSampleForReply.produto,
-                    razaoSocial: currentSampleForReply.razaoSocial || '',
+                    razoSocial: currentSampleForReply.razoSocial || '',
                     descricao: currentSampleForReply.descricao || '',
                     timestamp: serverTimestamp(),
                     read: false,
@@ -1301,6 +1372,61 @@
                 sendReplyBtn.disabled = false;
                 sendReplyBtn.textContent = 'Enviar Resposta';
                 currentSampleForReply = null;
+            }
+        }
+
+        // NOVO: Salvar/Atualizar/Apagar Nota Interna
+        async function sendManagerNote() {
+            if (!currentSampleForNote || !currentSessionId) return;
+
+            const message = managerNoteInput.value.trim();
+            sendManagerNoteBtn.disabled = true;
+            sendManagerNoteBtn.textContent = 'A Salvar...';
+
+            try {
+                const noteRef = collection(db, "sessoes", currentSessionId, "gerentePostits");
+                
+                // MUDANÇA: Achar a nota ESPECÍFICA do gerente ATUAL
+                const existingNote = allManagerNotes.find(n => 
+                    n.contextId === currentSampleForNote.id && n.managerName === currentManagerName
+                );
+
+                if (!message) {
+                    // Mensagem vazia: APAGAR a nota se ela existir E for sua
+                    if (existingNote) {
+                        const noteDocRef = doc(db, "sessoes", currentSessionId, "gerentePostits", existingNote.id);
+                        await deleteDoc(noteDocRef);
+                        showAlert("Nota interna removida.", "Sucesso", "text-green-600");
+                    }
+                } else {
+                    // Mensagem com conteúdo: ATUALIZAR ou CRIAR
+                    if (existingNote) {
+                        // Atualizar nota existente
+                        const noteDocRef = doc(db, "sessoes", currentSessionId, "gerentePostits", existingNote.id);
+                        await updateDoc(noteDocRef, {
+                            message: message,
+                            timestamp: serverTimestamp()
+                        });
+                    } else {
+                        // Adicionar nota nova
+                        await addDoc(noteRef, {
+                            contextId: currentSampleForNote.id,
+                            message: message,
+                            managerName: currentManagerName, // Salva o nome de quem criou
+                            timestamp: serverTimestamp()
+                        });
+                    }
+                    showAlert("Nota interna salva.", "Sucesso", "text-green-600");
+                }
+                
+                managerNoteModal.classList.add('hidden');
+
+            } catch (error) {
+                handleFirestoreError(error, "salvar nota interna");
+            } finally {
+                sendManagerNoteBtn.disabled = false;
+                sendManagerNoteBtn.textContent = 'Salvar Nota';
+                currentSampleForNote = null;
             }
         }
         
@@ -1388,17 +1514,8 @@
                  const itemDiv = document.createElement('div');
                  itemDiv.className = `feedback-sample-item text-sm`;
                  
-                 let repliesHtml = '';
-                 const pdNote = allPdPostits.find(p => p.contextId === sample.id);
-                 if (pdNote) repliesHtml += `<div class="pd-note"><p><strong>Nota P&D:</strong> ${pdNote.message}</p></div>`;
-                 
-                 const managerReply = allManagerReplies.find(r => r.sellerName === sample.sellerName && r.pedido === sample.pedido && r.produto === sample.produto && r.originalObservation === sample.observation);
-                 if (managerReply) {
-                    // CORREÇÃO: Usar replyMessage
-                     repliesHtml += `<div class="manager-reply"><p><strong>${managerReply.managerName}:</strong> ${managerReply.replyMessage}</p></div>`;
-                     const sellerReply = allSellerReplies.find(r => r.originalManagerMessage === managerReply.replyMessage && r.pedido === sample.pedido);
-                     if (sellerReply) repliesHtml += `<div class="seller-reply"><p><strong>${sellerReply.sellerName}:</strong> ${sellerReply.replyMessage}</p></div>`;
-                 }
+                 const managerNoteHtml = getManagerNoteHtml(sample.id); // NOVO: Pega nota interna
+                 const repliesHtml = getRepliesHtml(sample); // Pega replies
 
                  const replyButtonHtml = `
                      <button class="reply-btn bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded text-xs font-semibold" data-sample-id="${sample.id}">
@@ -1406,27 +1523,37 @@
                      </button>
                  `;
 
+                 // NOVO: Botão de Nota Interna
+                 const noteButtonHtml = `
+                    <button class="manager-note-btn text-yellow-600 hover:text-yellow-800 p-1 rounded-full hover:bg-yellow-100" data-sample-id="${sample.id}" title="Adicionar nota interna">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                        </svg>
+                    </button>
+                 `;
+
                  itemDiv.innerHTML = `
                      <div class="flex justify-between items-start">
                          <div>
-                             <p class="font-semibold">${sample.produto} (${sample.razaoSocial})</p>
+                             <p class="font-semibold">${sample.produto} (${sample.razoSocial})</p>
                              <p class="text-xs text-gray-600">${sample.descricao}</p>
                              <p class="text-xs text-gray-500 mt-1">
                                  Vendedor: ${sample.sellerName} | Pedido: ${sample.pedido} | NF: ${sample.emissaoNF || 'N/A'}
                              </p>
                              <p class="font-medium text-gray-800 mt-1">Feedback: ${sample.feedback || 'Pendente'}</p>
                          </div>
-                         <div class="flex-shrink-0 ml-4">
+                         <div class="flex-shrink-0 ml-4 flex items-center gap-1">
+                            ${noteButtonHtml}
                             ${sample.observation ? replyButtonHtml : ''}
                          </div>
                      </div>
                      ${sample.observation ? `<p class="text-xs text-gray-600 mt-1 italic">Obs: ${sample.observation}</p>` : ''}
-                     ${repliesHtml}
+                     ${managerNoteHtml} <!-- Nota interna primeiro -->
+                     ${repliesHtml} <!-- Respostas públicas depois -->
                  `;
                  feedbackSamplesList.appendChild(itemDiv);
             });
             
-            // Listeners agora são por delegação (ver abaixo)
             feedbackSamplesModal.classList.remove('hidden');
         }
 
@@ -1471,7 +1598,7 @@
                     normalizeText(s.sellerName).includes(searchTerm) ||
                     normalizeText(s.produto).includes(searchTerm) ||
                     normalizeText(s.descricao).includes(searchTerm) ||
-                    normalizeText(s.razaoSocial).includes(searchTerm) ||
+                    normalizeText(s.razoSocial).includes(searchTerm) ||
                     (s.observation && normalizeText(s.observation).includes(searchTerm)) ||
                     normalizeText(s.pedido).includes(searchTerm)
                 ).sort((a, b) => (b.lastUpdate?.toDate ? b.lastUpdate.toDate().getTime() : 0) - (a.lastUpdate?.toDate ? a.lastUpdate.toDate().getTime() : 0));
@@ -1488,25 +1615,47 @@
         cancelReplyBtn.addEventListener('click', () => replyModal.classList.add('hidden'));
         sendReplyBtn.addEventListener('click', sendReplyToManager);
         
+        // NOVO: Listeners do Modal de Nota Interna
+        cancelManagerNoteBtn.addEventListener('click', () => managerNoteModal.classList.add('hidden'));
+        sendManagerNoteBtn.addEventListener('click', sendManagerNote);
+
         closeNotificationBtn.addEventListener('click', () => notificationModal.classList.add('hidden'));
         
-        // NOVO: Delegação de evento para a lista do modal de amostras
-        feedbackSamplesList.addEventListener('click', (e) => {
-            const button = e.target.closest('.reply-btn');
-            if (button) {
-                // Abre o modal de resposta
+        // Delegação de evento para a lista do feed de observações
+        observationsFeedList.addEventListener('click', (e) => {
+            const replyButton = e.target.closest('.reply-btn');
+            const noteButton = e.target.closest('.manager-note-btn');
+
+            if (replyButton) {
                 openReplyModal(e);
-                // Fecha o modal atual (de amostras)
-                feedbackSamplesModal.classList.add('hidden');
+            } else if (noteButton) {
+                openManagerNoteModal(e);
             }
         });
 
-        // NOVO: Delegação de evento para a lista de análise de feedback
+        // Delegação de evento para a lista do modal de amostras
+        feedbackSamplesList.addEventListener('click', (e) => {
+            const replyButton = e.target.closest('.reply-btn');
+            const noteButton = e.target.closest('.manager-note-btn');
+
+            if (replyButton) {
+                openReplyModal(e);
+                feedbackSamplesModal.classList.add('hidden'); // Fecha o modal de amostras
+            } else if (noteButton) {
+                openManagerNoteModal(e);
+                feedbackSamplesModal.classList.add('hidden'); // Fecha o modal de amostras
+            }
+        });
+
+        // Delegação de evento para a lista de análise de feedback
         feedbackTypesList.addEventListener('click', (e) => {
-            const button = e.target.closest('.reply-btn');
-            if (button) {
+            const replyButton = e.target.closest('.reply-btn');
+            const noteButton = e.target.closest('.manager-note-btn');
+
+            if (replyButton) {
                 openReplyModal(e); 
-                // Não precisa fechar modal, pois não está em um
+            } else if (noteButton) {
+                openManagerNoteModal(e);
             }
         });
 
@@ -1578,7 +1727,6 @@
     </script>
 </body>
 </html>
-
 
 
 
