@@ -160,7 +160,7 @@
                             <ul class="list-disc list-inside space-y-2">
                                 <li><strong>Análise de Tipos de Feedback:</strong> Na seção inferior, clique em uma barra do gráfico (ex: "Preço Alto") para carregar instantaneamente todas as amostras com esse feedback na lista ao lado.</li>
                                 <li><strong>Respostas Interativas:</strong> Você pode clicar em "Responder" em qualquer amostra, seja no Feed, no modal da "Distribuição de Feedbacks" ou na lista de "Análise de Tipos de Feedback".</li>
-                                <li><strong>Sino de Notificação (Topo):</strong> O sino tocará e mostrará um número vermelho quando houver novas respostas de vendedores às suas mensagens.</li>
+                                <li><strong>Sino de Notificação (Topo):</strong> O sino tocará e mostrará um número vermelho when houver novas respostas de vendedores às suas mensagens.</li>
                                 <li><strong>Pesquisa Global:</strong> Use a barra "Pesquisar em todas as amostras..." para encontrar amostras por nome de produto, cliente, vendedor, pedido ou observação. Pressione "Enter" para ver os resultados.</li>
                             </ul>
                         </div>
@@ -186,13 +186,22 @@
                 
                 <!-- Coluna Feed Observações -->
                 <section>
+                    <!-- MUDANÇA: Layout dos filtros do feed ajustado -->
                     <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-3">
                         <h2 class="text-2xl font-bold text-gray-900">Feed de Observações</h2>
-                        <select id="seller-feed-filter" class="border-gray-300 rounded-lg shadow-sm text-sm p-1 w-full sm:w-auto">
-                            <option value="">Todos os Vendedores</option>
-                            <!-- Opções adicionadas via JS -->
-                        </select>
+                        <div class="flex flex-col gap-2 w-full sm:w-auto">
+                            <select id="seller-feed-filter" class="border-gray-300 rounded-lg shadow-sm text-sm p-1 w-full sm:w-auto">
+                                <option value="">Todos os Vendedores</option>
+                                <!-- Opções adicionadas via JS -->
+                            </select>
+                            <select id="feed-filter" class="border-gray-300 rounded-lg shadow-sm text-sm p-1 w-full sm:w-auto">
+                                <option value="all">Mostrar Tudo</option>
+                                <option value="replied">Comentários Respondidos</option>
+                                <option value="notes">Com Notas Internas</option>
+                            </select>
+                        </div>
                     </div>
+                    <!-- FIM DA MUDANÇA -->
                     <div id="observations-feed-list" class="space-y-4 bg-white p-4 rounded-2xl shadow-sm border">
                         <p class="text-gray-500 placeholder-observation">Nenhuma observação encontrada.</p>
                     </div>
@@ -200,10 +209,20 @@
 
                 <!-- Coluna Vendedores do Segmento -->
                 <section>
-                    <div class="flex justify-between items-center mb-4">
+                    <!-- MUDANÇA: Layout dos filtros de vendedor ajustado -->
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-3">
                          <h2 class="text-2xl font-bold text-gray-900">Vendedores do Segmento</h2>
-                         <input id="seller-search-input" type="text" placeholder="Procurar vendedor..." class="border-gray-300 rounded-lg shadow-sm text-sm p-1">
+                         <div class="flex flex-col gap-2 w-full sm:w-auto">
+                             <input id="seller-search-input" type="text" placeholder="Procurar vendedor..." class="border-gray-300 rounded-lg shadow-sm text-sm p-1 w-full sm:w-auto">
+                             <!-- NOVO FILTRO DE STATUS -->
+                             <select id="seller-status-filter" class="border-gray-300 rounded-lg shadow-sm text-sm p-1 w-full sm:w-auto">
+                                <option value="all">Todos os Status</option>
+                                <option value="pending">Apenas Pendentes</option>
+                                <option value="finalized">Apenas Finalizados</option>
+                             </select>
+                         </div>
                     </div>
+                    <!-- FIM DA MUDANÇA -->
                     <div id="sellers-list-container" class="bg-white rounded-2xl shadow-sm border">
                         <p class="text-gray-500 placeholder-seller p-4">Nenhum vendedor encontrado.</p>
                     </div>
@@ -310,11 +329,17 @@
                 <p class="text-xs text-gray-600 mb-1" id="manager-note-modal-observation">"${' '}"</p>
             </div>
             <div class="space-y-4">
+                  <!-- MUDANÇA: Adicionado campo de Autor Editável -->
+                  <div>
+                      <label for="manager-note-author-input" class="block text-sm font-medium text-gray-700">Autor da Nota</label>
+                      <input type="text" id="manager-note-author-input" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm" placeholder="Seu nome...">
+                  </div>
+                  <!-- FIM DA MUDANÇA -->
                   <div>
                        <label for="manager-note-input" class="block text-sm font-medium text-gray-700">Sua Nota (Post-it)</label>
                        <textarea id="manager-note-input" rows="3" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm" placeholder="Digite algo para se lembrar..."></textarea>
                        <p class="mt-2 text-xs text-gray-500">
-                           <strong>Aviso:</strong> Esta nota é visível apenas para si e outros gerentes. Para apagar, deixe o campo vazio e clique em "Salvar".
+                           <strong>Aviso:</strong> Esta nota é visível apenas para si, para se lembrar de algo. Caso queira verificar as suas notas, pode aceder a este campo. (Para apagar, deixe o campo vazio e clique em "Salvar").
                        </p>
                   </div>
             </div>
@@ -403,8 +428,10 @@
         const dashboardContent = document.getElementById('dashboard-content');
         const observationsFeedList = document.getElementById('observations-feed-list');
         const sellerFeedFilter = document.getElementById('seller-feed-filter'); 
+        const feedFilter = document.getElementById('feed-filter'); // NOVO: Filtro de status do feed
         const sellersListContainer = document.getElementById('sellers-list-container');
         const sellerSearchInput = document.getElementById('seller-search-input');
+        const sellerStatusFilter = document.getElementById('seller-status-filter'); // NOVO: Filtro de status do vendedor
         const adminAccessSection = document.getElementById('admin-access-section');
         const managerAccessTbody = document.getElementById('manager-access-tbody');
         const feedbackSamplesModal = document.getElementById('feedback-samples-modal');
@@ -431,9 +458,10 @@
         const managerNoteModal = document.getElementById('manager-note-modal');
         const managerNoteModalProduct = document.getElementById('manager-note-modal-product');
         const managerNoteModalObservation = document.getElementById('manager-note-modal-observation');
+        const managerNoteAuthorInput = document.getElementById('manager-note-author-input'); // NOVO: Input do autor
         const managerNoteInput = document.getElementById('manager-note-input');
-        const cancelManagerNoteBtn = document.getElementById('cancel-manager-note-btn'); // <-- CORREÇÃO
-        const sendManagerNoteBtn = document.getElementById('send-manager-note-btn'); // <-- CORREÇÃO
+        const cancelManagerNoteBtn = document.getElementById('cancel-manager-note-btn');
+        const sendManagerNoteBtn = document.getElementById('send-manager-note-btn');
 
 
         // --- Estado Global ---
@@ -702,7 +730,7 @@
                         <span class="login-card-name">${data.name}</span>
                     </div>
                     <svg class="w-5 h-5 opacity-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" />
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0 -16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" />
                     </svg>
                 `;
                 
@@ -1097,7 +1125,7 @@
                 itemDiv.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="font-semibold">${sample.produto} (${sample.razoSocial})</p>
+                            <p class="font-semibold">${sample.produto} (${sample.razaoSocial})</p>
                             <p class="text-xs text-gray-600">${sample.descricao}</p>
                             <p class="text-xs text-gray-500 mt-1">
                                 Vendedor: ${sample.sellerName} | Pedido: ${sample.pedido} | NF: ${sample.emissaoNF || 'N/A'}
@@ -1117,15 +1145,42 @@
             });
         }
 
+        // MUDANÇA: Função do feed de observações atualizada com filtros
         function renderObservationsFeed(samples) {
             const globalSearch = normalizeText(globalSearchInput.value);
             const sellerFilter = sellerFeedFilter.value; 
+            const feedFilterValue = feedFilter.value; // NOVO: Pega valor do novo filtro
 
             const filteredSamples = samples.filter(s => {
                 if (!s.observation) return false;
+                
+                // Filtro 1: Vendedor
                 if (sellerFilter && s.sellerName !== sellerFilter) {
                     return false;
                 }
+                
+                // NOVO: Filtro 2: Status (Respondido / Com Nota)
+                const sampleId = s.id;
+                
+                // Verifica se há uma resposta do gerente para esta observação específica
+                const hasReplied = allManagerReplies.some(r => 
+                    r.sellerName === s.sellerName && 
+                    r.pedido === s.pedido && 
+                    r.produto === s.produto && 
+                    r.originalObservation === s.observation
+                );
+                
+                // Verifica se há qualquer nota interna (de qualquer gerente, visível para o user)
+                const hasNote = allManagerNotes.some(n => n.contextId === sampleId);
+
+                if (feedFilterValue === 'replied' && !hasReplied) {
+                    return false;
+                }
+                if (feedFilterValue === 'notes' && !hasNote) {
+                    return false;
+                }
+                
+                // Filtro 3: Pesquisa Global
                 if (globalSearch) {
                     return (
                         normalizeText(s.sellerName).includes(globalSearch) ||
@@ -1144,6 +1199,8 @@
                  let msg = 'Nenhuma observação encontrada.';
                  if (globalSearch) msg = 'Nenhum resultado para a pesquisa.';
                  else if (sellerFilter) msg = 'Nenhuma observação para este vendedor.';
+                 else if (feedFilterValue === 'replied') msg = 'Nenhum comentário respondido.';
+                 else if (feedFilterValue === 'notes') msg = 'Nenhuma observação com nota interna.';
                  
                  observationsFeedList.innerHTML = `<p class="text-gray-500 placeholder-observation p-4">${msg}</p>`;
                  return;
@@ -1170,13 +1227,13 @@
                     <div class="mb-2">
                         <p class="font-bold text-gray-800">${sample.produto}</p>
                         <p class="text-sm text-gray-600">${sample.descricao || 'Sem descrição'}</p>
-                        <p class="text-xs text-gray-500">${sample.razoSocial || 'Cliente N/A'}</p>
+                        <p class="text-xs text-gray-500">${sample.razaoSocial || 'Cliente N/A'}</p>
                         ${feedbackHtml} 
                     </div>
                     <p class="text-gray-700 mb-3 italic">"${sample.observation}"</p>
                     
                     ${managerNoteHtml} <!-- Nota interna primeiro -->
-                    ${repliesHtml} <!-- Respostas públicas depois -->
+                    ${repliesHtml} <!-- Respostas públicasDepois -->
 
                     <div class="flex justify-between items-end text-xs text-gray-500 mt-3 pt-3 border-t">
                          <div>
@@ -1202,10 +1259,12 @@
             // Listeners adicionados por delegação
         }
         
+        // MUDANÇA: Lógica da lista de vendedores atualizada com filtro de status
         function renderSellersList(samples) {
             const searchTerm = normalizeText(sellerSearchInput.value);
+            const statusFilter = sellerStatusFilter.value; // NOVO: Pega o valor do filtro
             
-            // 1. Agrupar amostras por vendedor (LÓGICA SIMPLIFICADA)
+            // 1. Agrupar amostras por vendedor
             const sellers = samples.reduce((acc, sample) => {
                 if (!acc[sample.sellerName]) {
                     acc[sample.sellerName] = {
@@ -1221,17 +1280,34 @@
                 return acc;
             }, {});
 
-            // 2. Filtrar vendedores pelo nome
+            // 2. Filtrar vendedores pelo nome E PELO NOVO STATUS
             const filteredSellers = Object.values(sellers).filter(seller => {
                  if (searchTerm) {
                      return normalizeText(seller.name).includes(searchTerm);
                  }
                  return true;
+            }).filter(seller => { // NOVO: Filtro de status
+                if (statusFilter === 'all') {
+                    return true;
+                }
+                const isPending = seller.pending > 0;
+                if (statusFilter === 'pending') {
+                    return isPending;
+                }
+                if (statusFilter === 'finalized') {
+                    return !isPending;
+                }
+                return true;
             }).sort((a, b) => a.name.localeCompare(b.name));
 
             sellersListContainer.innerHTML = ''; // Limpa o container
             if (filteredSellers.length === 0) {
-                 const msg = searchTerm ? 'Nenhum vendedor encontrado.' : 'Nenhum vendedor neste segmento.';
+                 // Mensagem de placeholder atualizada
+                 let msg = 'Nenhum vendedor neste segmento.';
+                 if (searchTerm) msg = 'Nenhum vendedor encontrado para a pesquisa.';
+                 else if (statusFilter === 'pending') msg = 'Nenhum vendedor pendente.';
+                 else if (statusFilter === 'finalized') msg = 'Nenhum vendedor finalizado.';
+                 
                  sellersListContainer.innerHTML = `<p class="text-gray-500 placeholder-seller p-4">${msg}</p>`;
                  return;
             }
@@ -1270,11 +1346,7 @@
                 
                 sellersListContainer.appendChild(item);
             });
-
-            // 4. Listeners REMOVIDOS (não há mais checkbox)
         }
-        
-        // FUNÇÃO REMOVIDA: darBaixaVendedor(event, sellerName)
         
         function renderAccessTable() {
              managerAccessTbody.innerHTML = '';
@@ -1311,7 +1383,7 @@
              replyModal.classList.remove('hidden');
         }
 
-        // NOVO: Abrir Modal da Nota Interna
+        // MUDANÇA: Abrir Modal da Nota Interna (popula o autor)
         function openManagerNoteModal(e) {
              const button = e.target.closest('.manager-note-btn') || e.currentTarget;
              const sampleId = button.dataset.sampleId;
@@ -1324,11 +1396,26 @@
              managerNoteModalProduct.textContent = `${currentSampleForNote.produto} (${currentSampleForNote.pedido})`;
              managerNoteModalObservation.textContent = `"${currentSampleForNote.observation || 'Sem observação'}"`;
 
-             // MUDANÇA: Achar a nota ESPECÍFICA do gerente ATUAL
-             const existingNote = allManagerNotes.find(n => 
-                 n.contextId === sampleId && n.managerName === currentManagerName
-             );
-             managerNoteInput.value = existingNote ? existingNote.message : '';
+             // Lógica para encontrar a nota e o autor
+             let existingNote;
+             if (currentSegment === 'ADMIN') {
+                 // Admin pode editar a primeira nota que encontrar (ou a sua própria)
+                 existingNote = allManagerNotes.find(n => n.contextId === sampleId && n.managerName === currentManagerName) ||
+                                allManagerNotes.find(n => n.contextId === sampleId);
+             } else {
+                 // Gerente só pode editar a sua própria nota
+                 existingNote = allManagerNotes.find(n => 
+                     n.contextId === sampleId && n.managerName === currentManagerName
+                 );
+             }
+
+             if (existingNote) {
+                managerNoteInput.value = existingNote.message;
+                managerNoteAuthorInput.value = existingNote.managerName; // Popula com o nome salvo
+             } else {
+                managerNoteInput.value = '';
+                managerNoteAuthorInput.value = currentManagerName; // Popula com o nome do gerente logado
+             }
              
              managerNoteModal.classList.remove('hidden');
         }
@@ -1353,7 +1440,7 @@
                     sellerName: currentSampleForReply.sellerName,
                     pedido: currentSampleForReply.pedido,
                     produto: currentSampleForReply.produto,
-                    razoSocial: currentSampleForReply.razoSocial || '',
+                    razaoSocial: currentSampleForReply.razaoSocial || '',
                     descricao: currentSampleForReply.descricao || '',
                     timestamp: serverTimestamp(),
                     read: false,
@@ -1375,28 +1462,47 @@
             }
         }
 
-        // NOVO: Salvar/Atualizar/Apagar Nota Interna
+        // MUDANÇA: Salvar/Atualizar/Apagar Nota Interna (com autor editável)
         async function sendManagerNote() {
             if (!currentSampleForNote || !currentSessionId) return;
 
             const message = managerNoteInput.value.trim();
+            const authorName = managerNoteAuthorInput.value.trim(); // NOVO: Pega o autor
+            
+            // NOVO: Validação do autor
+            if (!authorName) {
+                 showAlert("O nome do autor não pode estar vazio.");
+                 return;
+            }
+
             sendManagerNoteBtn.disabled = true;
             sendManagerNoteBtn.textContent = 'A Salvar...';
 
             try {
                 const noteRef = collection(db, "sessoes", currentSessionId, "gerentePostits");
                 
-                // MUDANÇA: Achar a nota ESPECÍFICA do gerente ATUAL
-                const existingNote = allManagerNotes.find(n => 
-                    n.contextId === currentSampleForNote.id && n.managerName === currentManagerName
-                );
+                // Lógica para encontrar a nota existente (mesma de 'openManagerNoteModal')
+                 let existingNote;
+                 if (currentSegment === 'ADMIN') {
+                     existingNote = allManagerNotes.find(n => n.contextId === currentSampleForNote.id && n.managerName === currentManagerName) ||
+                                    allManagerNotes.find(n => n.contextId === currentSampleForNote.id);
+                 } else {
+                     existingNote = allManagerNotes.find(n => 
+                         n.contextId === currentSampleForNote.id && n.managerName === currentManagerName
+                     );
+                 }
 
                 if (!message) {
-                    // Mensagem vazia: APAGAR a nota se ela existir E for sua
+                    // Mensagem vazia: APAGAR a nota se ela existir
                     if (existingNote) {
-                        const noteDocRef = doc(db, "sessoes", currentSessionId, "gerentePostits", existingNote.id);
-                        await deleteDoc(noteDocRef);
-                        showAlert("Nota interna removida.", "Sucesso", "text-green-600");
+                        // Um gerente só pode apagar sua própria nota, mas o Admin pode apagar qualquer uma
+                        if (currentSegment === 'ADMIN' || existingNote.managerName === currentManagerName) {
+                            const noteDocRef = doc(db, "sessoes", currentSessionId, "gerentePostits", existingNote.id);
+                            await deleteDoc(noteDocRef);
+                            showAlert("Nota interna removida.", "Sucesso", "text-green-600");
+                        } else {
+                            showAlert("Você não pode apagar a nota de outro gerente.");
+                        }
                     }
                 } else {
                     // Mensagem com conteúdo: ATUALIZAR ou CRIAR
@@ -1405,6 +1511,7 @@
                         const noteDocRef = doc(db, "sessoes", currentSessionId, "gerentePostits", existingNote.id);
                         await updateDoc(noteDocRef, {
                             message: message,
+                            managerName: authorName, // Salva o nome do autor (editado ou não)
                             timestamp: serverTimestamp()
                         });
                     } else {
@@ -1412,7 +1519,7 @@
                         await addDoc(noteRef, {
                             contextId: currentSampleForNote.id,
                             message: message,
-                            managerName: currentManagerName, // Salva o nome de quem criou
+                            managerName: authorName, // Salva o nome do autor
                             timestamp: serverTimestamp()
                         });
                     }
@@ -1535,7 +1642,7 @@
                  itemDiv.innerHTML = `
                      <div class="flex justify-between items-start">
                          <div>
-                             <p class="font-semibold">${sample.produto} (${sample.razoSocial})</p>
+                             <p class="font-semibold">${sample.produto} (${sample.razaoSocial})</p>
                              <p class="text-xs text-gray-600">${sample.descricao}</p>
                              <p class="text-xs text-gray-500 mt-1">
                                  Vendedor: ${sample.sellerName} | Pedido: ${sample.pedido} | NF: ${sample.emissaoNF || 'N/A'}
@@ -1583,9 +1690,14 @@
         // --- Event Listeners Globais ---
         managerLoginBtn.addEventListener('click', login);
         logoutBtn.addEventListener('click', logout);
-        sellerSearchInput.addEventListener('input', () => renderSellersList(allCurrentSamples));
         
+        // MUDANÇA: Adicionado listener para o novo filtro de status do vendedor
+        sellerSearchInput.addEventListener('input', () => renderSellersList(allCurrentSamples));
+        sellerStatusFilter.addEventListener('change', () => renderSellersList(allCurrentSamples));
+        
+        // MUDANÇA: Adicionado listener para ambos os filtros do feed
         sellerFeedFilter.addEventListener('change', () => renderObservationsFeed(allCurrentSamples));
+        feedFilter.addEventListener('change', () => renderObservationsFeed(allCurrentSamples));
 
         globalSearchInput.addEventListener('keyup', (e) => {
             if (e.key === 'Enter') {
@@ -1598,7 +1710,7 @@
                     normalizeText(s.sellerName).includes(searchTerm) ||
                     normalizeText(s.produto).includes(searchTerm) ||
                     normalizeText(s.descricao).includes(searchTerm) ||
-                    normalizeText(s.razoSocial).includes(searchTerm) ||
+                    normalizeText(s.razaoSocial).includes(searchTerm) ||
                     (s.observation && normalizeText(s.observation).includes(searchTerm)) ||
                     normalizeText(s.pedido).includes(searchTerm)
                 ).sort((a, b) => (b.lastUpdate?.toDate ? b.lastUpdate.toDate().getTime() : 0) - (a.lastUpdate?.toDate ? a.lastUpdate.toDate().getTime() : 0));
@@ -1727,6 +1839,7 @@
     </script>
 </body>
 </html>
+
 
 
 
