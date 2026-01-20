@@ -325,7 +325,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { 
             getFirestore, collection, onSnapshot, doc, getDoc, getDocs, 
-            updateDoc, query, where, Timestamp, runTransaction, addDoc, orderBy, deleteDoc, deleteField
+            updateDoc, query, where, Timestamp, runTransaction, addDoc, orderBy, deleteDoc, deleteField, serverTimestamp
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -348,7 +348,8 @@
         const MANAGERS = {
             'CÁRNEOS': { name: 'LUIS ADRIANO', pass: 'carneospass123', dataValue: 'CARNEOS' },
             'LACTEOS': { name: 'VITOR MACHADO', pass: 'lacteospass456', dataValue: 'LACTEOS' },
-            'NUTRIÇÃO': { name: 'DANILO TREMOLCOLDI', pass: 'nutricaopass303', dataValue: 'NUTRICAO ANIMAL' },
+            'NUTRIÇÃO ESPORTIVA': { name: 'JOÃO SCHITTKOWSKI', pass: 'esportivapass123', dataValue: 'NUTRIÇÃO ESPORTIVA' },
+            'FARMA': { name: 'VANESSA BADARÓ', pass: 'farmapass123', dataValue: 'FARMA' },
             'PANIFICACAO': { name: 'MARISTELA', pass: 'panificacaopass101', dataValue: 'PANIFICACAO' },
             'SMB': { name: 'GUSTAVO BONFIM', pass: 'smbpass202', dataValue: 'SNACKS, MOLHOS E BEBIDAS' },
             'SORVETES': { name: 'VINICIUS MADALENO', pass: 'sorvetespass789', dataValue: 'SORVETES' },
@@ -867,6 +868,8 @@
 
 
         // --- RESPOSTA AO VENDEDOR ---
+        const managerNameInput = { value: '' }; // Mock para o prompt original que usava um input global não declarado no snippet anterior
+
         function openReplyModal(e) {
              const sampleId = e.currentTarget.dataset.sampleId;
              currentSampleForReply = allSegmentSamples.find(s => s.id === sampleId);
@@ -875,7 +878,8 @@
              replyModalProduct.textContent = `${currentSampleForReply.produto} (${currentSampleForReply.pedido})`;
              replyModalSeller.textContent = `Vendedor: ${currentSampleForReply.sellerName}`;
              replyModalObservation.textContent = `"${currentSampleForReply.observation || 'Sem observação'}"`;
-             managerNameInput.value = localStorage.getItem('managerName') || ''; 
+             
+             // managerNameInput.value = localStorage.getItem('managerName') || ''; 
              replyMessageInput.value = '';
              replyModal.classList.remove('hidden');
         }
@@ -884,13 +888,13 @@
 
         sendReplyBtn.onclick = async () => {
              if (!currentSampleForReply || !currentSessionId) return;
-             const managerName = managerNameInput.value.trim();
+             // Como não temos input de nome no modal, usamos o nome do gerente logado
+             const managerName = MANAGERS[currentSegmentKey].name;
              const replyMessage = replyMessageInput.value.trim();
 
-             if (!managerName || !replyMessage) { return showAlert("Preencha todos os campos."); }
+             if (!replyMessage) { return showAlert("Preencha a resposta."); }
 
              try {
-                 localStorage.setItem('managerName', managerName);
                  // Enviar para 'notificacoesVendedor' para aparecer no painel do vendedor
                  await addDoc(collection(db, "sessoes", currentSessionId, "notificacoesVendedor"), {
                      managerName: managerName,
