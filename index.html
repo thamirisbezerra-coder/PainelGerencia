@@ -3,283 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Gerentes (v2)</title>
+    <title>Painel do Gerente</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+            color: #1e293b;
+        }
+        
+        .fade-in { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Barra de rolagem para Feed e Lista de Vendedores */
-        #sellers-list-container, #observations-feed-list {
-            max-height: 448px; /* 28rem */
-            overflow-y: auto;
+        /* Animação Flutuante para Logo */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
         }
+        .animate-float { animation: float 5s ease-in-out infinite; }
 
-        /* Estilos para o feed de observações e respostas */
-        .manager-reply, .seller-reply, .pd-note, .manager-note { /* Adicionado .manager-note */
-            margin-top: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.375rem; /* rounded-md */
-        }
-        .manager-reply {
-            background-color: #f3f4f6; /* bg-gray-100 */
-            border-left: 3px solid #9ca3af; /* border-gray-400 */
-        }
-        .seller-reply {
-            background-color: #f0f9ff; /* bg-blue-50 */
-            border-left: 3px solid #60a5fa; /* border-blue-400 */
-            margin-left: 1rem; /* Indent seller reply */
-        }
-         .pd-note {
-            background-color: #fffbeb; /* bg-amber-50 */
-            border-left: 3px solid #fcd34d; /* border-amber-300 */
-            margin-left: 0.5rem;
-        }
-        /* NOVO: Estilo do post-it do gerente */
-        .manager-note {
-            background-color: #fef9c3; /* bg-yellow-100 */
-            border-left: 3px solid #fde047; /* border-yellow-400 */
-            margin-left: 0.5rem;
-        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-
-        /* Estilo para Amostra destacada no modal */
-        .feedback-sample-item {
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 0.75rem;
-            margin-bottom: 0.75rem;
-        }
-        .feedback-sample-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .feedback-sample-item.highlight {
-            background-color: #fffbeb; /* bg-amber-50 */
-        }
-
-        /* Estilo para os cards de login (sem ícone) */
         .login-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1.25rem;
-            background-color: #f9fafb; /* bg-gray-50 */
-            border: 1px solid #e5e7eb; /* border-gray-200 */
-            border-radius: 0.5rem; /* rounded-lg */
-            font-weight: 600; /* font-semibold */
-            color: #374151; /* text-gray-700 */
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-            text-align: left;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #e2e8f0;
         }
         .login-card:hover {
-            background-color: #f3f4f6; /* bg-gray-100 */
-            border-color: #d1d5db; /* border-gray-300 */
+            border-color: #3b82f6;
+            background-color: #f8fafc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
         .login-card.selected {
-            background-color: #3b82f6; /* bg-blue-600 */
-            color: white;
-            border-color: #2563eb; /* border-blue-700 */
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            background-color: #eff6ff; /* blue-50 */
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* Ring effect */
         }
-        .login-card-name {
-            font-size: 0.875rem; /* text-sm */
-            color: #6b7280; /* text-gray-500 */
-            font-weight: 500; /* font-medium */
+        .login-card.selected .check-icon { opacity: 1; transform: scale(1); }
+        .check-icon { 
+            opacity: 0; 
+            transform: scale(0.5); 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
         }
-        .login-card.selected .login-card-name {
-            color: #dbeafe; /* text-blue-100 */
+        
+        .attention-card {
+            background-color: #fffbeb;
+            border: 1px solid #fcd34d;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .attention-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="antialiased min-h-screen flex flex-col">
 
-    <!-- Tela de Login -->
-    <div id="login-view" class="grid place-items-center min-h-screen p-4">
-        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 w-full max-w-2xl p-8">
-            <div class="flex justify-center items-center gap-3 mb-6">
-                <!-- ÍCONE: Malinha (Briefcase) -->
-                <div class="p-3 bg-indigo-100 rounded-full">
-                    <svg class="w-8 h-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.05c0 .621-.504 1.125-1.125 1.125H4.875A1.125 1.125 0 0 1 3.75 18.2V14.15m16.5 0v-2.175c0-.621-.504-1.125-1.125-1.125H4.875A1.125 1.125 0 0 0 3.75 11.975V14.15m16.5 0A1.125 1.125 0 0 0 21 13.025V9.75A1.125 1.125 0 0 0 19.875 8.625H4.125A1.125 1.125 0 0 0 3 9.75v3.275c0 .621.504 1.125 1.125 1.125M15 8.625V6a1.875 1.875 0 1 0-3.75 0V8.625m3.75 0H9m6 0v-2.625c0-1.036-.84-1.875-1.875-1.875H9.875C8.84 4.125 8 4.964 8 6v2.625m6 0H9" />
-                    </svg>
+    <!-- TELA DE LOGIN (MODERNIZADA E CENTRALIZADA) -->
+    <div id="login-view" class="fixed inset-0 z-50 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center p-4">
+        
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg p-10 fade-in relative overflow-hidden border border-white/50">
+            <!-- Decorative circle -->
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-indigo-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+
+            <div class="flex flex-col items-center text-center relative z-10">
+                
+                <!-- Logo Centralizada -->
+                <div class="mb-8 p-4 bg-white rounded-2xl shadow-sm border border-slate-100 animate-float">
+                    <img src="https://i.postimg.cc/76mXWMJh/as-02.png" alt="Logo" class="h-16 w-auto object-contain">
                 </div>
-                <h1 class="text-3xl font-bold text-gray-800 text-center">Painel de Gerentes (v2)</h1>
-            </div>
-            <p class="text-gray-600 text-center mb-8">Selecione o seu segmento para aceder ao painel.</p>
-            
-            <!-- LAYOUT DE LOGIN (CARDS) -->
-            <div id="manager-login-buttons" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Cards de login serão inseridos aqui pelo JS -->
-            </div>
-            
-            <!-- Campos de senha e botão agora ocultos por padrão -->
-            <div id="login-actions" class="mt-8 hidden transition-all duration-300 ease-in-out" style="opacity: 0; transform: translateY(10px);">
-                <input type="password" id="manager-password-input" class="w-full border-gray-300 rounded-lg shadow-sm" placeholder="Digite a sua senha...">
-                <button id="manager-login-btn" class="mt-4 w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700">Entrar</button>
-                <p id="login-error" class="text-red-500 text-sm mt-3 h-4 text-center"></p>
+                
+                <h1 class="text-2xl font-bold text-slate-800 mb-2 tracking-tight">Painel do Gerente</h1>
+                <p class="text-slate-500 text-sm mb-8 max-w-xs mx-auto">Acesse para gerenciar feedbacks e acompanhar o desempenho da sua equipe.</p>
+                
+                <!-- Grid de Seleção de Segmento -->
+                <div class="w-full mb-6 text-left">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block px-1">Selecione seu Segmento</label>
+                    <div id="segment-grid" class="grid grid-cols-2 gap-3 max-h-56 overflow-y-auto pr-2 custom-scrollbar pb-1">
+                        <!-- Cards gerados via JS -->
+                    </div>
+                </div>
+
+                <!-- Input de Senha -->
+                <div class="w-full relative mb-6 group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500 text-slate-400">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <input type="password" id="manager-password-input" class="w-full border border-slate-200 bg-slate-50 rounded-xl py-3.5 px-4 pl-11 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white outline-none transition-all placeholder-slate-400" placeholder="Sua senha de acesso">
+                </div>
+
+                <button id="manager-login-btn" class="w-full bg-slate-900 hover:bg-black text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2 group">
+                    <span>Entrar no Painel</span>
+                    <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+                
+                <p id="login-error" class="text-red-500 text-xs mt-4 text-center min-h-[1.25rem] font-medium animate-pulse"></p>
             </div>
         </div>
     </div>
 
-    <!-- Tela Principal (Dashboard) -->
-    <div id="dashboard" class="hidden container mx-auto p-4 md:p-8">
+    <!-- PAINEL PRINCIPAL (DASHBOARD) -->
+    <div id="dashboard-view" class="hidden flex-col min-h-screen">
         
-        <header class="flex flex-col md:flex-row justify-between md:items-center mb-8 gap-4">
-            <h1 id="dashboard-title" class="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <div class="flex items-center gap-4">
-                <input id="global-search-input" type="text" placeholder="Pesquisar em todas as amostras..." class="border-gray-300 rounded-lg shadow-sm text-sm p-2 w-full md:w-64">
-                <!-- Sino de Notificação (será adicionado aqui) -->
-                <button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-5 rounded-lg text-sm hover:bg-red-600">Sair</button>
+        <!-- Header -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+            <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <img src="https://i.postimg.cc/76mXWMJh/as-02.png" alt="Logo" class="h-8 w-auto">
+                    <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+                    <div>
+                        <h1 class="text-sm font-bold text-slate-800 leading-tight">Painel Gerencial</h1>
+                        <p id="header-segment-name" class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">---</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="hidden md:flex flex-col items-end mr-2">
+                        <span id="session-status-text" class="text-[10px] text-slate-400 font-medium">Sessão Ativa</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <span id="session-id-display" class="text-xs font-mono text-slate-600">---</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Botão Notas Internas (Geral) -->
+                    <button onclick="document.getElementById('internal-notes-modal').classList.remove('hidden')" class="p-2 text-slate-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors relative group" title="Minhas Notas Internas">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-yellow-400 rounded-full border-2 border-white hidden" id="has-notes-indicator"></span>
+                    </button>
+
+                    <div class="h-6 w-px bg-slate-200"></div>
+
+                    <button id="logout-btn" class="bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 p-2 rounded-lg transition-colors" title="Sair">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </button>
+                </div>
             </div>
         </header>
 
-        <!-- Estado de Carregamento -->
-        <div id="loading-state" class="hidden text-center p-12">
-            <h2 class="text-2xl font-semibold text-gray-700">A carregar dados...</h2>
-            <p id="loading-message" class="text-gray-500 mt-2">A processar amostras. Isto pode demorar um momento...</p>
-        </div>
-
-        <!-- Conteúdo do Dashboard -->
-        <div id="dashboard-content" class="hidden">
+        <main class="flex-1 container mx-auto p-6 space-y-8">
             
-            <!-- MUDANÇA: Seção de Orientações com texto atualizado -->
-            <section id="orientacoes-section" class="bg-blue-50 border border-blue-200 p-6 rounded-2xl mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">Como Usar este Painel</h2>
-                <div class="text-gray-700 space-y-4 text-sm">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 class="font-semibold text-base mb-2 text-blue-800">Funcionalidades Principais</h3>
-                            <ul class="list-disc list-inside space-y-2">
-                                <li><strong>Gráficos de Status:</strong> Os gráficos no topo mostram o status geral (Pendentes vs. Resolvidos) e a "Distribuição de Feedbacks" (Aprovadas, Reprovadas, etc.).</li>
-                                <li><strong>Feed de Observações:</strong> Exibe as observações mais recentes dos vendedores do seu segmento. Use o filtro para ver um vendedor específico ou clique em "Responder" para enviar uma mensagem.</li>
-                                <!-- Texto atualizado: removido "dar baixa" -->
-                                <li><strong>Vendedores do Segmento:</strong> Lista todos os vendedores do seu segmento e o status das amostras (pendentes/total). Use os filtros para ver apenas vendedores pendentes ou finalizados.</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 class="font-semibold text-base mb-2 text-blue-800">Análise e Interação</h3>
-                            <ul class="list-disc list-inside space-y-2">
-                                <!-- Texto atualizado: novo exemplo -->
-                                <li><strong>Análise de Tipos de Feedback:</strong> Na seção inferior, clique em uma barra do gráfico (ex: "FORA DO PERFIL DO CLIENTE") para carregar instantaneamente todas as amostras com esse feedback na lista ao lado.</li>
-                                <li><strong>Respostas Interativas:</strong> Você pode clicar em "Responder" em qualquer amostra, seja no Feed, no modal da "Distribuição de Feedbacks" ou na lista de "Análise de Tipos de Feedback".</li>
-                                <li><strong>Sino de Notificação (Topo):</strong> O sino tocará e mostrará um número vermelho quando houver novas respostas de vendedores às suas mensagens.</li>
-                                <li><strong>Pesquisa Global:</strong> Use a barra "Pesquisar em todas as amostras..." para encontrar amostras por nome de produto, cliente, vendedor, pedido ou observação. Pressione "Enter" para ver os resultados.</li>
-                            </ul>
-                        </div>
+            <!-- ÁREA DE ATENÇÃO -->
+            <section id="attention-section" class="bg-amber-50 border border-amber-200 rounded-2xl p-6 shadow-sm hidden">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="bg-amber-100 p-2 rounded-full text-amber-600">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588 1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-amber-900">Área de Atenção</h2>
+                        <p class="text-xs text-amber-700">Pedidos destacados para verificação prioritária.</p>
                     </div>
                 </div>
+                <div id="attention-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Cards de atenção via JS -->
+                </div>
             </section>
-            <!-- Fim da Seção de Orientações -->
+
+            <!-- Cards de Resumo -->
+            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Total Amostras</p>
+                    <p id="kpi-total" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-yellow-200 shadow-sm bg-yellow-50/30 flex flex-col justify-between">
+                    <p class="text-xs font-bold text-yellow-600 uppercase tracking-wide">Pendentes</p>
+                    <p id="kpi-pending" class="text-2xl font-bold text-yellow-700 mt-1">0</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-green-200 shadow-sm bg-green-50/30 flex flex-col justify-between">
+                    <p class="text-xs font-bold text-green-600 uppercase tracking-wide">Aprovados</p>
+                    <p id="kpi-approved" class="text-2xl font-bold text-green-700 mt-1">0</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-red-200 shadow-sm bg-red-50/30 flex flex-col justify-between">
+                    <p class="text-xs font-bold text-red-600 uppercase tracking-wide">Reprovados</p>
+                    <p id="kpi-rejected" class="text-2xl font-bold text-red-700 mt-1">0</p>
+                </div>
+            </section>
 
             <!-- Gráficos -->
-            <section class="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border">
-                    <h3 class="font-bold text-lg mb-2 text-center">Status (Amostras do Segmento)</h3>
-                    <div style="height: 250px;"><canvas id="segment-status-chart"></canvas></div>
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-lg text-slate-800 mb-4 text-center">Status Geral</h3>
+                    <div style="height: 250px;"><canvas id="status-chart"></canvas></div>
                 </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border">
-                    <h3 class="font-bold text-lg mb-2 text-center">Distribuição de Feedbacks</h3>
-                    <div style="height: 250px;"><canvas id="rejection-rate-chart"></canvas></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-lg text-slate-800 mb-4 text-center">Distribuição</h3>
+                    <div style="height: 250px;"><canvas id="details-chart"></canvas></div>
                 </div>
             </section>
 
-            <!-- Feeds Lado a Lado -->
-            <section class="grid grid-cols-1 md:grid-cols-2 md:items-start gap-6 mb-10">
+            <!-- Feeds e Listas -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 
-                <!-- Coluna Feed Observações -->
-                <section>
-                    <!-- MUDANÇA: Layout dos filtros do feed ajustado -->
-                    <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-3">
-                        <h2 class="text-2xl font-bold text-gray-900">Feed de Observações</h2>
-                        <div class="flex flex-col gap-2 w-full sm:w-auto">
-                            <select id="seller-feed-filter" class="border-gray-300 rounded-lg shadow-sm text-sm p-1 w-full sm:w-auto">
-                                <option value="">Todos os Vendedores</option>
-                                <!-- Opções adicionadas via JS -->
-                            </select>
-                            <select id="feed-filter" class="border-gray-300 rounded-lg shadow-sm text-sm p-1 w-full sm:w-auto">
-                                <option value="all">Todos os Status</option> <!-- Texto alterado -->
-                                <option value="replied">Comentários Respondidos</option>
-                                <option value="notes">Com Notas Internas</option>
-                            </select>
-                        </div>
+                <!-- Lista de Vendedores -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 lg:col-span-1 overflow-hidden flex flex-col h-[600px]">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                        <h3 class="font-bold text-slate-700 text-sm">Minha Equipe</h3>
+                        <span id="seller-count-badge" class="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
                     </div>
-                    <!-- FIM DA MUDANÇA -->
-                    <div id="observations-feed-list" class="space-y-4 bg-white p-4 rounded-2xl shadow-sm border">
-                        <p class="text-gray-500 placeholder-observation">Nenhuma observação encontrada.</p>
-                    </div>
-                </section>
-
-                <!-- Coluna Vendedores do Segmento -->
-                <section>
-                    <!-- MUDANÇA: Layout dos filtros de vendedor ajustado -->
-                    <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-3">
-                         <h2 class="text-2xl font-bold text-gray-900">Vendedores do Segmento</h2>
-                         <div class="flex flex-col gap-2 w-full sm:w-auto">
-                             <input id="seller-search-input" type="text" placeholder="Procurar vendedor..." class="border-gray-300 rounded-lg shadow-sm text-sm p-1 w-full sm:w-auto">
-                             <!-- NOVO FILTRO DE STATUS -->
-                             <select id="seller-status-filter" class="border-gray-300 rounded-lg shadow-sm text-sm p-1 w-full sm:w-auto">
-                                <option value="all">Todos os Status</option>
-                                <option value="pending">Apenas Pendentes</option>
-                                <option value="finalized">Apenas Finalizados</option>
-                             </select>
-                         </div>
-                    </div>
-                    <!-- FIM DA MUDANÇA -->
-                    <div id="sellers-list-container" class="bg-white rounded-2xl shadow-sm border">
-                        <p class="text-gray-500 placeholder-seller p-4">Nenhum vendedor encontrado.</p>
-                    </div>
-                </section>
-            </section>
-            
-            <!-- NOVO: Seção de Análise de Tipos de Feedback -->
-            <section id="feedback-types-analysis-section" class="bg-white p-6 rounded-2xl shadow-sm border mb-10">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">Análise de Tipos de Feedback</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Coluna do Gráfico -->
-                    <div>
-                        <h3 class="font-bold text-lg mb-2 text-center">Tipos de Feedback (Top 10)</h3>
-                        <!-- O canvas que estava no topo agora está aqui -->
-                        <div style="height: 400px;"><canvas id="feedback-types-chart"></canvas></div>
-                    </div>
-                    <!-- Coluna da Lista de Amostras -->
-                    <div>
-                        <h3 class="font-bold text-lg mb-2 text-center">Amostras Relacionadas</h3>
-                        <p id="feedback-types-list-placeholder" class="text-gray-500 text-center mt-4 pt-16">Clique em uma barra do gráfico ao lado para ver as amostras relacionadas.</p>
-                        <!-- Lista de amostras -->
-                        <div id="feedback-types-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-                            <!-- Amostras serão injetadas aqui via JS -->
-                        </div>
+                    <div id="sellers-list" class="flex-1 overflow-y-auto p-2 space-y-1">
+                        <p class="text-center text-slate-400 text-xs py-8">Carregando equipe...</p>
                     </div>
                 </div>
-            </section>
-            <!-- Fim da Nova Seção -->
 
-            <!-- Tabela de Acessos (Admin) -->
-            <section id="admin-access-section" class="hidden bg-white p-6 rounded-2xl shadow-sm border mb-10">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">Acessos dos Gerentes (Admin)</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Segmento</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gerente</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Senha</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody id="manager-access-tbody" class="bg-white divide-y divide-gray-200">
-                            <!-- Linhas inseridas pelo JS -->
-                        </tbody>
-                    </table>
+                <!-- Feed de Observações DETALHADO -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 lg:col-span-2 overflow-hidden flex flex-col h-[600px]">
+                    <div class="p-5 border-b border-slate-100 bg-slate-50">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-slate-700 text-sm">Feed Detalhado de Respostas</h3>
+                            <input type="text" id="feed-search" placeholder="Buscar..." class="text-xs border-slate-200 rounded-lg px-3 py-1.5 w-48 focus:ring-1 focus:ring-blue-500">
+                        </div>
+                        
+                        <!-- CARD DE ORIENTAÇÕES -->
+                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3 shadow-sm">
+                            <div class="bg-blue-100 p-2 rounded-full text-blue-600 flex-shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div class="text-xs text-slate-600 space-y-1">
+                                <p class="font-bold text-slate-800">Dicas para o Gestor:</p>
+                                <ul class="list-disc pl-4 space-y-1">
+                                    <li>Você pode responder diretamente aos vendedores ou <strong>destacar itens com a ⭐</strong> na busca global para criar alertas.</li>
+                                    <li>Feedbacks vagos como "não gostou" dificultam a melhoria. <strong>Cobre sempre o PORQUÊ.</strong></li>
+                                    <li>Use as <strong>Notas Internas</strong> (lápis no topo ou no item) para seus lembretes pessoais.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="feed-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
+                        <p class="text-center text-slate-400 text-xs py-10">Nenhuma observação registrada neste segmento ainda.</p>
+                    </div>
                 </div>
+
             </section>
 
-        </div>
+        </main>
     </div>
 
-    <!-- Modais -->
+    <!-- Modals -->
+
+    <!-- Modal Notas Internas (Gerais) -->
+    <div id="internal-notes-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-xl w-full max-w-md h-[70vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200">
+            <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-yellow-50">
+                <h3 class="font-bold text-yellow-800 flex items-center gap-2 text-sm uppercase tracking-wide">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Minhas Notas Internas (Privado)
+                </h3>
+                <button onclick="document.getElementById('internal-notes-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="internal-notes-list" class="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/50">
+                <!-- Notas via JS -->
+                <p class="text-center text-slate-400 text-xs italic mt-10">Use este espaço para lembretes pessoais.</p>
+            </div>
+            <div class="p-4 border-t border-slate-100 bg-white">
+                <div class="flex gap-2">
+                    <input type="text" id="new-internal-note-input" placeholder="Nova anotação..." class="flex-1 rounded-lg border-slate-200 text-sm px-4 py-2.5 focus:outline-none focus:border-yellow-500 transition-colors bg-slate-50">
+                    <button id="add-internal-note-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg px-4 py-2 transition-colors shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     
-    <!-- Modal de Amostras (Genérico) -->
+    <!-- Modal de Amostras por Feedback -->
     <div id="feedback-samples-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-30">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
@@ -305,63 +300,11 @@
                   <div>
                        <label for="reply-message-input" class="block text-sm font-medium text-gray-700">Sua Resposta (Gerente)</label>
                        <textarea id="reply-message-input" rows="3" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm" placeholder="Digite sua resposta aqui..."></textarea>
-                       <p class="mt-2 text-xs text-gray-500">
-                           <strong>Orientações:</strong>
-                           <ul class="list-disc list-inside ml-2 mt-1">
-                               <li>Seja claro e objetivo na sua resposta.</li>
-                               <li>Esta mensagem será enviada ao vendedor.</li>
-                               <li>Se a observação já foi tratada, informe o vendedor.</li>
-                           </ul>
-                       </p>
                   </div>
             </div>
             <div class="mt-6 flex justify-end space-x-3">
                  <button id="cancel-reply-btn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-5 rounded-lg">Cancelar</button>
                  <button id="send-reply-btn" class="bg-blue-600 text-white font-bold py-2 px-5 rounded-lg">Enviar Resposta</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- NOVO: Modal da Nota Interna do Gerente -->
-    <div id="manager-note-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-40">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-xl p-6">
-            <h3 class="text-xl font-bold mb-4">Nota Interna (Apenas Gerentes)</h3>
-            <div class="mb-4 p-3 bg-gray-100 rounded border text-sm">
-                <p class="font-semibold" id="manager-note-modal-product"></p>
-                <p class="text-xs text-gray-600 mb-1" id="manager-note-modal-observation">"${' '}"</p>
-            </div>
-            <div class="space-y-4">
-                  <!-- MUDANÇA: Adicionado campo de Autor Editável -->
-                  <div>
-                      <label for="manager-note-author-input" class="block text-sm font-medium text-gray-700">Autor da Nota</label>
-                      <input type="text" id="manager-note-author-input" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm" placeholder="Seu nome...">
-                  </div>
-                  <!-- FIM DA MUDANÇA -->
-                  <div>
-                       <label for="manager-note-input" class="block text-sm font-medium text-gray-700">Sua Nota (Post-it)</label>
-                       <textarea id="manager-note-input" rows="3" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm" placeholder="Digite algo para se lembrar..."></textarea>
-                       <p class="mt-2 text-xs text-gray-500">
-                           <strong>Aviso:</strong> Esta nota é visível apenas para si, para se lembrar de algo. Caso queira verificar as suas notas, pode aceder a este campo. (Para apagar, deixe o campo vazio e clique em "Salvar").
-                       </p>
-                  </div>
-            </div>
-            <div class="mt-6 flex justify-end space-x-3">
-                 <button id="cancel-manager-note-btn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-5 rounded-lg">Cancelar</button>
-                 <button id="send-manager-note-btn" class="bg-yellow-500 text-white font-bold py-2 px-5 rounded-lg">Salvar Nota</button>
-            </div>
-        </div>
-    </div>
-    <!-- Fim do Modal da Nota Interna -->
-
-    <!-- Modal de Notificações (Respostas dos Vendedores) -->
-    <div id="notification-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-40">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6">
-            <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <h3 class="text-xl font-bold">Respostas de Vendedores</h3>
-                <button id="close-notification-btn" class="text-2xl font-bold text-gray-500 hover:text-gray-800">&times;</button>
-            </div>
-            <div id="notification-list" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                <p class="text-gray-500">Nenhuma resposta nova.</p>
             </div>
         </div>
     </div>
@@ -382,12 +325,11 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { 
             getFirestore, collection, onSnapshot, doc, getDoc, getDocs, 
-            updateDoc, query, orderBy, serverTimestamp, addDoc, limit, where,
-            collectionGroup, Timestamp, runTransaction, writeBatch, deleteDoc
+            updateDoc, query, where, Timestamp, runTransaction, addDoc, orderBy, deleteDoc, deleteField
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // Configuração do Firebase
+        // Configuração Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAF_TE28Tbp2nakBGTva1yEEbBCqWvRdJQ",
             authDomain: "feedback-vendedores.firebaseapp.com",
@@ -402,46 +344,42 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Definições de Acesso
-        const MANAGER_PASSWORDS = {
-            'CÁRNEOS': { name: 'LUIS ADRIANO', pass: 'carneospass123' },
-            'LACTEOS': { name: 'VITOR MACHADO', pass: 'lacteospass456' },
-            'NUTRICAO ANIMAL': { name: 'DANILO TREMOLCOLDI', pass: 'nutricaopass303' },
-            'PANIFICACAO': { name: 'MARISTELA', pass: 'panificacaopass101' },
-            'SMB': { name: 'GUSTAVO BONFIM', pass: 'smbpass202' },
-            'SORVETES': { name: 'VINICIUS MADALENO', pass: 'sorvetespass789' },
-            'ADMIN': { name: 'Admin', pass: 'admin123' } // Senha de Admin
+        // CONFIGURAÇÃO DOS GERENTES
+        const MANAGERS = {
+            'CÁRNEOS': { name: 'LUIS ADRIANO', pass: 'carneospass123', dataValue: 'CARNEOS' },
+            'LACTEOS': { name: 'VITOR MACHADO', pass: 'lacteospass456', dataValue: 'LACTEOS' },
+            'NUTRIÇÃO': { name: 'DANILO TREMOLCOLDI', pass: 'nutricaopass303', dataValue: 'NUTRICAO ANIMAL' },
+            'PANIFICACAO': { name: 'MARISTELA', pass: 'panificacaopass101', dataValue: 'PANIFICACAO' },
+            'SMB': { name: 'GUSTAVO BONFIM', pass: 'smbpass202', dataValue: 'SNACKS, MOLHOS E BEBIDAS' },
+            'SORVETES': { name: 'VINICIUS MADALENO', pass: 'sorvetespass789', dataValue: 'SORVETES' },
+            'ADMIN': { name: 'Admin', pass: 'admin123', dataValue: 'ADMIN' }
         };
+
         const PENDING_STATUSES = ['EM ANÁLISE', 'AMOSTRA SEM FEEDBACK', 'SEM RETORNO DO CLIENTE', 'AMOSTRA NÃO TESTADA', 'PENDENTE'];
         
-        // --- Elementos DOM ---
+        // Elementos DOM
         const loginView = document.getElementById('login-view');
-        const managerLoginButtons = document.getElementById('manager-login-buttons');
-        const managerPasswordInput = document.getElementById('manager-password-input');
-        const managerLoginBtn = document.getElementById('manager-login-btn');
+        const dashboardView = document.getElementById('dashboard-view');
+        const segmentGrid = document.getElementById('segment-grid');
+        const passwordInput = document.getElementById('manager-password-input');
+        const loginBtn = document.getElementById('manager-login-btn');
         const loginError = document.getElementById('login-error');
-        const dashboard = document.getElementById('dashboard');
-        const loginActions = document.getElementById('login-actions'); 
-        const dashboardTitle = document.getElementById('dashboard-title');
+        const headerSegmentName = document.getElementById('header-segment-name');
+        const sessionIdDisplay = document.getElementById('session-id-display');
         const logoutBtn = document.getElementById('logout-btn');
-        const globalSearchInput = document.getElementById('global-search-input');
-        const loadingState = document.getElementById('loading-state');
-        const loadingMessage = document.getElementById('loading-message');
-        const dashboardContent = document.getElementById('dashboard-content');
-        const observationsFeedList = document.getElementById('observations-feed-list');
-        const sellerFeedFilter = document.getElementById('seller-feed-filter'); 
-        const feedFilter = document.getElementById('feed-filter'); // NOVO: Filtro de status do feed
-        const sellersListContainer = document.getElementById('sellers-list-container');
-        const sellerSearchInput = document.getElementById('seller-search-input');
-        const sellerStatusFilter = document.getElementById('seller-status-filter'); // NOVO: Filtro de status do vendedor
-        const adminAccessSection = document.getElementById('admin-access-section');
-        const managerAccessTbody = document.getElementById('manager-access-tbody');
-        const feedbackSamplesModal = document.getElementById('feedback-samples-modal');
-        const feedbackSamplesTitle = document.getElementById('feedback-samples-title');
-        const feedbackSamplesList = document.getElementById('feedback-samples-list');
-        const closeFeedbackSamplesBtn = document.getElementById('close-feedback-samples-btn');
-        const feedbackTypesList = document.getElementById('feedback-types-list');
-        const feedbackTypesListPlaceholder = document.getElementById('feedback-types-list-placeholder');
+        
+        const kpiTotal = document.getElementById('kpi-total');
+        const kpiPending = document.getElementById('kpi-pending');
+        const kpiApproved = document.getElementById('kpi-approved');
+        const kpiRejected = document.getElementById('kpi-rejected');
+        const sellersList = document.getElementById('sellers-list');
+        const sellerCountBadge = document.getElementById('seller-count-badge');
+        const feedList = document.getElementById('feed-list');
+        const feedSearch = document.getElementById('feed-search');
+        const attentionSection = document.getElementById('attention-section');
+        const attentionList = document.getElementById('attention-list');
+        
+        // Modal de Resposta
         const replyModal = document.getElementById('reply-modal');
         const replyModalProduct = document.getElementById('reply-modal-product');
         const replyModalSeller = document.getElementById('reply-modal-seller');
@@ -449,1445 +387,604 @@
         const replyMessageInput = document.getElementById('reply-message-input');
         const cancelReplyBtn = document.getElementById('cancel-reply-btn');
         const sendReplyBtn = document.getElementById('send-reply-btn');
-        const notificationModal = document.getElementById('notification-modal');
-        const notificationList = document.getElementById('notification-list');
-        const closeNotificationBtn = document.getElementById('close-notification-btn');
+        
+        // Notas Internas Elements
+        const internalNotesList = document.getElementById('internal-notes-list');
+        const newInternalNoteInput = document.getElementById('new-internal-note-input');
+        const addInternalNoteBtn = document.getElementById('add-internal-note-btn');
+
+        // Custom Alert
         const customAlert = document.getElementById('custom-alert');
         const customAlertTitle = document.getElementById('custom-alert-title');
         const customAlertMessage = document.getElementById('custom-alert-message');
         const customAlertOkBtn = document.getElementById('custom-alert-ok-btn');
-        // NOVO: Elementos do Modal de Nota Interna
-        const managerNoteModal = document.getElementById('manager-note-modal');
-        const managerNoteModalProduct = document.getElementById('manager-note-modal-product');
-        const managerNoteModalObservation = document.getElementById('manager-note-modal-observation');
-        const managerNoteAuthorInput = document.getElementById('manager-note-author-input'); // NOVO: Input do autor
-        const managerNoteInput = document.getElementById('manager-note-input');
-        const cancelManagerNoteBtn = document.getElementById('cancel-manager-note-btn');
-        const sendManagerNoteBtn = document.getElementById('send-manager-note-btn');
 
-
-        // --- Estado Global ---
+        // Estado
+        let currentSegmentKey = null; 
+        let currentSegmentDataValue = null; 
         let currentSessionId = null;
-        let currentSegment = null; // Segmento do Gerente logado
-        let currentManagerName = null; // Nome do Gerente logado
-        let allCurrentSamples = []; // Armazena TODAS as amostras carregadas
-        let sellerSegmentsCache = {}; // Cache de segmentos de vendedores
-        let sellerRepliesListenerUnsubscribe = null; // Respostas dos vendedores
-        let managerRepliesListenerUnsubscribe = null; // Respostas dos gerentes (para P&D)
-        let pdPostitsListenerUnsubscribe = null; // Notas P&D (para feed)
-        let managerNotesListenerUnsubscribe = null; // NOVO: Notas internas do gerente
-        let dataListenersUnsubscribe = [];
-        let chartInstances = {};
+        let sellersCache = {}; 
+        let sellerSegmentsCache = {}; 
+        let allSegmentSamples = []; 
+        let charts = {};
+        let listeners = [];
+        let highlightedSamplesCache = [];
+        let destaquesListenerUnsubscribe = null;
         let currentSampleForReply = null;
-        let currentSampleForNote = null; // NOVO: Estado para o modal de nota
-        let allSellerReplies = []; // Respostas dos vendedores para o gerente
-        let allManagerReplies = []; // Respostas dos gerentes para os vendedores (para o feed)
-        let allPdPostits = []; // Post-its do P&D (para o feed)
-        let allManagerNotes = []; // NOVO: Notas internas do gerente
-        
-        // Classe de Gestão de Carga
-        class DataLoadManager {
-            constructor(totalItems, onComplete) {
-                this.totalItems = totalItems;
-                this.loadedItems = 0;
-                this.allData = [];
-                this.onComplete = onComplete;
-                this.hasCompleted = false;
-            }
+        let internalNotesUnsubscribe = null; 
+        let allManagerNotes = []; 
+        let itemNotesMap = {};
 
-            sellerLoaded(sellerName, samples) {
-                this.loadedItems++;
-                const samplesWithOwner = samples.map(s => ({ ...s, sellerName }));
-                this.allData = this.allData.concat(samplesWithOwner);
-                
-                const progress = this.totalItems > 0 ? (this.loadedItems / this.totalItems) * 100 : 100;
-                loadingMessage.textContent = `A processar... (${this.loadedItems}/${this.totalItems} vendedores carregados)`;
-
-                if (this.loadedItems === this.totalItems && !this.hasCompleted) {
-                    this.hasCompleted = true;
-                    this.onComplete(this.allData);
+        // --- Inicialização ---
+        (async () => {
+            try {
+                await signInAnonymously(auth);
+                renderLoginSegments();
+                const savedKey = localStorage.getItem('managerSegmentKey');
+                if (savedKey && MANAGERS[savedKey]) {
+                    autoSelectSegment(savedKey);
                 }
+            } catch (e) {
+                console.error("Auth error:", e);
+                loginError.textContent = "Erro de conexão com o sistema.";
             }
-        }
+        })();
 
-        // --- Funções Utilitárias ---
+        // --- Utils ---
         const normalizeText = (text = '') => text ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : '';
 
-        // MUDANÇA: Adicionada função para formatar datas (se existirem)
-        function formatFirebaseDate(fbDate) {
-            if (!fbDate) return 'N/A';
-            try {
-                // Tenta converter se for timestamp do Firestore
-                if (fbDate.toDate) {
-                    return fbDate.toDate().toLocaleDateString('pt-BR');
-                }
-                // Tenta converter se for string ISO (YYYY-MM-DD)
-                const date = new Date(fbDate);
-                if (!isNaN(date)) {
-                    // Adiciona 1 dia para corrigir fuso horário (comum em strings YYYY-MM-DD)
-                    date.setDate(date.getDate() + 1);
-                    return date.toLocaleDateString('pt-BR');
-                }
-                return fbDate; // Retorna a string original se não for data
-            } catch (e) {
-                return fbDate; // Retorna o valor original em caso de erro
-            }
-        }
-
-
-        function showAlert(message, title = "Erro na Operação", color = "text-red-600") {
+        function showAlert(message, title = "Aviso", color = "text-slate-700") {
             customAlertTitle.textContent = title;
-            customAlertMessage.innerHTML = message; // Usar innerHTML para permitir <br>
+            customAlertMessage.innerHTML = message;
             customAlertTitle.className = `text-xl font-bold mb-4 ${color}`;
             customAlert.classList.remove('hidden');
         }
         customAlertOkBtn.addEventListener('click', () => customAlert.classList.add('hidden'));
 
-        function handleFirestoreError(error, operationContext) {
-            console.error(`Erro em "${operationContext}":`, error);
-            let message = `Não foi possível completar a operação: ${operationContext}.<br><br>Erro: ${error.message}`;
-            let title = "Erro na Operação";
-            let color = "text-red-600";
-
-            if (error.code === 'resource-exhausted' || (error.message && error.message.includes('Quota exceeded'))) {
-                message = "O limite diário de uso do banco de dados foi atingido (Quota Exceeded). Novas alterações não serão salvas hoje.<br><br>Por favor, tente novamente amanhã ou contate o suporte.";
-                title = "Limite da Plataforma Atingido";
-                color = "text-amber-600";
-            } else if (error.code === 'permission-denied') {
-                message = "Permissão negada. Verifique as regras de segurança do Firebase.";
-            }
-            showAlert(message, title, color);
-        }
-
-        // --- Lógica de Carregamento de Dados (v2) ---
-        
-        // Atualiza o feed e as listas quando as notas do gerente mudam
-        function updateUIsOnNoteChange() {
-            if (!dashboardContent.classList.contains('hidden')) {
-                renderObservationsFeed(allCurrentSamples);
-                // Atualiza a lista de análise se estiver visível
-                const currentSelectedBar = document.querySelector('#feedback-types-chart.active-bar-label');
-                if (currentSelectedBar) {
-                    renderFeedbackSamplesForType(currentSelectedBar.dataset.label);
-                }
-                // Atualiza o modal de distribuição se estiver aberto
-                if (!feedbackSamplesModal.classList.contains('hidden')) {
-                     const currentTitle = feedbackSamplesTitle.textContent;
-                     // Se o modal estiver aberto, atualiza o conteúdo
-                     if(currentTitle.includes("Amostras:")) {
-                         const feedbackType = currentTitle.split(":")[1].split("(")[0].trim();
-                         showSamplesForFeedback(feedbackType); // Re-renderiza o modal
-                     } else if (currentTitle.includes("Pesquisa:")) {
-                         // Re-renderiza a pesquisa (difícil sem o termo)
-                     }
-                }
-            }
-        }
-
-        function listenForManagerReplies(sessionId) {
-            if (managerRepliesListenerUnsubscribe) managerRepliesListenerUnsubscribe();
-            const q = query(collection(db, "sessoes", sessionId, "notificacoesVendedor"));
-            
-            managerRepliesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
-                 allManagerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                 updateUIsOnNoteChange();
-            }, (error) => handleFirestoreError(error, "ouvir respostas dos gestores (feed)"));
-        }
-        
-        function listenForSellerRepliesFeed(sessionId) {
-            const q = query(collection(db, "sessoes", sessionId, "respostasVendedor"));
-            
-            const unsub = onSnapshot(q, (snapshot) => {
-                 allSellerReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                 updateUIsOnNoteChange();
-            }, (error) => handleFirestoreError(error, "ouvir respostas dos vendedores (feed)"));
-            dataListenersUnsubscribe.push(unsub);
-        }
-
-        function listenForPdPostits(sessionId) {
-            if (pdPostitsListenerUnsubscribe) pdPostitsListenerUnsubscribe();
-            const q = query(collection(db, "sessoes", sessionId, "pdPostits"));
-            
-            pdPostitsListenerUnsubscribe = onSnapshot(q, (snapshot) => {
-                 allPdPostits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                 updateUIsOnNoteChange();
-            }, (error) => handleFirestoreError(error, "ouvir post-its P&D (feed)"));
-        }
-
-        // NOVO: Listener para as notas internas
-        function listenForManagerNotes(sessionId) {
-            if (managerNotesListenerUnsubscribe) managerNotesListenerUnsubscribe();
-            // Nova coleção: 'gerentePostits'
-            const q = query(collection(db, "sessoes", sessionId, "gerentePostits"));
-            
-            managerNotesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
-                 const notes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                 
-                 // NOVO: Filtrar notas com base no segmento/nome do gerente
-                 if (currentSegment === 'ADMIN') {
-                     allManagerNotes = notes; // Admin vê tudo
-                 } else {
-                     // Gerente normal só vê as suas próprias notas
-                     allManagerNotes = notes.filter(note => note.managerName === currentManagerName);
-                 }
-                 
-                 updateUIsOnNoteChange();
-            }, (error) => handleFirestoreError(error, "ouvir notas internas do gerente"));
-        }
-
-
-        function listenForSellerReplies(sessionId) {
-            if (sellerRepliesListenerUnsubscribe) sellerRepliesListenerUnsubscribe();
-            const q = query(
-                collection(db, "sessoes", sessionId, "respostasVendedor"),
-                where("readByManager", "==", false)
-            );
-            
-            sellerRepliesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
-                 renderNotificationBell(snapshot.docs.length);
-            }, (error) => handleFirestoreError(error, "ouvir respostas de vendedores (notificação)"));
-        }
-
-        
-        async function getActiveSessionId() {
-            try {
-                const activeSessionRef = doc(db, "configuracoes", "sessaoAtiva");
-                const docSnap = await getDoc(activeSessionRef);
-                if (docSnap.exists() && docSnap.data().current) {
-                    return docSnap.data().current;
-                } else {
-                    return null;
-                }
-            } catch (error) {
-                handleFirestoreError(error, "buscar sessão ativa");
-                return null;
-            }
-        }
-
-        async function loadSellerSegments() {
-            sellerSegmentsCache = {};
-            try {
-                const segmentsSnap = await getDocs(collection(db, "vendedorConfig"));
-                segmentsSnap.forEach(doc => {
-                    sellerSegmentsCache[doc.id] = doc.data().segmento;
-                });
-            } catch (error) {
-                handleFirestoreError(error, "carregar segmentos de vendedores");
-            }
-        }
-
-        async function loadAllData(sessionId) {
-            dashboard.classList.remove('hidden');
-            loadingState.classList.remove('hidden');
-            dashboardContent.classList.add('hidden');
-            loginView.classList.add('hidden');
-            
-            dataListenersUnsubscribe.forEach(unsub => unsub());
-            dataListenersUnsubscribe = [];
-            
-            currentSessionId = sessionId;
-            allCurrentSamples = [];
-
-            await loadSellerSegments();
-            // Listeners de Comunicação
-            listenForSellerReplies(sessionId); // Sino
-            listenForManagerReplies(sessionId); // Respostas do Gerente (para vendedor)
-            listenForSellerRepliesFeed(sessionId); // Respostas do Vendedor (para gerente)
-            listenForPdPostits(sessionId); // Notas de P&D
-            listenForManagerNotes(sessionId); // NOVO: Notas internas do Gerente
-
-            const sellersQuery = query(collection(db, "sessoes", sessionId, "vendedores"));
-            const sellersSnapshot = await getDocs(sellersQuery);
-            const sellerDocs = sellersSnapshot.docs;
-            
-            if (sellerDocs.length === 0) {
-                 loadingState.classList.add('hidden');
-                 dashboardContent.classList.remove('hidden');
-                 processAndDisplayDashboard([]);
-                 return;
-            }
-
-            const loadManager = new DataLoadManager(sellerDocs.length, (allSamples) => {
-                let filteredSamples;
-                if (currentSegment === 'ADMIN') {
-                    filteredSamples = allSamples;
-                } else {
-                    filteredSamples = allSamples.filter(sample => {
-                        const sellerSegment = sellerSegmentsCache[normalizeText(sample.sellerName)];
-                        return sellerSegment === currentSegment;
-                    });
-                }
-
-                allCurrentSamples = filteredSamples; 
-                processAndDisplayDashboard(allCurrentSamples); 
-                
-                loadingState.classList.add('hidden');
-                dashboardContent.classList.remove('hidden');
-            });
-            
-            loadingMessage.textContent = `A preparar para carregar ${sellerDocs.length} vendedores...`;
-
-            sellerDocs.forEach(sellerDoc => {
-                const sellerData = sellerDoc.data();
-                const samplesQuery = query(
-                    collection(db, sellerDoc.ref.path, "amostras")
-                );
-
-                const unsub = onSnapshot(samplesQuery, (samplesSnapshot) => {
-                    const samples = samplesSnapshot.docs.map(sampleDoc => ({
-                        ...sampleDoc.data(),
-                        id: sampleDoc.id,
-                        sellerDocRef: sellerDoc.ref.path
-                    }));
-                    loadManager.sellerLoaded(sellerData.originalName, samples);
-                }, (error) => {
-                    handleFirestoreError(error, `ouvir amostras de ${sellerData.originalName}`);
-                    loadManager.sellerLoaded(sellerData.originalName, []);
-                });
-                dataListenersUnsubscribe.push(unsub);
-            });
-        }
+        function getCanonicalFeedback(feedback) {
+             if (!feedback) return '';
+             const normalized = normalizeText(feedback.replace(/^(A - |R - |E - |P - )/, '').trim());
+             const mapping = {
+                 'APROVADO COM PEDIDO': 'COM PEDIDO',
+                 'APROVADA SEM PEDIDO': 'APROVADO SEM PEDIDO',
+                 'INNOVATION / EVENTOS': 'EVENTO',
+                 'AMOSTRA NAO TESTADA': 'AMOSTRA NÃO TESTADA',
+                 'EM ANALISE': 'EM ANÁLISE'
+             };
+             return mapping[normalized] || normalized;
+         }
 
         // --- Lógica de Login ---
-        
-        function populateManagerButtons() {
-            managerLoginButtons.innerHTML = '';
-
-            Object.entries(MANAGER_PASSWORDS).forEach(([segment, data]) => {
-                const card = document.createElement('button');
-                card.className = "login-card";
-                card.dataset.segment = segment;
-                
-                card.innerHTML = `
-                    <div>
-                        <p>${segment}</p>
-                        <span class="login-card-name">${data.name}</span>
+        function renderLoginSegments() {
+            segmentGrid.innerHTML = '';
+            Object.entries(MANAGERS).forEach(([key, data]) => {
+                if(key === 'ADMIN') return;
+                const btn = document.createElement('button');
+                btn.className = 'login-card text-left p-4 rounded-xl cursor-pointer flex flex-col justify-center relative overflow-hidden group';
+                btn.innerHTML = `
+                    <span class="font-bold text-sm text-slate-700 block mb-1 relative z-10">${key}</span>
+                    <span class="text-xs text-slate-500 relative z-10">${data.name}</span>
+                    <!-- Icone de Check animado -->
+                    <div class="absolute top-2 right-2 text-white bg-blue-500 rounded-full p-0.5 check-icon">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                     </div>
-                    <svg class="w-5 h-5 opacity-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0 -16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" />
-                    </svg>
                 `;
-                
-                card.addEventListener('click', () => {
-                    managerLoginButtons.querySelectorAll('.login-card').forEach(c => {
-                        c.classList.remove('selected');
-                        c.querySelector('svg:last-child').classList.add('opacity-0');
-                    });
-                    card.classList.add('selected');
-                    card.querySelector('svg:last-child').classList.remove('opacity-0');
-                    currentSegment = segment;
-                    currentManagerName = data.name;
-
-                    // Mostrar o campo de senha ao clicar
-                    loginActions.classList.remove('hidden');
-                    setTimeout(() => {
-                        loginActions.style.opacity = '1';
-                        loginActions.style.transform = 'translateY(0)';
-                    }, 10); 
-                });
-                managerLoginButtons.appendChild(card);
+                btn.onclick = () => selectSegment(btn, key);
+                segmentGrid.appendChild(btn);
             });
         }
 
-        async function login() {
-            const password = managerPasswordInput.value;
-            if (!currentSegment) {
-                loginError.textContent = 'Por favor, selecione o seu segmento.';
+        function selectSegment(btn, key) {
+            document.querySelectorAll('.login-card').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            currentSegmentKey = key;
+            currentSegmentDataValue = MANAGERS[key].dataValue;
+            loginError.textContent = '';
+            passwordInput.focus();
+        }
+
+        function autoSelectSegment(key) {
+            const btns = Array.from(document.querySelectorAll('.login-card'));
+            const target = btns.find(b => b.querySelector('span').textContent === key);
+            if(target) selectSegment(target, key);
+            else {
+                currentSegmentKey = key;
+                currentSegmentDataValue = MANAGERS[key].dataValue;
+            }
+        }
+
+        loginBtn.addEventListener('click', async () => {
+            if (!currentSegmentKey && passwordInput.value === MANAGERS['ADMIN'].pass) {
+                 currentSegmentKey = 'ADMIN';
+                 currentSegmentDataValue = 'ADMIN';
+            }
+
+            if (!currentSegmentKey) {
+                loginError.textContent = "Selecione seu segmento.";
                 return;
             }
-            
-            if (MANAGER_PASSWORDS[currentSegment].pass === password) {
-                loginError.textContent = '';
-                managerLoginBtn.disabled = true;
-                managerLoginBtn.textContent = 'A carregar...';
-
-                localStorage.setItem('managerSegment', currentSegment); 
-                
-                const sessionId = await getActiveSessionId();
-                if (!sessionId) {
-                    loginError.textContent = 'Nenhuma sessão ativa encontrada. Contate o administrador.';
-                    managerLoginBtn.disabled = false;
-                    managerLoginBtn.textContent = 'Entrar';
-                    return;
-                }
-                
-                dashboardTitle.textContent = `Painel Gerente: ${currentSegment}`;
-                if (currentSegment === 'ADMIN') {
-                    adminAccessSection.classList.remove('hidden');
-                    renderAccessTable();
-                }
-                
-                await loadAllData(sessionId);
-
-            } else {
-                loginError.textContent = 'Senha incorreta.';
+            if (passwordInput.value !== MANAGERS[currentSegmentKey].pass) {
+                loginError.textContent = "Senha incorreta.";
+                return;
             }
-        }
-        
-        function logout() {
-            localStorage.removeItem('managerSegment');
-            currentSessionId = null;
-            currentSegment = null;
-            currentManagerName = null;
-            allCurrentSamples = [];
-            allManagerReplies = [];
-            allSellerReplies = [];
-            allPdPostits = [];
-            allManagerNotes = []; // NOVO: Limpar notas
-            dataListenersUnsubscribe.forEach(unsub => unsub());
-            dataListenersUnsubscribe = [];
-            if(sellerRepliesListenerUnsubscribe) sellerRepliesListenerUnsubscribe();
-            if(managerRepliesListenerUnsubscribe) managerRepliesListenerUnsubscribe();
-            if(pdPostitsListenerUnsubscribe) pdPostitsListenerUnsubscribe();
-            if(managerNotesListenerUnsubscribe) managerNotesListenerUnsubscribe(); // NOVO: Parar listener
-            
-            dashboard.classList.add('hidden');
-            loginView.classList.remove('hidden');
-            managerPasswordInput.value = '';
-            managerLoginBtn.disabled = false;
-            managerLoginBtn.textContent = 'Entrar';
-            adminAccessSection.classList.add('hidden');
-            managerLoginButtons.querySelectorAll('.login-card').forEach(c => {
-                 c.classList.remove('selected');
-                 c.querySelector('svg:last-child').classList.add('opacity-0');
-            });
-            
-            // Ocultar campos de login ao sair
-            loginActions.classList.add('hidden');
-            loginActions.style.opacity = '0';
-            loginActions.style.transform = 'translateY(10px)';
 
-            // Remove o sino
-            document.getElementById('notification-btn')?.parentElement.remove();
-        }
+            loginBtn.textContent = "A conectar...";
+            loginBtn.disabled = true;
+            localStorage.setItem('managerSegmentKey', currentSegmentKey);
 
-        // --- Processamento e Renderização do Dashboard ---
-        function processAndDisplayDashboard(samples) {
-            if (!samples) return;
-            renderCharts(samples);
-            renderFeedbackTypesChart(samples); 
-            renderObservationsFeed(samples);
-            renderSellersList(samples);
-            populateSellerFeedFilter(samples); 
-        }
-
-        function populateSellerFeedFilter(samples) {
-            const sellerNames = [...new Set(samples.map(s => s.sellerName))].sort();
-            sellerFeedFilter.innerHTML = '<option value="">Todos os Vendedores</option>';
-            sellerNames.forEach(name => {
-                const option = document.createElement('option');
-                option.value = name;
-                option.textContent = name;
-                sellerFeedFilter.appendChild(option);
-            });
-        }
-
-        function renderCharts(samples) {
-            let pending = 0, resolved = 0, approved = 0, rejected = 0, events = 0;
-            const APPROVED_PREFIX = 'A -';
-            const REJECTED_PREFIX = 'R -';
-            const EVENTS_PREFIX = 'E -';
-
-            samples.forEach(s => {
-                if (s.isPending) {
-                    pending++;
+            try {
+                const configSnap = await getDoc(doc(db, "configuracoes", "sessaoAtiva"));
+                if (configSnap.exists() && configSnap.data().current) {
+                    currentSessionId = configSnap.data().current;
+                    await loadSellerSegmentsCache();
+                    startDashboard();
                 } else {
-                    resolved++;
-                    const feedback = s.feedback || '';
-                    if (feedback.startsWith(APPROVED_PREFIX)) approved++;
-                    else if (feedback.startsWith(REJECTED_PREFIX)) rejected++;
-                    else if (feedback.startsWith(EVENTS_PREFIX)) events++;
+                    loginError.textContent = "Nenhuma sessão ativa iniciada pelo Admin.";
+                    loginBtn.textContent = "Acessar Painel";
+                    loginBtn.disabled = false;
                 }
-            });
-
-            const statusTitle = document.querySelector('#segment-status-chart').closest('.bg-white').querySelector('h3');
-            if (currentSegment !== 'ADMIN') {
-                 statusTitle.textContent = "Status (Amostras do Segmento)";
+            } catch (e) {
+                console.error(e);
+                loginError.textContent = "Erro ao buscar sessão.";
+                loginBtn.disabled = false;
             }
+        });
 
-            renderChart('segment-status-chart', 'doughnut', {
-                labels: ['Pendentes', 'Resolvidos'],
-                datasets: [{ data: [pending, resolved], backgroundColor: ['#facc15', '#3b82f6'] }]
+        async function loadSellerSegmentsCache() {
+            const snap = await getDocs(collection(db, "vendedorConfig"));
+            snap.forEach(d => {
+                sellerSegmentsCache[d.id] = d.data().segmento;
             });
-
-            if (approved === 0 && rejected === 0 && events === 0 && resolved > 0) {
-                 renderChart('rejection-rate-chart', 'doughnut', { labels: ['Aguardando Feedbacks'], datasets: [{ data: [resolved], backgroundColor: ['#e5e7eb'] }] });
-            } else if (approved === 0 && rejected === 0 && events === 0) {
-                 renderChart('rejection-rate-chart', 'doughnut', { labels: ['Aguardando Respostas'], datasets: [{ data: [1], backgroundColor: ['#e5e7eb'] }] });
-            } else {
-                renderChart('rejection-rate-chart', 'doughnut', {
-                    labels: ['Aprovadas', 'Reprovadas', 'Eventos'],
-                    datasets: [{
-                        data: [approved, rejected, events],
-                        backgroundColor: ['#34d399', '#f87171', '#a78bfa']
-                    }]
-                });
-            }
         }
 
-        function renderFeedbackTypesChart(samples) {
-            const feedbackCounts = {};
-            const prefixes = ['A -', 'R -', 'E -'];
+        // --- Dashboard Logic ---
+        function startDashboard() {
+            loginView.classList.add('hidden');
+            dashboardView.classList.remove('hidden');
+            dashboardView.classList.add('flex');
+            
+            headerSegmentName.textContent = `${currentSegmentKey} | ${MANAGERS[currentSegmentKey].name}`;
+            sessionIdDisplay.textContent = currentSessionId.split('_')[1];
 
-            samples.forEach(s => {
-                if (s.feedback && !s.isPending) {
-                    let feedbackReason = s.feedback;
-                    for (const prefix of prefixes) {
-                        if (feedbackReason.startsWith(prefix)) {
-                            feedbackReason = feedbackReason.substring(prefix.length).trim();
-                            break;
-                        }
-                    }
-                    if (feedbackReason && feedbackReason.toUpperCase() !== 'APROVADO' && feedbackReason.toUpperCase() !== 'REPROVADO') {
-                         feedbackCounts[feedbackReason] = (feedbackCounts[feedbackReason] || 0) + 1;
-                    }
+            // 1. Dados Vendedores
+            const q = collection(db, "sessoes", currentSessionId, "vendedores");
+            const unsub = onSnapshot(q, (snapshot) => processSnapshot(snapshot));
+            listeners.push(unsub);
+
+            // 2. Destaques (Área de Atenção)
+            listenForDestaques();
+            
+            // 3. Notas Internas (Post-its)
+            listenForInternalNotes();
+        }
+        
+        function listenForDestaques() {
+            const docRef = doc(db, "sessoes", currentSessionId, "configuracoes", "destaquesAmostras");
+            destaquesListenerUnsubscribe = onSnapshot(docRef, (docSnap) => {
+                highlightedSamplesCache = docSnap.exists() ? (docSnap.data().lista || []) : [];
+                renderAttentionArea();
+            });
+            listeners.push(destaquesListenerUnsubscribe);
+        }
+
+        function processSnapshot(snapshot) {
+            allSegmentSamples = [];
+            sellersCache = {};
+
+            snapshot.forEach(docSnap => {
+                const sellerData = docSnap.data();
+                const sellerId = docSnap.id; 
+                const sellerSegment = sellerSegmentsCache[sellerId];
+                
+                if (currentSegmentKey === 'ADMIN' || sellerSegment === currentSegmentDataValue) {
+                    const samples = sellerData.amostras || [];
+                    
+                    let pending = 0;
+                    samples.forEach(s => {
+                         let isP = s.isPending;
+                         if (isP === undefined) isP = PENDING_STATUSES.includes(normalizeText(s.originalStatus));
+                         if (isP) pending++;
+                    });
+
+                    sellersCache[sellerData.originalName] = {
+                        name: sellerData.originalName,
+                        total: samples.length,
+                        pending: pending,
+                        finished: samples.length - pending,
+                        systemStatus: sellerData.systemStatus || 'pending'
+                    };
+
+                    allSegmentSamples.push(...samples);
                 }
             });
 
-            const sortedFeedbacks = Object.entries(feedbackCounts)
-                .sort(([,a],[,b]) => b - a)
-                .slice(0, 10);
+            updateKPIs();
+            renderCharts();
+            renderSellers();
+            renderFeed();
+            renderAttentionArea();
+        }
 
-            const labels = sortedFeedbacks.map(([label]) => label);
-            const data = sortedFeedbacks.map(([, count]) => count);
+        function updateKPIs() {
+            const total = allSegmentSamples.length;
+            let pending = 0, approved = 0, rejected = 0;
 
-            if (labels.length === 0) {
-                 renderChart('feedback-types-chart', 'bar', {
-                    labels: ['Nenhuma razão específica encontrada'],
-                    datasets: [{ label: 'Contagem', data: [0], backgroundColor: ['#e5e7eb'] }]
-                }, { plugins: { legend: { display: false } } });
+            allSegmentSamples.forEach(s => {
+                const fb = s.feedback || '';
+                let isP = s.isPending;
+                if(isP === undefined) isP = (!fb || fb === '');
+                
+                if (isP) pending++;
+                else if (fb.startsWith('A -')) approved++;
+                else if (fb.startsWith('R -')) rejected++;
+            });
+
+            kpiTotal.textContent = total;
+            kpiPending.textContent = pending;
+            kpiApproved.textContent = approved;
+            kpiRejected.textContent = rejected;
+        }
+
+        function renderCharts() {
+            const ctxStatus = document.getElementById('status-chart');
+            const ctxDetails = document.getElementById('details-chart');
+
+            let pending = 0, resolved = 0, approved = 0, rejected = 0, events = 0;
+
+            allSegmentSamples.forEach(s => {
+                const fb = s.feedback || '';
+                let isP = s.isPending;
+                if(isP === undefined) isP = (!fb || fb === '');
+
+                if (isP) pending++;
+                else {
+                    resolved++;
+                    if (fb.startsWith('A -')) approved++;
+                    else if (fb.startsWith('R -')) rejected++;
+                    else if (fb.startsWith('E -')) events++;
+                }
+            });
+
+            if (charts.status) charts.status.destroy();
+            charts.status = new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pendentes', 'Resolvidos'],
+                    datasets: [{ data: [pending, resolved], backgroundColor: ['#facc15', '#3b82f6'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } }, cutout: '70%' }
+            });
+
+            if (charts.details) charts.details.destroy();
+            charts.details = new Chart(ctxDetails, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Aprovados', 'Reprovados', 'Eventos'],
+                    datasets: [{ data: [approved, rejected, events], backgroundColor: ['#22c55e', '#ef4444', '#a855f7'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } }, cutout: '70%' }
+            });
+        }
+
+        function renderSellers() {
+            sellersList.innerHTML = '';
+            const sellersArray = Object.values(sellersCache).sort((a, b) => b.pending - a.pending);
+            sellerCountBadge.textContent = sellersArray.length;
+
+            if (sellersArray.length === 0) {
+                sellersList.innerHTML = '<p class="text-center text-slate-400 text-xs py-4">Nenhum vendedor encontrado.</p>';
                 return;
             }
 
-            renderChart('feedback-types-chart', 'bar', {
-                labels: labels,
-                datasets: [{
-                    label: 'Contagem',
-                    data: data,
-                    backgroundColor: '#60a5fa' // bg-blue-400
-                }]
-            }, {
-                indexAxis: 'y', 
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0 
-                        }
-                    }
-                },
-                // NOVO: onClick handler para este gráfico
-                onClick: (event, elements) => {
-                    const canvas = document.getElementById('feedback-types-chart');
-                    if (elements.length > 0) {
-                        const chart = chartInstances['feedback-types-chart'];
-                        const elementIndex = elements[0].index;
-                        const label = chart.data.labels[elementIndex];
-                        renderFeedbackSamplesForType(label); // Chama a nova função
-                        
-                        // Guarda a label clicada para atualizações em tempo real
-                        canvas.dataset.activeLabel = label; 
-                    }
-                },
-                onHover: (event, chartElement) => {
-                    if (event.native) {
-                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
-                    }
-                }
-            });
-        }
+            sellersArray.forEach(seller => {
+                const div = document.createElement('div');
+                const isComplete = seller.pending === 0 && seller.total > 0;
+                
+                // Verifica se foi dado baixa
+                const isBaixado = seller.systemStatus === 'baixado';
 
-        function renderChart(canvasId, type, data, options = {}) {
-            const ctx = document.getElementById(canvasId)?.getContext('2d');
-            if (!ctx) return;
-            if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
-            
-            let chartSpecificOptions = { ...options };
+                div.className = `flex justify-between items-center p-3 rounded-lg border text-sm ${isBaixado ? 'bg-purple-50 border-purple-200' : (isComplete ? 'bg-green-50 border-green-100' : 'bg-white border-slate-100')}`;
+                
+                let statusIcon = isComplete ? 'bg-green-500' : 'bg-yellow-400';
+                if(isBaixado) statusIcon = 'bg-purple-500';
 
-            // O onClick do rejection-rate-chart (Distribuição) continua abrindo o MODAL
-            if (canvasId === 'rejection-rate-chart') {
-                chartSpecificOptions.onClick = (event, elements) => {
-                    if (elements.length > 0) {
-                        const chart = chartInstances[canvasId];
-                        const elementIndex = elements[0].index;
-                        const label = chart.data.labels[elementIndex];
-                        showSamplesForFeedback(label); // Abre o MODAL
-                    }
-                };
-                chartSpecificOptions.onHover = (event, chartElement) => {
-                    if (event.native) {
-                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
-                    }
-                };
-            }
-            
-            Chart.register(ChartDataLabels);
-            chartInstances[canvasId] = new Chart(ctx, { 
-                type, 
-                data, 
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: type === 'doughnut' },
-                        datalabels: { display: false },
-                        ...options.plugins
-                    },
-                    ...chartSpecificOptions 
-                }
+                div.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full ${statusIcon}"></div>
+                        <span class="font-medium text-slate-700">${seller.name}</span>
+                    </div>
+                    <div class="text-xs font-bold ${isComplete ? (isBaixado ? 'text-purple-600' : 'text-green-600') : 'text-slate-500'}">
+                        ${isBaixado ? 'Baixado' : (isComplete ? 'Finalizado' : `${seller.pending} pendentes`)}
+                        <span class="text-slate-300 font-normal ml-1">(${seller.finished}/${seller.total})</span>
+                    </div>
+                `;
+                sellersList.appendChild(div);
             });
         }
         
-        // Função que renderiza o HTML da nota interna (Post-it)
-        function getManagerNoteHtml(sampleId) {
-            // MUDANÇA: Usar filter() para pegar TODAS as notas daquela amostra
-            const managerNotes = allManagerNotes.filter(n => n.contextId === sampleId);
+        // --- ÁREA DE ATENÇÃO ---
+        function renderAttentionArea() {
+            attentionList.innerHTML = '';
+            const highlightedItems = allSegmentSamples.filter(s => highlightedSamplesCache.includes(s.id));
             
-            if (managerNotes.length > 0) {
-                // Mapeia todas as notas encontradas para HTML
-                return managerNotes.map(managerNote => `
-                    <div class="manager-note">
-                        <p><strong>Nota Interna (${managerNote.managerName}):</strong> ${managerNote.message}</p>
-                    </div>
-                `).join(''); // Junta todas as notas em uma string
-            }
-            return '';
-        }
-
-        // Função que renderiza o HTML de todas as replies (P&D, Gerente, Vendedor)
-        function getRepliesHtml(sample) {
-            let repliesHtml = '';
-            
-            // 1. Nota P&D (se houver)
-            const pdNote = allPdPostits.find(p => p.contextId === sample.id);
-            if (pdNote) {
-                repliesHtml += `
-                    <div class="pd-note">
-                        <p><strong>Nota P&D (${pdNote.pdManagerName}):</strong> ${pdNote.message}</p>
-                    </div>
-                `;
-            }
-
-            // 2. Resposta do Gestor (incluindo P&D)
-            const managerReply = allManagerReplies
-                .filter(r => r.sellerName === sample.sellerName && r.pedido === sample.pedido && r.produto === sample.produto && r.originalObservation === sample.observation)
-                .sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0))[0];
-            
-            if (managerReply) {
-                const isPD = managerReply.managerName.includes('P&D');
-                repliesHtml += `
-                    <div class="${isPD ? 'pd-note' : 'manager-reply'}">
-                        <p><strong>${managerReply.managerName} respondeu:</strong> ${managerReply.replyMessage}</p>
-                    </div>
-                `;
-                
-                // 3. Resposta do Vendedor (a essa resposta)
-                const sellerReply = allSellerReplies
-                    .filter(r => r.originalManagerMessage === managerReply.replyMessage && r.pedido === sample.pedido && r.produto === sample.produto)
-                    .sort((a, b) => (b.timestamp?.toDate() ?? 0) - (a.timestamp?.toDate() ?? 0))[0];
-                
-                if (sellerReply) {
-                    repliesHtml += `
-                        <div class="seller-reply">
-                            <p><strong>${sellerReply.sellerName} (Vendedor) respondeu:</strong> ${sellerReply.replyMessage}</p>
+            if (highlightedItems.length > 0) {
+                attentionSection.classList.remove('hidden');
+                highlightedItems.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'attention-card p-4 rounded-lg bg-white shadow-sm';
+                    card.innerHTML = `
+                        <p class="font-bold text-slate-800 text-sm mb-1">${item.produto}</p>
+                        <p class="text-xs text-slate-500 mb-1">Vendedor: <span class="font-medium">${item.sellerName}</span></p>
+                        <p class="text-xs text-slate-500">Pedido: ${item.pedido} | NF: ${item.notaFiscal || '-'}</p>
+                        <div class="mt-2 bg-slate-50 p-2 rounded text-xs italic text-slate-600 border-l-2 border-amber-300">
+                             "${item.observation || 'Sem observação'}"
+                        </div>
+                        <div class="mt-2 text-[10px] text-right text-slate-400">
+                             Status: <strong class="${item.isPending ? 'text-yellow-600' : 'text-green-600'}">${item.feedback || 'Pendente'}</strong>
                         </div>
                     `;
-                }
+                    attentionList.appendChild(card);
+                });
+            } else {
+                attentionSection.classList.add('hidden');
             }
-            return repliesHtml;
         }
 
-        // MUDANÇA: Re-adicionado NF e data alterada para dataEmissao
-        function renderFeedbackSamplesForType(feedbackLabel) {
-            if (!feedbackLabel) {
-                feedbackTypesList.innerHTML = '';
-                feedbackTypesListPlaceholder.textContent = 'Nenhuma razão de feedback selecionada.';
-                feedbackTypesListPlaceholder.classList.remove('hidden');
+        // --- FEED DETALHADO ---
+        function renderFeed() {
+            const searchTerm = feedSearch.value.toLowerCase();
+            feedList.innerHTML = '';
+
+            const feedItems = allSegmentSamples
+                .filter(s => s.feedback && s.feedback.trim() !== '') 
+                .filter(s => s.produto.toLowerCase().includes(searchTerm) || s.sellerName.toLowerCase().includes(searchTerm))
+                .sort((a, b) => (b.lastUpdate?.toDate ? b.lastUpdate.toDate().getTime() : 0) - (a.lastUpdate?.toDate ? a.lastUpdate.toDate().getTime() : 0));
+
+            if (feedItems.length === 0) {
+                feedList.innerHTML = '<p class="text-center text-slate-400 text-xs py-10">Nenhum feedback registrado.</p>';
                 return;
             }
 
-            const prefixes = ['A -', 'R -', 'E -'];
-            const filteredSamples = allCurrentSamples.filter(s => {
-                if (s.feedback && !s.isPending) {
-                    let feedbackReason = s.feedback;
-                    for (const prefix of prefixes) {
-                        if (feedbackReason.startsWith(prefix)) {
-                            feedbackReason = feedbackReason.substring(prefix.length).trim();
-                            break;
-                        }
-                    }
-                    return feedbackReason === feedbackLabel;
+            feedItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-4 rounded-xl border border-slate-100 shadow-sm text-sm mb-3 relative';
+                
+                let timeString = 'Data N/D';
+                if (item.lastUpdate && item.lastUpdate.toDate) {
+                    const d = item.lastUpdate.toDate();
+                    timeString = `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}`;
                 }
-                return false;
-            }).sort((a, b) => (b.lastUpdate?.toDate ? b.lastUpdate.toDate().getTime() : 0) - (a.lastUpdate?.toDate ? a.lastUpdate.toDate().getTime() : 0));
 
-            feedbackTypesList.innerHTML = ''; 
-            
-            if (filteredSamples.length === 0) {
-                feedbackTypesListPlaceholder.textContent = `Nenhuma amostra encontrada para "${feedbackLabel}".`;
-                feedbackTypesListPlaceholder.classList.remove('hidden');
-                return;
-            }
+                // Check for item-specific note
+                const itemNote = itemNotesMap[item.id];
+                const noteActiveClass = itemNote ? 'active' : '';
+                const noteIconClass = itemNote ? 'text-yellow-500 fill-yellow-100' : 'text-gray-300 hover:text-gray-500';
 
-            feedbackTypesListPlaceholder.classList.add('hidden'); 
-
-            filteredSamples.forEach(sample => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = `feedback-sample-item text-sm`;
-                
-                const managerNoteHtml = getManagerNoteHtml(sample.id); // NOVO: Pega nota interna
-                const repliesHtml = getRepliesHtml(sample); // Pega replies
-                
-                const replyButtonHtml = `
-                    <button class="reply-btn bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded text-xs font-semibold" data-sample-id="${sample.id}">
-                        Responder
-                    </button>
-                `;
-
-                // NOVO: Botão de Nota Interna
-                const noteButtonHtml = `
-                    <button class="manager-note-btn text-yellow-600 hover:text-yellow-800 p-1 rounded-full hover:bg-yellow-100" data-sample-id="${sample.id}" title="Adicionar nota interna">
-                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                        </svg>
-                    </button>
-                `;
-
-                // MUDANÇA: NF readicionada, e data usa dataEmissao
-                itemDiv.innerHTML = `
-                    <div class="flex justify-between items-start">
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2 border-b border-slate-50 pb-2">
                         <div>
-                            <p class="font-semibold">${sample.produto} (${sample.razaoSocial})</p>
-                            <p class="text-xs text-gray-600">${sample.descricao}</p>
-                            <p class="text-xs text-gray-500 mt-1">
-                                Vendedor: ${sample.sellerName} | Pedido: ${sample.pedido}
-                            </p>
-                            <!-- NF e Data Faturamento (dataEmissao) adicionados -->
-                            <p class="text-xs text-gray-500">
-                                NF: ${sample.emissaoNF || 'N/A'} | Faturado: ${formatFirebaseDate(sample.dataEmissao)}
-                            </p>
-                            <p class="font-medium text-gray-800 mt-1">Feedback: ${sample.feedback}</p>
+                            <span class="font-bold text-slate-800 text-sm block">${item.sellerName}</span>
+                            <span class="text-[10px] text-slate-400">${timeString}</span>
                         </div>
-                        <div class="flex-shrink-0 ml-4 flex items-center gap-1">
-                            ${noteButtonHtml}
-                            ${sample.observation ? replyButtonHtml : ''}
+                        <div class="text-right flex flex-col items-end">
+                             <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase mb-1">
+                                ${item.feedback}
+                             </span>
+                             <div class="flex gap-2">
+                                <button class="toggle-note-btn transition-colors ${noteIconClass}" data-item-id="${item.id}" title="Nota Interna">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                                </button>
+                                <button class="text-blue-600 hover:underline text-[10px] font-bold uppercase tracking-wide reply-btn" data-sample-id="${item.id}">Responder</button>
+                             </div>
                         </div>
                     </div>
-                    ${sample.observation ? `<p class="text-xs text-gray-600 mt-1 italic">Obs: ${sample.observation}</p>` : ''}
-                    ${managerNoteHtml} <!-- Nota interna primeiro -->
-                    ${repliesHtml} <!-- Respostas públicas depois -->
-                `;
-                feedbackTypesList.appendChild(itemDiv);
-            });
-        }
-
-        // MUDANÇA: Função do feed de observações atualizada (NF readicionada, dataEmissao)
-        function renderObservationsFeed(samples) {
-            const globalSearch = normalizeText(globalSearchInput.value);
-            const sellerFilter = sellerFeedFilter.value; 
-            const feedFilterValue = feedFilter.value; // NOVO: Pega valor do novo filtro
-
-            const filteredSamples = samples.filter(s => {
-                if (!s.observation) return false;
-                
-                // Filtro 1: Vendedor
-                if (sellerFilter && s.sellerName !== sellerFilter) {
-                    return false;
-                }
-                
-                // NOVO: Filtro 2: Status (Respondido / Com Nota)
-                const sampleId = s.id;
-                
-                // Verifica se há uma resposta do gerente para esta observação específica
-                const hasReplied = allManagerReplies.some(r => 
-                    r.sellerName === s.sellerName && 
-                    r.pedido === s.pedido && 
-                    r.produto === s.produto && 
-                    r.originalObservation === s.observation
-                );
-                
-                // Verifica se há qualquer nota interna (de qualquer gerente, visível para o user)
-                const hasNote = allManagerNotes.some(n => n.contextId === sampleId);
-
-                if (feedFilterValue === 'replied' && !hasReplied) {
-                    return false;
-                }
-                if (feedFilterValue === 'notes' && !hasNote) {
-                    return false;
-                }
-                
-                // Filtro 3: Pesquisa Global
-                if (globalSearch) {
-                    return (
-                        normalizeText(s.sellerName).includes(globalSearch) ||
-                        normalizeText(s.produto).includes(globalSearch) ||
-                        normalizeText(s.descricao).includes(globalSearch) ||
-                        normalizeText(s.razaoSocial).includes(globalSearch) ||
-                        normalizeText(s.observation).includes(globalSearch) ||
-                        normalizeText(s.pedido).includes(globalSearch)
-                    );
-                }
-                return true;
-            }).sort((a, b) => (b.lastUpdate?.toDate ? b.lastUpdate.toDate().getTime() : 0) - (a.lastUpdate?.toDate ? a.lastUpdate.toDate().getTime() : 0));
-            
-            observationsFeedList.innerHTML = '';
-            if (filteredSamples.length === 0) {
-                 let msg = 'Nenhuma observação encontrada.';
-                 if (globalSearch) msg = 'Nenhum resultado para a pesquisa.';
-                 else if (sellerFilter) msg = 'Nenhuma observação para este vendedor.';
-                 else if (feedFilterValue === 'replied') msg = 'Nenhum comentário respondido.';
-                 else if (feedFilterValue === 'notes') msg = 'Nenhuma observação com nota interna.';
-                 
-                 observationsFeedList.innerHTML = `<p class="text-gray-500 placeholder-observation p-4">${msg}</p>`;
-                 return;
-            }
-            
-            filteredSamples.forEach(sample => {
-                 const card = document.createElement('div');
-                 card.className = "p-4 border-b border-gray-100 last:border-b-0";
-                 const time = sample.lastUpdate?.toDate() ? sample.lastUpdate.toDate().toLocaleString('pt-BR') : 'data inválida';
-                 
-                 const managerNoteHtml = getManagerNoteHtml(sample.id); // NOVO: Pega nota interna
-                 const repliesHtml = getRepliesHtml(sample); // Pega replies
-
-                 let feedbackHtml = '';
-                 if (sample.feedback && !sample.isPending) {
-                    let color = 'text-gray-600';
-                    if (sample.feedback.startsWith('A -')) color = 'text-green-600';
-                    else if (sample.feedback.startsWith('R -')) color = 'text-red-600';
-                    else if (sample.feedback.startsWith('E -')) color = 'text-purple-600';
-                    feedbackHtml = `<p class="font-semibold ${color} mt-1">Feedback: ${sample.feedback}</p>`;
-                 }
-                 
-                 // MUDANÇA: Adicionado NF e Data Faturamento (dataEmissao)
-                 card.innerHTML = `
-                    <div class="mb-2">
-                        <p class="font-bold text-gray-800">${sample.produto}</p>
-                        <p class="text-sm text-gray-600">${sample.descricao || 'Sem descrição'}</p>
-                        <p class="text-xs text-gray-500">${sample.razaoSocial || 'Cliente N/A'}</p>
-                        ${feedbackHtml} 
-                    </div>
-                    <p class="text-gray-700 mb-3 italic">"${sample.observation}"</p>
                     
-                    ${managerNoteHtml} <!-- Nota interna primeiro -->
-                    ${repliesHtml} <!-- Respostas públicasDepois -->
-
-                    <div class="flex justify-between items-end text-xs text-gray-500 mt-3 pt-3 border-t">
-                         <div>
-                             <p>- ${sample.sellerName} (Pedido: ${sample.pedido})</p>
-                             <!-- NF e Data Faturamento (dataEmissao) adicionados -->
-                             <p class="text-gray-500">
-                                NF: ${sample.emissaoNF || 'N/A'} | Faturado: ${formatFirebaseDate(sample.dataEmissao)}
-                             </p>
-                             <p class="text-gray-400">Obs.: ${time}</p>
-                         </div>
-                         <div class="flex gap-2 items-center">
-                             <!-- NOVO: Botão de Nota Interna -->
-                             <button class="manager-note-btn text-yellow-600 hover:text-yellow-800 p-1 rounded-full hover:bg-yellow-100" data-sample-id="${sample.id}" title="Adicionar nota interna">
-                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                                </svg>
-                             </button>
-                             <button class="reply-btn bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded text-xs font-semibold" data-sample-id="${sample.id}">
-                                 Responder
-                             </button>
-                         </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs text-slate-500 mb-3 bg-slate-50 p-2 rounded-lg">
+                        <div>
+                            <p class="font-semibold text-slate-700">${item.produto}</p>
+                            <p class="truncate">${item.descricao || ''}</p>
+                        </div>
+                        <div class="text-right">
+                            <p>Ped: <strong>${item.pedido}</strong></p>
+                            <p>NF: ${item.notaFiscal || '-'} (${item.emissaoNF || '-'})</p>
+                            <p>Qtde: ${item.qtde}</p>
+                        </div>
                     </div>
-                 `;
-                 observationsFeedList.appendChild(card);
+
+                    ${item.observation ? `<p class="text-slate-700 italic border-l-4 border-slate-300 pl-3 py-1">"${item.observation}"</p>` : ''}
+                    
+                    <!-- Área de Nota Embutida -->
+                    <div id="note-area-${item.id}" class="item-note-area ${noteActiveClass}">
+                        <textarea class="w-full text-xs bg-transparent border-none focus:ring-0 resize-none text-yellow-900 placeholder-yellow-600/50" rows="2" placeholder="Nota interna privada...">${itemNote ? itemNote.text : ''}</textarea>
+                        <div class="flex justify-end mt-1">
+                             <button class="text-[10px] bg-yellow-200 hover:bg-yellow-300 text-yellow-800 px-2 py-1 rounded font-bold save-item-note-btn" data-item-id="${item.id}">Salvar</button>
+                        </div>
+                    </div>
+                `;
+                feedList.appendChild(card);
             });
             
-            // Listeners adicionados por delegação
+             // Listeners
+            feedList.querySelectorAll('.reply-btn').forEach(btn => btn.addEventListener('click', openReplyModal));
+            feedList.querySelectorAll('.toggle-note-btn').forEach(btn => btn.addEventListener('click', toggleItemNote));
+            feedList.querySelectorAll('.save-item-note-btn').forEach(btn => btn.addEventListener('click', saveItemNote));
         }
         
-        // MUDANÇA: Lógica da lista de vendedores atualizada com filtro de status
-        function renderSellersList(samples) {
-            const searchTerm = normalizeText(sellerSearchInput.value);
-            const statusFilter = sellerStatusFilter.value; // NOVO: Pega o valor do filtro
-            
-            // 1. Agrupar amostras por vendedor
-            const sellers = samples.reduce((acc, sample) => {
-                if (!acc[sample.sellerName]) {
-                    acc[sample.sellerName] = {
-                        name: sample.sellerName,
-                        total: 0,
-                        pending: 0,
-                    };
-                }
-                acc[sample.sellerName].total++;
-                if (sample.isPending) {
-                    acc[sample.sellerName].pending++;
-                }
-                return acc;
-            }, {});
+        feedSearch.addEventListener('input', renderFeed);
 
-            // 2. Filtrar vendedores pelo nome E PELO NOVO STATUS
-            const filteredSellers = Object.values(sellers).filter(seller => {
-                 if (searchTerm) {
-                     return normalizeText(seller.name).includes(searchTerm);
-                 }
-                 return true;
-            }).filter(seller => { // NOVO: Filtro de status
-                if (statusFilter === 'all') {
-                    return true;
-                }
-                const isPending = seller.pending > 0;
-                if (statusFilter === 'pending') {
-                    return isPending;
-                }
-                if (statusFilter === 'finalized') {
-                    return !isPending;
-                }
-                return true;
-            }).sort((a, b) => a.name.localeCompare(b.name));
-
-            sellersListContainer.innerHTML = ''; // Limpa o container
-            if (filteredSellers.length === 0) {
-                 // Mensagem de placeholder atualizada
-                 let msg = 'Nenhum vendedor neste segmento.';
-                 if (searchTerm) msg = 'Nenhum vendedor encontrado para a pesquisa.';
-                 else if (statusFilter === 'pending') msg = 'Nenhum vendedor pendente.';
-                 else if (statusFilter === 'finalized') msg = 'Nenhum vendedor finalizado.';
-                 
-                 sellersListContainer.innerHTML = `<p class="text-gray-500 placeholder-seller p-4">${msg}</p>`;
-                 return;
-            }
-
-            // 3. Renderizar ITENS DE LISTA (Layout atualizado)
-            filteredSellers.forEach(seller => {
-                const item = document.createElement('div');
-                
-                let statusColor, statusText, totalText, backgroundClass;
-
-                if (seller.pending === 0) {
-                    // Finalizado
-                    statusColor = 'green';
-                    statusText = `<span class="font-semibold text-green-700">Finalizado</span>`;
-                    backgroundClass = 'bg-green-50 hover:bg-green-100'; // Fundo verde
-                    totalText = `<span class="text-gray-400 ml-1">(${seller.total} total)</span>`;
+        // --- LÓGICA DE NOTAS POR ITEM (NOVO) ---
+        function toggleItemNote(e) {
+            const itemId = e.currentTarget.dataset.itemId;
+            const area = document.getElementById(`note-area-${itemId}`);
+            if (area) {
+                if (area.style.display === 'block') {
+                    area.style.display = 'none';
                 } else {
-                    // Pendente
-                    statusColor = 'yellow';
-                    statusText = `<span class="font-semibold text-yellow-700">${seller.pending} pendente(s)</span>`;
-                    backgroundClass = 'hover:bg-gray-50'; // Fundo normal
-                    let respondidos = seller.total - seller.pending;
-                    totalText = `<span class="text-gray-400 ml-1">(${respondidos} resp / ${seller.total} total)</span>`;
+                    area.style.display = 'block';
+                    area.querySelector('textarea').focus();
                 }
+            }
+        }
 
-                item.className = `flex justify-between items-center p-3 border-b border-gray-100 last:border-b-0 ${backgroundClass} transition-colors duration-150`;
-                item.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="h-2 w-2 rounded-full bg-${statusColor}-500 flex-shrink-0"></span>
-                        <span class="font-medium text-sm text-gray-800">${seller.name}</span>
-                    </div>
-                    <div class="text-xs text-right flex-shrink-0 ml-2">
-                        ${statusText}
-                        ${totalText}
-                    </div>`;
+        async function saveItemNote(e) {
+            const itemId = e.currentTarget.dataset.itemId;
+            const area = document.getElementById(`note-area-${itemId}`);
+            const text = area.querySelector('textarea').value.trim();
+            const btn = e.currentTarget;
+            
+            btn.textContent = '...';
+            try {
+                // Salvar na coleção de notas do gerente, usando o ID do item como chave
+                // Coleção: sessoes/{sessionId}/manager_notes_{segment}/items/{itemId}
+                // OU coleção plana: sessoes/{sessionId}/manager_item_notes
+                const notesCollection = collection(db, "sessoes", currentSessionId, "manager_item_notes");
+                // Usar ID do documento igual ao ID do item para facilitar busca
+                await setDoc(doc(notesCollection, itemId), {
+                    text: text,
+                    itemId: itemId,
+                    segment: currentSegmentDataValue,
+                    timestamp: serverTimestamp()
+                });
                 
-                sellersListContainer.appendChild(item);
-            });
-        }
-        
-        function renderAccessTable() {
-             managerAccessTbody.innerHTML = '';
-             Object.entries(MANAGER_PASSWORDS).forEach(([segment, data]) => {
-                 if(segment === 'ADMIN') return;
-                 const row = document.createElement('tr');
-                 row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${segment}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${data.name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 password-cell" data-password="${data.pass}">••••••</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button class="toggle-password-btn text-blue-600 hover:text-blue-800" data-state="hidden">Visualizar</button>
-                    </td>
-                 `;
-                 managerAccessTbody.appendChild(row);
-             });
+                btn.textContent = 'Salvar';
+                // Atualizar ícone visualmente (embora o listener fará isso)
+                const iconBtn = document.querySelector(`.toggle-note-btn[data-item-id="${itemId}"]`);
+                if(text) {
+                     iconBtn.classList.remove('text-gray-300');
+                     iconBtn.classList.add('text-yellow-500', 'fill-yellow-100');
+                } else {
+                    // Se salvou vazio, remove a nota (opcional, ou apenas remove destaque)
+                     iconBtn.classList.add('text-gray-300');
+                     iconBtn.classList.remove('text-yellow-500', 'fill-yellow-100');
+                }
+                
+            } catch(err) {
+                console.error(err);
+                showAlert("Erro ao salvar nota.");
+                btn.textContent = 'Salvar';
+            }
         }
 
-        // --- Lógica de Resposta e Notificação ---
-        
+
+        // --- RESPOSTA AO VENDEDOR ---
         function openReplyModal(e) {
-             const button = e.target.closest('.reply-btn') || e.currentTarget;
-             const sampleId = button.dataset.sampleId;
-             currentSampleForReply = allCurrentSamples.find(s => s.id === sampleId);
-             
-             if (!currentSampleForReply) {
-                return showAlert("Erro: Amostra não encontrada.");
-             }
+             const sampleId = e.currentTarget.dataset.sampleId;
+             currentSampleForReply = allSegmentSamples.find(s => s.id === sampleId);
+             if (!currentSampleForReply) return showAlert("Erro: Amostra não encontrada.");
              
              replyModalProduct.textContent = `${currentSampleForReply.produto} (${currentSampleForReply.pedido})`;
-             replyModalSeller.textContent = `Observação de: ${currentSampleForReply.sellerName}`;
-             replyModalObservation.textContent = `"${currentSampleForReply.observation}"`;
+             replyModalSeller.textContent = `Vendedor: ${currentSampleForReply.sellerName}`;
+             replyModalObservation.textContent = `"${currentSampleForReply.observation || 'Sem observação'}"`;
+             managerNameInput.value = localStorage.getItem('managerName') || ''; 
              replyMessageInput.value = '';
              replyModal.classList.remove('hidden');
         }
-
-        // MUDANÇA: Abrir Modal da Nota Interna (popula o autor)
-        function openManagerNoteModal(e) {
-             const button = e.target.closest('.manager-note-btn') || e.currentTarget;
-             const sampleId = button.dataset.sampleId;
-             currentSampleForNote = allCurrentSamples.find(s => s.id === sampleId);
-             
-             if (!currentSampleForNote) {
-                return showAlert("Erro: Amostra não encontrada.");
-             }
-             
-             managerNoteModalProduct.textContent = `${currentSampleForNote.produto} (${currentSampleForNote.pedido})`;
-             managerNoteModalObservation.textContent = `"${currentSampleForNote.observation || 'Sem observação'}"`;
-
-             // Lógica para encontrar a nota e o autor
-             let existingNote;
-             if (currentSegment === 'ADMIN') {
-                 // Admin pode editar a primeira nota que encontrar (ou a sua própria)
-                 existingNote = allManagerNotes.find(n => n.contextId === sampleId && n.managerName === currentManagerName) ||
-                                allManagerNotes.find(n => n.contextId === sampleId);
-             } else {
-                 // Gerente só pode editar a sua própria nota
-                 existingNote = allManagerNotes.find(n => 
-                     n.contextId === sampleId && n.managerName === currentManagerName
-                 );
-             }
-
-             if (existingNote) {
-                managerNoteInput.value = existingNote.message;
-                managerNoteAuthorInput.value = existingNote.managerName; // Popula com o nome salvo
-             } else {
-                managerNoteInput.value = '';
-                managerNoteAuthorInput.value = currentManagerName; // Popula com o nome do gerente logado
-             }
-             
-             managerNoteModal.classList.remove('hidden');
-        }
-
-
-        async function sendReplyToManager() {
-            if (!currentSampleForReply || !currentSessionId) return;
-            
-            const replyMessage = replyMessageInput.value.trim();
-            if (!replyMessage || !currentManagerName) {
-                return showAlert("A mensagem de resposta não pode estar vazia.");
-            }
-
-            sendReplyBtn.disabled = true;
-            sendReplyBtn.textContent = 'A Enviar...';
-
-            try {
-                const notificationData = {
-                    managerName: currentManagerName,
-                    replyMessage: replyMessage,
-                    originalObservation: currentSampleForReply.observation,
-                    sellerName: currentSampleForReply.sellerName,
-                    pedido: currentSampleForReply.pedido,
-                    produto: currentSampleForReply.produto,
-                    razaoSocial: currentSampleForReply.razaoSocial || '',
-                    descricao: currentSampleForReply.descricao || '',
-                    timestamp: serverTimestamp(),
-                    read: false,
-                    readByPd: false
-                };
-
-                const sellerNotifsRef = collection(db, "sessoes", currentSessionId, "notificacoesVendedor");
-                await addDoc(sellerNotifsRef, notificationData);
-
-                replyModal.classList.add('hidden');
-                showAlert("Resposta enviada com sucesso.", "Sucesso", "text-green-600");
-                
-            } catch (error) {
-                handleFirestoreError(error, "enviar resposta ao vendedor");
-            } finally {
-                sendReplyBtn.disabled = false;
-                sendReplyBtn.textContent = 'Enviar Resposta';
-                currentSampleForReply = null;
-            }
-        }
-
-        // MUDANÇA: Salvar/Atualizar/Apagar Nota Interna (com autor editável)
-        async function sendManagerNote() {
-            if (!currentSampleForNote || !currentSessionId) return;
-
-            const message = managerNoteInput.value.trim();
-            const authorName = managerNoteAuthorInput.value.trim(); // NOVO: Pega o autor
-            
-            // NOVO: Validação do autor
-            if (!authorName) {
-                 showAlert("O nome do autor não pode estar vazio.");
-                 return;
-            }
-
-            sendManagerNoteBtn.disabled = true;
-            sendManagerNoteBtn.textContent = 'A Salvar...';
-
-            try {
-                const noteRef = collection(db, "sessoes", currentSessionId, "gerentePostits");
-                
-                // Lógica para encontrar a nota existente (mesma de 'openManagerNoteModal')
-                 let existingNote;
-                 if (currentSegment === 'ADMIN') {
-                     existingNote = allManagerNotes.find(n => n.contextId === currentSampleForNote.id && n.managerName === currentManagerName) ||
-                                    allManagerNotes.find(n => n.contextId === currentSampleForNote.id);
-                 } else {
-                     existingNote = allManagerNotes.find(n => 
-                         n.contextId === currentSampleForNote.id && n.managerName === currentManagerName
-                     );
-                 }
-
-                if (!message) {
-                    // Mensagem vazia: APAGAR a nota se ela existir
-                    if (existingNote) {
-                        // Um gerente só pode apagar sua própria nota, mas o Admin pode apagar qualquer uma
-                        if (currentSegment === 'ADMIN' || existingNote.managerName === currentManagerName) {
-                            const noteDocRef = doc(db, "sessoes", currentSessionId, "gerentePostits", existingNote.id);
-                            await deleteDoc(noteDocRef);
-                            showAlert("Nota interna removida.", "Sucesso", "text-green-600");
-                        } else {
-                            showAlert("Você não pode apagar a nota de outro gerente.");
-                        }
-                    }
-                } else {
-                    // Mensagem com conteúdo: ATUALIZAR ou CRIAR
-                    if (existingNote) {
-                        // Atualizar nota existente
-                        const noteDocRef = doc(db, "sessoes", currentSessionId, "gerentePostits", existingNote.id);
-                        await updateDoc(noteDocRef, {
-                            message: message,
-                            managerName: authorName, // Salva o nome do autor (editado ou não)
-                            timestamp: serverTimestamp()
-                        });
-                    } else {
-                        // Adicionar nota nova
-                        await addDoc(noteRef, {
-                            contextId: currentSampleForNote.id,
-                            message: message,
-                            managerName: authorName, // Salva o nome do autor
-                            timestamp: serverTimestamp()
-                        });
-                    }
-                    showAlert("Nota interna salva.", "Sucesso", "text-green-600");
-                }
-                
-                managerNoteModal.classList.add('hidden');
-
-            } catch (error) {
-                handleFirestoreError(error, "salvar nota interna");
-            } finally {
-                sendManagerNoteBtn.disabled = false;
-                sendManagerNoteBtn.textContent = 'Salvar Nota';
-                currentSampleForNote = null;
-            }
-        }
         
-        let bellBtn = null; 
-        function renderNotificationBell(unreadCount) {
-             let countBadge = document.getElementById('notification-count-badge');
-             
-             if (!bellBtn) {
-                const header = document.querySelector('#dashboard header .flex.items-center.gap-4');
-                if (!header) return; 
-                const bellWrapper = document.createElement('div');
-                bellWrapper.className = "relative";
-                bellWrapper.innerHTML = `
-                    <button id="notification-btn" class="text-gray-500 hover:text-gray-700">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        <span id="notification-count-badge" class="hidden absolute top-0 right-0 -mt-1 -mr-1 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">0</span>
-                    </button>
-                `;
-                header.insertBefore(bellWrapper, logoutBtn);
-                bellBtn = document.getElementById('notification-btn');
-                countBadge = document.getElementById('notification-count-badge');
-                
-                bellBtn.addEventListener('click', openNotificationModal);
-             }
-             
-             if (unreadCount > 0) {
-                 countBadge.textContent = unreadCount;
-                 countBadge.classList.remove('hidden');
-             } else {
-                 countBadge.classList.add('hidden');
-             }
-        }
-        
-        async function openNotificationModal() {
-             notificationList.innerHTML = '';
-             
-             const q = query(
-                collection(db, "sessoes", currentSessionId, "respostasVendedor"),
-                where("readByManager", "==", false),
-                orderBy("timestamp", "desc")
-             );
-             
-             const snapshot = await getDocs(q);
-             const replies = snapshot.docs;
+        cancelReplyBtn.onclick = () => replyModal.classList.add('hidden');
 
-             if (replies.length === 0) {
-                 notificationList.innerHTML = '<p class="text-gray-500">Nenhuma resposta nova.</p>';
-                 notificationModal.classList.remove('hidden');
-                 return;
-             }
-             
-             const batch = writeBatch(db);
-             
-             replies.forEach(replyDoc => {
-                 const reply = replyDoc.data();
-                 const item = document.createElement('div');
-                 item.className = "p-3 border-b border-gray-100";
-                 item.innerHTML = `
-                    <p><span class="font-semibold text-green-600">${reply.sellerName}</span> (Vendedor) respondeu:</p>
-                    <p class="italic text-gray-700 my-1">"${reply.replyMessage}"</p>
-                    <p class="text-xs text-gray-500">Ref: ${reply.produto} (Pedido: ${reply.pedido})</p>
-                    <p class="text-xs text-gray-400">Mensagem original: "${reply.originalManagerMessage}"</p>
-                 `;
-                 notificationList.appendChild(item);
-                 
-                 batch.update(replyDoc.ref, { readByManager: true });
-             });
-             
-             notificationModal.classList.remove('hidden');
-             await batch.commit();
-        }
-        
-        // MUDANÇA: Adicionado NF e Data Faturamento (dataEmissao)
-        function openSamplesModal(samples, title) {
-            feedbackSamplesTitle.textContent = title;
-            feedbackSamplesList.innerHTML = '';
+        sendReplyBtn.onclick = async () => {
+             if (!currentSampleForReply || !currentSessionId) return;
+             const managerName = managerNameInput.value.trim();
+             const replyMessage = replyMessageInput.value.trim();
+
+             if (!managerName || !replyMessage) { return showAlert("Preencha todos os campos."); }
+
+             try {
+                 localStorage.setItem('managerName', managerName);
+                 // Enviar para 'notificacoesVendedor' para aparecer no painel do vendedor
+                 await addDoc(collection(db, "sessoes", currentSessionId, "notificacoesVendedor"), {
+                     managerName: managerName,
+                     replyMessage: replyMessage,
+                     originalObservation: currentSampleForReply.observation,
+                     sellerName: currentSampleForReply.sellerName,
+                     pedido: currentSampleForReply.pedido,
+                     produto: currentSampleForReply.produto,
+                     timestamp: serverTimestamp(),
+                     read: false, 
+                     readByPd: false
+                 });
+                 replyModal.classList.add('hidden');
+                 showAlert("Resposta enviada com sucesso!", "Sucesso", "text-green-600");
+             } catch(e) { console.error(e); showAlert("Erro ao enviar resposta."); }
+        };
+
+        // --- NOTAS INTERNAS GERAIS (POST-ITS) ---
+        function listenForInternalNotes() {
+            if (internalNotesUnsubscribe) internalNotesUnsubscribe();
             
-            if (samples.length === 0) {
-                 feedbackSamplesList.innerHTML = '<p class="text-gray-500">Nenhum resultado encontrado.</p>';
-                 feedbackSamplesModal.classList.remove('hidden');
-                 return;
-            }
+            // Notas Gerais
+            const notesRef = collection(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_'));
+            const q = query(notesRef, orderBy("timestamp", "desc"));
             
-            samples.forEach(sample => {
-                 const itemDiv = document.createElement('div');
-                 itemDiv.className = `feedback-sample-item text-sm`;
-                 
-                 const managerNoteHtml = getManagerNoteHtml(sample.id); // NOVO: Pega nota interna
-                 const repliesHtml = getRepliesHtml(sample); // Pega replies
-
-                 const replyButtonHtml = `
-                     <button class="reply-btn bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded text-xs font-semibold" data-sample-id="${sample.id}">
-                         Responder
-                     </button>
-                 `;
-
-                 // NOVO: Botão de Nota Interna
-                 const noteButtonHtml = `
-                    <button class="manager-note-btn text-yellow-600 hover:text-yellow-800 p-1 rounded-full hover:bg-yellow-100" data-sample-id="${sample.id}" title="Adicionar nota interna">
-                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                        </svg>
-                    </button>
-                 `;
-
-                // MUDANÇA: NF readicionada, e data usa dataEmissao
-                 itemDiv.innerHTML = `
-                     <div class="flex justify-between items-start">
-                         <div>
-                             <p class="font-semibold">${sample.produto} (${sample.razaoSocial})</p>
-                             <p class="text-xs text-gray-600">${sample.descricao}</p>
-                             <p class="text-xs text-gray-500 mt-1">
-                                 Vendedor: ${sample.sellerName} | Pedido: ${sample.pedido}
-                             </p>
-                             <!-- NF e Data Faturamento (dataEmissao) adicionados -->
-                             <p class="text-xs text-gray-500">
-                                NF: ${sample.emissaoNF || 'N/A'} | Faturado: ${formatFirebaseDate(sample.dataEmissao)}
-                             </p>
-                             <p class="font-medium text-gray-800 mt-1">Feedback: ${sample.feedback || 'Pendente'}</p>
-                         </div>
-                         <div class="flex-shrink-0 ml-4 flex items-center gap-1">
-                            ${noteButtonHtml}
-                            ${sample.observation ? replyButtonHtml : ''}
-                         </div>
-                     </div>
-                     ${sample.observation ? `<p class="text-xs text-gray-600 mt-1 italic">Obs: ${sample.observation}</p>` : ''}
-                     ${managerNoteHtml} <!-- Nota interna primeiro -->
-                     ${repliesHtml} <!-- Respostas públicas depois -->
-                 `;
-                 feedbackSamplesList.appendChild(itemDiv);
+            internalNotesUnsubscribe = onSnapshot(q, (snapshot) => {
+                renderInternalNotes(snapshot.docs);
             });
             
-            feedbackSamplesModal.classList.remove('hidden');
+            // Notas por Item (NOVO)
+            const itemNotesRef = collection(db, "sessoes", currentSessionId, "manager_item_notes");
+            // O ideal seria filtrar por segmento aqui, mas como o ID é único, podemos ouvir tudo e filtrar na renderização se necessário
+            // ou confiar que o volume não é absurdo. Para segurança de dados, idealmente filtraríamos.
+            const qItems = query(itemNotesRef, where("segment", "==", currentSegmentDataValue));
+            
+            onSnapshot(qItems, (snapshot) => {
+                 itemNotesMap = {};
+                 snapshot.docs.forEach(doc => {
+                     itemNotesMap[doc.id] = doc.data();
+                 });
+                 // Re-render feed to show notes
+                 if (!dashboardView.classList.contains('hidden')) renderFeed();
+            });
         }
-
-        // Função para cliques no gráfico de feedback (Índice)
-        function showSamplesForFeedback(feedbackType) {
-            if (!feedbackType) return;
-
-            const APPROVED_PREFIX = 'A -';
-            const REJECTED_PREFIX = 'R -';
-            const EVENTS_PREFIX = 'E -';
-            let filteredSamples = [];
-
-            if (feedbackType.includes('Aprovadas')) {
-                filteredSamples = allCurrentSamples.filter(s => s.feedback && s.feedback.startsWith(APPROVED_PREFIX));
-            } else if (feedbackType.includes('Reprovadas')) {
-                filteredSamples = allCurrentSamples.filter(s => s.feedback && s.feedback.startsWith(REJECTED_PREFIX));
-            } else if (feedbackType.includes('Eventos')) {
-                filteredSamples = allCurrentSamples.filter(s => s.feedback && s.feedback.startsWith(EVENTS_PREFIX));
-            } else {
-                return; 
+        
+        function renderInternalNotes(docs) {
+            internalNotesList.innerHTML = '';
+            if (docs.length === 0) {
+                 internalNotesList.innerHTML = '<p class="text-center text-slate-400 text-xs italic mt-10">Use este espaço para lembretes pessoais.</p>';
+                 return;
             }
-
-            openSamplesModal(filteredSamples, `Amostras: ${feedbackType} (${filteredSamples.length})`);
+            
+            docs.forEach(docSnap => {
+                const note = docSnap.data();
+                const div = document.createElement('div');
+                div.className = 'sticky-note p-3 rounded-lg relative group transition-transform hover:scale-[1.02] cursor-default bg-yellow-100 border border-yellow-200 shadow-sm';
+                div.innerHTML = `
+                    <p class="text-yellow-900 text-xs font-medium whitespace-pre-wrap leading-relaxed">${note.text}</p>
+                    <button class="absolute -top-2 -right-2 bg-white text-red-400 hover:text-red-600 rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity delete-note-btn" data-id="${docSnap.id}">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                `;
+                internalNotesList.appendChild(div);
+            });
+            
+            internalNotesList.querySelectorAll('.delete-note-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                     const id = e.currentTarget.dataset.id;
+                     await deleteDoc(doc(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_'), id));
+                });
+            });
         }
-
-
-        // --- Event Listeners Globais ---
-        managerLoginBtn.addEventListener('click', login);
-        logoutBtn.addEventListener('click', logout);
         
-        // MUDANÇA: Adicionado listener para o novo filtro de status do vendedor
-        sellerSearchInput.addEventListener('input', () => renderSellersList(allCurrentSamples));
-        sellerStatusFilter.addEventListener('change', () => renderSellersList(allCurrentSamples));
-        
-        // MUDANÇA: Adicionado listener para ambos os filtros do feed
-        sellerFeedFilter.addEventListener('change', () => renderObservationsFeed(allCurrentSamples));
-        feedFilter.addEventListener('change', () => renderObservationsFeed(allCurrentSamples));
-
-        globalSearchInput.addEventListener('keyup', (e) => {
-            if (e.key === 'Enter') {
-                const searchTerm = normalizeText(globalSearchInput.value);
-                if (!searchTerm) {
-                    renderObservationsFeed(allCurrentSamples);
-                    return;
-                }
-                const filteredSamples = allCurrentSamples.filter(s => 
-                    normalizeText(s.sellerName).includes(searchTerm) ||
-                    normalizeText(s.produto).includes(searchTerm) ||
-                    normalizeText(s.descricao).includes(searchTerm) ||
-                    normalizeText(s.razaoSocial).includes(searchTerm) ||
-                    (s.observation && normalizeText(s.observation).includes(searchTerm)) ||
-                    normalizeText(s.pedido).includes(searchTerm)
-                ).sort((a, b) => (b.lastUpdate?.toDate ? b.lastUpdate.toDate().getTime() : 0) - (a.lastUpdate?.toDate ? a.lastUpdate.toDate().getTime() : 0));
-                
-                openSamplesModal(filteredSamples, `Resultados da Pesquisa: "${globalSearchInput.value}" (${filteredSamples.length})`);
-                
-            } else { 
-                renderObservationsFeed(allCurrentSamples);
-            }
+        addInternalNoteBtn.addEventListener('click', async () => {
+             const text = newInternalNoteInput.value.trim();
+             if(!text) return;
+             
+             await addDoc(collection(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_')), {
+                 text: text,
+                 timestamp: serverTimestamp()
+             });
+             newInternalNoteInput.value = '';
         });
 
-        // Modais
-        closeFeedbackSamplesBtn.addEventListener('click', () => feedbackSamplesModal.classList.add('hidden'));
-        cancelReplyBtn.addEventListener('click', () => replyModal.classList.add('hidden'));
-        sendReplyBtn.addEventListener('click', sendReplyToManager);
-        
-        // NOVO: Listeners do Modal de Nota Interna
-        cancelManagerNoteBtn.addEventListener('click', () => managerNoteModal.classList.add('hidden'));
-        sendManagerNoteBtn.addEventListener('click', sendManagerNote);
-
-        closeNotificationBtn.addEventListener('click', () => notificationModal.classList.add('hidden'));
-        
-        // Delegação de evento para a lista do feed de observações
-        observationsFeedList.addEventListener('click', (e) => {
-            const replyButton = e.target.closest('.reply-btn');
-            const noteButton = e.target.closest('.manager-note-btn');
-
-            if (replyButton) {
-                openReplyModal(e);
-            } else if (noteButton) {
-                openManagerNoteModal(e);
-            }
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('managerSegmentKey');
+            if (internalNotesUnsubscribe) internalNotesUnsubscribe();
+            location.reload();
         });
-
-        // Delegação de evento para a lista do modal de amostras
-        feedbackSamplesList.addEventListener('click', (e) => {
-            const replyButton = e.target.closest('.reply-btn');
-            const noteButton = e.target.closest('.manager-note-btn');
-
-            if (replyButton) {
-                openReplyModal(e);
-                feedbackSamplesModal.classList.add('hidden'); // Fecha o modal de amostras
-            } else if (noteButton) {
-                openManagerNoteModal(e);
-                feedbackSamplesModal.classList.add('hidden'); // Fecha o modal de amostras
-            }
-        });
-
-        // Delegação de evento para a lista de análise de feedback
-        feedbackTypesList.addEventListener('click', (e) => {
-            const replyButton = e.target.closest('.reply-btn');
-            const noteButton = e.target.closest('.manager-note-btn');
-
-            if (replyButton) {
-                openReplyModal(e); 
-            } else if (noteButton) {
-                openManagerNoteModal(e);
-            }
-        });
-
-        managerAccessTbody.addEventListener('click', (e) => {
-            const button = e.target.closest('.toggle-password-btn');
-            if (button) {
-                const cell = button.closest('tr').querySelector('.password-cell');
-                const password = cell.dataset.password;
-
-                if (button.dataset.state === 'hidden') {
-                    cell.textContent = password;
-                    button.textContent = 'Ocultar';
-                    button.dataset.state = 'visible';
-                } else {
-                    cell.textContent = '••••••';
-                    button.textContent = 'Visualizar';
-                    button.dataset.state = 'hidden';
-                }
-            }
-        });
-
-        // --- INICIALIZAÇÃO ---
-        (async () => {
-            try {
-                await signInAnonymously(auth); 
-                populateManagerButtons(); 
-                
-                const savedSegment = localStorage.getItem('managerSegment');
-                if (savedSegment && MANAGER_PASSWORDS[savedSegment]) {
-                    currentSegment = savedSegment;
-                    currentManagerName = MANAGER_PASSWORDS[savedSegment].name;
-                    managerLoginBtn.disabled = true;
-                    managerLoginBtn.textContent = 'A carregar...';
-                    
-                    managerLoginButtons.querySelectorAll('.login-card').forEach(c => {
-                         if(c.dataset.segment === savedSegment) {
-                             c.classList.add('selected');
-                             c.querySelector('svg:last-child').classList.remove('opacity-0');
-                         }
-                    });
-
-                    // Mostra campos de login se estiver salvo (para login automático)
-                    loginActions.classList.remove('hidden');
-                    loginActions.style.opacity = '1';
-                    loginActions.style.transform = 'translateY(0)';
-                    
-                    const sessionId = await getActiveSessionId();
-                    if (!sessionId) {
-                        loginError.textContent = 'Nenhuma sessão ativa encontrada. Contate o administrador.';
-                        logout();
-                        return;
-                    }
-                    
-                    dashboardTitle.textContent = `Painel Gerente: ${currentSegment}`;
-                    if (currentSegment === 'ADMIN') {
-                        adminAccessSection.classList.remove('hidden');
-                        renderAccessTable();
-                    }
-                    
-                    await loadAllData(sessionId);
-                }
-
-            } catch (error) {
-                console.error("Firebase Auth Error:", error);
-                document.body.innerHTML = '<p class="text-center text-red-500 p-8">Erro crítico ao conectar com o Firebase. Verifique a configuração.</p>';
-            }
-        })();
 
     </script>
 </body>
 </html>
+
 
 
 
