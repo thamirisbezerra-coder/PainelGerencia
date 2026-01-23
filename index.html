@@ -35,7 +35,7 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid #e2e8f0;
             background: white;
-            min-height: 80px;
+            min-height: 100px; /* Aumentado para caber nomes longos */
         }
         .login-card:hover {
             border-color: #3b82f6;
@@ -64,82 +64,80 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         
-        /* Otimização da Grid de Login */
+        /* Grid Otimizada para Login */
         .segment-grid-optimized {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
+            grid-template-columns: repeat(2, 1fr); /* 2 Colunas */
+            gap: 1rem;
             width: 100%;
-        }
-        @media (min-width: 1024px) {
-            .segment-grid-optimized {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            padding-bottom: 1rem;
         }
         @media (min-width: 1280px) {
              .segment-grid-optimized {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(3, 1fr); /* 3 Colunas em telas grandes */
             }
         }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
 
-    <!-- TELA DE LOGIN (MODERNIZADA E CENTRALIZADA) -->
+    <!-- TELA DE LOGIN (MODERNIZADA E VISUAL AJUSTADO) -->
     <div id="login-view" class="fixed inset-0 z-50 bg-slate-50 flex items-center justify-center p-4">
-        <!-- Container Principal Expandido -->
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-6xl p-8 lg:p-10 fade-in relative overflow-hidden border border-slate-100 flex flex-col lg:flex-row gap-12 max-h-[95vh]">
+        <!-- Container Principal -->
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-5xl p-8 lg:p-12 fade-in relative overflow-hidden border border-slate-100 flex flex-col lg:flex-row gap-12 max-h-[95vh] overflow-y-auto lg:overflow-visible">
             
             <!-- Lado Esquerdo: Info e Login -->
-            <div class="lg:w-1/3 flex flex-col justify-center relative z-10">
-                <div class="mb-8 text-center">
-                    <!-- Logo Maior e Centralizada -->
-                    <div class="inline-block p-4 rounded-full bg-slate-50 mb-6 border border-slate-100 shadow-sm animate-float">
-                        <img src="https://i.postimg.cc/76mXWMJh/as-02.png" alt="Logo" class="h-24 w-auto object-contain">
+            <div class="lg:w-5/12 flex flex-col justify-center relative z-10">
+                <div class="mb-10 text-center">
+                    <!-- Logo Aumentada e Centralizada -->
+                    <div class="flex justify-center mb-6">
+                        <div class="p-6 rounded-full bg-white border border-slate-100 shadow-sm animate-float inline-block">
+                            <img src="https://i.postimg.cc/76mXWMJh/as-02.png" alt="Logo" class="h-28 w-auto object-contain">
+                        </div>
                     </div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Painel do Gerente</h1>
                     <p class="text-slate-500 mt-3 text-sm leading-relaxed max-w-xs mx-auto">Acompanhe o desempenho da sua equipe e gerencie feedbacks em tempo real.</p>
                 </div>
 
-                <div class="space-y-5 max-w-sm mx-auto w-full">
+                <div class="space-y-6 max-w-sm mx-auto w-full">
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                         </div>
-                        <input type="password" id="manager-password-input" class="w-full border border-slate-200 bg-slate-50 rounded-xl py-4 px-4 pl-12 text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all placeholder-slate-400 font-medium" placeholder="Digite sua senha">
+                        <input type="password" id="manager-password-input" class="w-full border border-slate-200 bg-slate-50 rounded-xl py-4 px-4 pl-12 text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all placeholder-slate-400 font-medium" placeholder="Sua senha de acesso">
                     </div>
 
-                    <button id="manager-login-btn" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform active:scale-[0.98] flex justify-center items-center gap-2 group">
-                        <span>Acessar Painel</span>
+                    <button id="manager-login-btn" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform active:scale-[0.98] flex justify-center items-center gap-2 group text-base">
+                        <span>Entrar no Painel</span>
                         <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </button>
                     
                     <p id="login-error" class="text-red-500 text-sm font-medium text-center min-h-[1.5rem]"></p>
                 </div>
                 
-                <div class="mt-auto pt-6 text-center lg:text-left">
-                    <p class="text-xs text-slate-300 text-center">Sistema de Gestão de Feedbacks v2.0</p>
+                <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+                    <p class="text-xs text-slate-400">Sistema de Gestão de Feedbacks v2.2</p>
                 </div>
             </div>
 
             <!-- Lado Direito: Grid de Seleção (Expandida) -->
-            <div class="lg:w-2/3 border-t lg:border-t-0 lg:border-l border-slate-100 pt-8 lg:pt-0 lg:pl-12 relative flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Selecione seu Segmento</label>
-                    <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-full">Total: <span id="segment-count">0</span></span>
+            <div class="lg:w-7/12 border-t lg:border-t-0 lg:border-l border-slate-100 pt-8 lg:pt-0 lg:pl-12 relative flex flex-col">
+                <div class="flex items-center justify-between mb-5">
+                    <label class="text-sm font-bold text-slate-500 uppercase tracking-wider">Selecione seu Segmento</label>
+                    <span class="text-xs bg-slate-100 text-slate-500 px-3 py-1 rounded-full font-medium">Total: <span id="segment-count">0</span></span>
                 </div>
                 
-                <!-- Grid Otimizada -->
+                <!-- Grid Otimizada - Ocupa o espaço necessário -->
                 <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                    <div id="segment-grid" class="segment-grid-optimized pb-2">
+                    <div id="segment-grid" class="segment-grid-optimized">
                         <!-- Cards gerados via JS -->
                     </div>
                 </div>
             </div>
 
             <!-- Elementos Decorativos -->
-            <div class="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-blue-50 rounded-full blur-3xl opacity-50 pointer-events-none mix-blend-multiply"></div>
-            <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none mix-blend-multiply"></div>
+            <div class="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-50 pointer-events-none mix-blend-multiply"></div>
+            <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none mix-blend-multiply"></div>
         </div>
     </div>
 
@@ -358,7 +356,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { 
             getFirestore, collection, onSnapshot, doc, getDoc, getDocs, 
-            updateDoc, query, where, Timestamp, runTransaction, addDoc, orderBy, deleteDoc, deleteField, serverTimestamp
+            updateDoc, setDoc, query, where, Timestamp, runTransaction, addDoc, orderBy, deleteDoc, deleteField, serverTimestamp
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -377,7 +375,7 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // CONFIGURAÇÃO DOS GERENTES
+        // CONFIGURAÇÃO DOS GERENTES (Danilo Reincluído e Novos Segmentos)
         const MANAGERS = {
             'CÁRNEOS': { name: 'LUIS ADRIANO', pass: 'carneospass123', dataValue: 'CARNEOS' },
             'LACTEOS': { name: 'VITOR MACHADO', pass: 'lacteospass456', dataValue: 'LACTEOS' },
@@ -391,8 +389,7 @@
         };
 
         // --- CORREÇÃO DE NOMES FORÇADA ---
-        // Se o nome do vendedor estiver aqui, ele será forçado para o segmento indicado, 
-        // ignorando o que vier da planilha (caso venha vazio ou errado).
+        // Se o nome do vendedor estiver aqui, ele será forçado para o segmento indicado na carga de dados
         const SPECIAL_MAPPING = {
             'FERNANDA BEATRIZ': 'NUTRIÇÃO ESPORTIVA',
             'ANDREIA TINTI': 'NUTRIÇÃO ESPORTIVA',
@@ -460,6 +457,7 @@
         let internalNotesUnsubscribe = null; 
         let allManagerNotes = []; 
         let itemNotesMap = {};
+        let managerReplies = []; // Armazena as respostas enviadas pelo gerente
 
         // --- Inicialização ---
         (async () => {
@@ -477,7 +475,7 @@
         })();
 
         // --- Utils ---
-        const normalizeText = (text = '') => text ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : '';
+        const normalizeText = (text = '') => text ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim().replace(/\s+/g, ' ') : '';
 
         function showAlert(message, title = "Aviso", color = "text-slate-700") {
             customAlertTitle.textContent = title;
@@ -508,13 +506,13 @@
 
             managersList.forEach(([key, data]) => {
                 const btn = document.createElement('button');
-                btn.className = 'login-card text-left p-3 rounded-xl cursor-pointer flex flex-col justify-center relative overflow-hidden group shadow-sm hover:shadow-md h-auto min-h-[90px] w-full';
+                btn.className = 'login-card text-left p-4 rounded-xl cursor-pointer flex flex-col justify-between relative overflow-hidden group shadow-sm hover:shadow-md h-full min-h-[110px] w-full';
                 btn.innerHTML = `
-                    <span class="font-bold text-xs text-slate-700 block mb-1 relative z-10 w-full leading-tight whitespace-normal">${key}</span>
-                    <span class="text-[10px] text-slate-500 relative z-10 w-full leading-tight whitespace-normal mt-auto">${data.name}</span>
+                    <span class="font-bold text-sm text-slate-700 block mb-1 relative z-10 w-full leading-tight whitespace-normal break-words">${key}</span>
+                    <span class="text-xs text-slate-500 relative z-10 w-full leading-tight whitespace-normal break-words mt-auto">${data.name}</span>
                     <!-- Icone de Check animado -->
-                    <div class="absolute top-2 right-2 text-white bg-blue-500 rounded-full p-0.5 check-icon shadow-sm">
-                        <svg class="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    <div class="absolute top-3 right-3 text-white bg-blue-500 rounded-full p-0.5 check-icon shadow-sm">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                     </div>
                 `;
                 btn.onclick = () => selectSegment(btn, key);
@@ -604,6 +602,9 @@
             
             // 3. Notas Internas (Post-its)
             listenForInternalNotes();
+            
+            // 4. Respostas do Gerente (NOVO)
+            listenForManagerReplies();
         }
         
         function listenForDestaques() {
@@ -614,6 +615,22 @@
             });
             listeners.push(destaquesListenerUnsubscribe);
         }
+        
+        // Listener para buscar respostas já enviadas (NOVO)
+        function listenForManagerReplies() {
+            const q = query(collection(db, "sessoes", currentSessionId, "notificacoesVendedor"));
+            const unsub = onSnapshot(q, (snapshot) => {
+                // Armazenar com ID para garantir unicidade
+                managerReplies = snapshot.docs.map(d => ({...d.data(), id: d.id}));
+                
+                // Ordenar por data (mais recente primeiro)
+                managerReplies.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+
+                // Re-renderizar o feed para mostrar as respostas
+                if(allSegmentSamples.length > 0) renderFeed();
+            });
+            listeners.push(unsub);
+        }
 
         function processSnapshot(snapshot) {
             allSegmentSamples = [];
@@ -623,10 +640,7 @@
                 const sellerData = docSnap.data();
                 const sellerId = docSnap.id; 
                 
-                // Normaliza nome para verificar override
                 const sellerNameNorm = normalizeText(sellerData.originalName);
-                
-                // Verifica segmento no cache OU no override manual
                 let sellerSegment = sellerSegmentsCache[sellerId];
                 if (SPECIAL_MAPPING[sellerNameNorm]) {
                     sellerSegment = SPECIAL_MAPPING[sellerNameNorm];
@@ -793,7 +807,7 @@
 
             const feedItems = allSegmentSamples
                 .filter(s => s.feedback && s.feedback.trim() !== '') 
-                .filter(s => s.produto.toLowerCase().includes(searchTerm) || s.sellerName.toLowerCase().includes(searchTerm))
+                .filter(s => String(s.produto).toLowerCase().includes(searchTerm) || String(s.sellerName).toLowerCase().includes(searchTerm))
                 .sort((a, b) => (b.lastUpdate?.toDate ? b.lastUpdate.toDate().getTime() : 0) - (a.lastUpdate?.toDate ? a.lastUpdate.toDate().getTime() : 0));
 
             if (feedItems.length === 0) {
@@ -815,6 +829,33 @@
                 const itemNote = itemNotesMap[item.id];
                 const noteActiveClass = itemNote ? 'active' : '';
                 const noteIconClass = itemNote ? 'text-yellow-500 fill-yellow-100' : 'text-gray-300 hover:text-gray-500';
+
+                // Verificar se já foi respondido (BUSCA ROBUSTA)
+                const itemReplies = managerReplies.filter(r => 
+                    String(r.sellerName).trim() === String(item.sellerName).trim() && 
+                    String(r.pedido).trim() === String(item.pedido).trim() && 
+                    String(r.produto).trim() === String(item.produto).trim()
+                );
+                
+                let replyHtml = '';
+                if(itemReplies.length > 0) {
+                    // Como ordenamos managerReplies por data desc, a primeira é a mais recente
+                    const latestReply = itemReplies[0];
+                    
+                    replyHtml = `
+                        <div class="mt-3 bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[10px] font-bold text-blue-700 uppercase flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                                    Respondido por ${latestReply.managerName || 'Gerente'}:
+                                </span>
+                                <span class="text-[10px] text-blue-400">${latestReply.timestamp?.toDate ? latestReply.timestamp.toDate().toLocaleDateString('pt-BR') : ''}</span>
+                            </div>
+                            <p class="text-xs text-blue-900 font-medium italic">"${latestReply.replyMessage}"</p>
+                            ${itemReplies.length > 1 ? `<p class="text-[9px] text-blue-400 mt-1 text-right">+${itemReplies.length - 1} respostas anteriores</p>` : ''}
+                        </div>
+                    `;
+                }
 
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-2 border-b border-slate-50 pb-2">
@@ -849,6 +890,8 @@
 
                     ${item.observation ? `<p class="text-slate-700 italic border-l-4 border-slate-300 pl-3 py-1">"${item.observation}"</p>` : ''}
                     
+                    ${replyHtml}
+
                     <!-- Área de Nota Embutida -->
                     <div id="note-area-${item.id}" class="item-note-area ${noteActiveClass}">
                         <textarea class="w-full text-xs bg-transparent border-none focus:ring-0 resize-none text-yellow-900 placeholder-yellow-600/50" rows="2" placeholder="Nota interna privada...">${itemNote ? itemNote.text : ''}</textarea>
@@ -922,9 +965,7 @@
         }
 
 
-        // --- RESPOSTA AO VENDEDOR ---
-        const managerNameInput = { value: '' }; // Mock para o prompt original que usava um input global não declarado no snippet anterior
-
+        // --- RESPOSTA AO VENDEDOR (CORRIGIDO) ---
         function openReplyModal(e) {
              const sampleId = e.currentTarget.dataset.sampleId;
              currentSampleForReply = allSegmentSamples.find(s => s.id === sampleId);
@@ -934,7 +975,6 @@
              replyModalSeller.textContent = `Vendedor: ${currentSampleForReply.sellerName}`;
              replyModalObservation.textContent = `"${currentSampleForReply.observation || 'Sem observação'}"`;
              
-             // managerNameInput.value = localStorage.getItem('managerName') || ''; 
              replyMessageInput.value = '';
              replyModal.classList.remove('hidden');
         }
@@ -943,7 +983,7 @@
 
         sendReplyBtn.onclick = async () => {
              if (!currentSampleForReply || !currentSessionId) return;
-             // Como não temos input de nome no modal, usamos o nome do gerente logado
+             // USAR O NOME DO GERENTE LOGADO
              const managerName = MANAGERS[currentSegmentKey].name;
              const replyMessage = replyMessageInput.value.trim();
 
