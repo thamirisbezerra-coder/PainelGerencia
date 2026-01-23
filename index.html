@@ -77,6 +77,29 @@
                 grid-template-columns: repeat(3, 1fr); /* 3 Colunas em telas grandes */
             }
         }
+
+        /* Estilo Tabela Modal Detalhes */
+        .details-table th {
+            background-color: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        .details-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.8rem;
+            color: #334155;
+            vertical-align: top;
+        }
+        .breakdown-item:hover {
+            background-color: #f8fafc;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -217,6 +240,21 @@
                 </div>
             </section>
 
+            <!-- NOVA SEÇÃO: DETALHAMENTO DAS RESPOSTAS -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-5 border-b border-slate-100 bg-slate-50">
+                    <h3 class="font-bold text-slate-700 text-lg flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Detalhamento das Respostas
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1">Clique em um tipo de feedback para ver a lista completa de amostras.</p>
+                </div>
+                <div id="breakdown-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-5">
+                    <!-- Lista de breakdown injetada aqui -->
+                    <p class="text-slate-400 text-sm italic col-span-full text-center">Carregando dados...</p>
+                </div>
+            </section>
+
             <!-- Gráficos -->
             <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
@@ -305,15 +343,37 @@
         </div>
     </div>
     
-    <!-- Modal de Amostras por Feedback -->
-    <div id="feedback-samples-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-30">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6">
-            <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h3 id="feedback-samples-title" class="text-xl font-bold">Amostras</h3>
-                <button id="close-feedback-samples-btn" class="text-2xl font-bold text-gray-500 hover:text-gray-800">&times;</button>
+    <!-- Modal de Amostras Detalhadas -->
+    <div id="feedback-samples-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[60]">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-blue-50/50 rounded-t-2xl">
+                <div>
+                    <h3 id="feedback-samples-title" class="text-xl font-bold text-slate-800">Detalhes do Feedback</h3>
+                    <p class="text-xs text-slate-500 mt-1">Lista completa de amostras para este motivo.</p>
+                </div>
+                <button id="close-feedback-samples-btn" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
             </div>
-            <div id="feedback-samples-list" class="space-y-3 max-h-[70vh] overflow-y-auto pr-2">
-                <p class="text-gray-500">A carregar detalhes...</p>
+            <div class="p-0 overflow-hidden flex-1 flex flex-col bg-slate-50">
+                <div class="flex-1 overflow-auto custom-scrollbar p-4">
+                    <table class="w-full text-left border-collapse bg-white shadow-sm rounded-lg overflow-hidden details-table">
+                        <thead>
+                            <tr>
+                                <th>Pedido</th>
+                                <th>Cód. Cliente</th>
+                                <th>Razão Social</th>
+                                <th>Produto</th>
+                                <th>Descrição</th>
+                                <th>Qtde</th>
+                                <th>Nota Fiscal</th>
+                                <th>Emissão NF</th>
+                                <th>Feedback / Comentário</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feedback-samples-list" class="divide-y divide-slate-100">
+                            <!-- Items Injected Here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -422,6 +482,12 @@
         const attentionSection = document.getElementById('attention-section');
         const attentionList = document.getElementById('attention-list');
         
+        // Modal Detalhes
+        const feedbackSamplesModal = document.getElementById('feedback-samples-modal');
+        const feedbackSamplesTitle = document.getElementById('feedback-samples-title');
+        const feedbackSamplesList = document.getElementById('feedback-samples-list');
+        const closeFeedbackSamplesBtn = document.getElementById('close-feedback-samples-btn');
+
         // Modal de Resposta
         const replyModal = document.getElementById('reply-modal');
         const replyModalProduct = document.getElementById('reply-modal-product');
@@ -485,18 +551,16 @@
         }
         customAlertOkBtn.addEventListener('click', () => customAlert.classList.add('hidden'));
 
-        function getCanonicalFeedback(feedback) {
-             if (!feedback) return '';
-             const normalized = normalizeText(feedback.replace(/^(A - |R - |E - |P - )/, '').trim());
-             const mapping = {
-                 'APROVADO COM PEDIDO': 'COM PEDIDO',
-                 'APROVADA SEM PEDIDO': 'APROVADO SEM PEDIDO',
-                 'INNOVATION / EVENTOS': 'EVENTO',
-                 'AMOSTRA NAO TESTADA': 'AMOSTRA NÃO TESTADA',
-                 'EM ANALISE': 'EM ANÁLISE'
-             };
-             return mapping[normalized] || normalized;
-         }
+        function formatDate(value) {
+            if (!value) return '-';
+            if (value && typeof value === 'object' && value.toDate) {
+                return value.toDate().toLocaleDateString('pt-BR');
+            }
+            if (typeof value === 'string' && value.includes('/')) return value;
+            const d = new Date(value);
+            if (!isNaN(d.getTime())) return d.toLocaleDateString('pt-BR');
+            return value;
+        }
 
         // --- Lógica de Login ---
         function renderLoginSegments() {
@@ -616,17 +680,11 @@
             listeners.push(destaquesListenerUnsubscribe);
         }
         
-        // Listener para buscar respostas já enviadas (NOVO)
         function listenForManagerReplies() {
             const q = query(collection(db, "sessoes", currentSessionId, "notificacoesVendedor"));
             const unsub = onSnapshot(q, (snapshot) => {
-                // Armazenar com ID para garantir unicidade
                 managerReplies = snapshot.docs.map(d => ({...d.data(), id: d.id}));
-                
-                // Ordenar por data (mais recente primeiro)
                 managerReplies.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-
-                // Re-renderizar o feed para mostrar as respostas
                 if(allSegmentSamples.length > 0) renderFeed();
             });
             listeners.push(unsub);
@@ -673,6 +731,7 @@
             renderSellers();
             renderFeed();
             renderAttentionArea();
+            renderBreakdown(); // NOVA FUNÇÃO
         }
 
         function updateKPIs() {
@@ -735,6 +794,79 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } }, cutout: '70%' }
             });
         }
+
+        // --- NOVA FUNÇÃO: RENDERIZAR DETALHAMENTO ---
+        function renderBreakdown() {
+            const list = document.getElementById('breakdown-list');
+            list.innerHTML = '';
+            
+            const counts = {};
+            allSegmentSamples.forEach(s => {
+                const fb = s.feedback ? s.feedback.trim() : 'PENDENTE / SEM FEEDBACK';
+                counts[fb] = (counts[fb] || 0) + 1;
+            });
+            
+            const sortedKeys = Object.keys(counts).sort((a,b) => counts[b] - counts[a]);
+            
+            if (sortedKeys.length === 0) {
+                list.innerHTML = '<p class="text-slate-400 text-sm italic col-span-full text-center">Nenhum dado disponível.</p>';
+                return;
+            }
+
+            sortedKeys.forEach(key => {
+                const count = counts[key];
+                const div = document.createElement('div');
+                
+                // Cores baseadas no tipo
+                let colorClass = 'border-slate-200 hover:border-slate-300';
+                let bgClass = 'bg-white';
+                let textClass = 'text-slate-700';
+                
+                if (key.startsWith('A -')) { colorClass = 'border-green-200 hover:border-green-400'; bgClass = 'bg-green-50'; textClass = 'text-green-800'; }
+                else if (key.startsWith('R -')) { colorClass = 'border-red-200 hover:border-red-400'; bgClass = 'bg-red-50'; textClass = 'text-red-800'; }
+                else if (key.includes('PENDENTE')) { colorClass = 'border-yellow-200 hover:border-yellow-400'; bgClass = 'bg-yellow-50'; textClass = 'text-yellow-800'; }
+                
+                div.className = `p-3 rounded-xl border ${colorClass} ${bgClass} transition-all shadow-sm flex justify-between items-center cursor-pointer breakdown-item`;
+                div.innerHTML = `
+                    <span class="font-bold text-xs ${textClass} uppercase truncate pr-2" title="${key}">${key}</span>
+                    <span class="bg-white/80 px-2 py-1 rounded-lg text-xs font-bold shadow-sm ${textClass}">${count}</span>
+                `;
+                div.onclick = () => openFeedbackDetails(key);
+                list.appendChild(div);
+            });
+        }
+
+        // --- ABRIR MODAL DE DETALHES ---
+        function openFeedbackDetails(feedbackType) {
+            feedbackSamplesTitle.textContent = feedbackType;
+            feedbackSamplesList.innerHTML = '';
+            
+            // Filtrar itens
+            const items = allSegmentSamples.filter(s => {
+                const fb = s.feedback ? s.feedback.trim() : 'PENDENTE / SEM FEEDBACK';
+                return fb === feedbackType;
+            });
+            
+            items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.pedido || '-'}</td>
+                    <td>${item.codCliente || item.codigo || '-'}</td>
+                    <td class="font-bold">${item.razaoSocial || '-'}</td>
+                    <td>${item.produto}</td>
+                    <td title="${item.descricao}" class="max-w-[200px] truncate">${item.descricao || '-'}</td>
+                    <td>${item.qtde || '-'}</td>
+                    <td>${item.notaFiscal || '-'}</td>
+                    <td>${formatDate(item.emissao || item.dataEmissao || item.emissaoNF)}</td>
+                    <td class="italic text-slate-600 bg-slate-50">"${item.observation || item.feedback || ''}"</td>
+                `;
+                feedbackSamplesList.appendChild(tr);
+            });
+            
+            feedbackSamplesModal.classList.remove('hidden');
+        }
+        
+        closeFeedbackSamplesBtn.onclick = () => feedbackSamplesModal.classList.add('hidden');
 
         function renderSellers() {
             sellersList.innerHTML = '';
@@ -825,12 +957,10 @@
                     timeString = `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}`;
                 }
 
-                // Check for item-specific note
                 const itemNote = itemNotesMap[item.id];
                 const noteActiveClass = itemNote ? 'active' : '';
                 const noteIconClass = itemNote ? 'text-yellow-500 fill-yellow-100' : 'text-gray-300 hover:text-gray-500';
 
-                // Verificar se já foi respondido (BUSCA ROBUSTA)
                 const itemReplies = managerReplies.filter(r => 
                     String(r.sellerName).trim() === String(item.sellerName).trim() && 
                     String(r.pedido).trim() === String(item.pedido).trim() && 
@@ -839,9 +969,7 @@
                 
                 let replyHtml = '';
                 if(itemReplies.length > 0) {
-                    // Como ordenamos managerReplies por data desc, a primeira é a mais recente
                     const latestReply = itemReplies[0];
-                    
                     replyHtml = `
                         <div class="mt-3 bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500">
                             <div class="flex justify-between items-center mb-1">
@@ -892,7 +1020,6 @@
                     
                     ${replyHtml}
 
-                    <!-- Área de Nota Embutida -->
                     <div id="note-area-${item.id}" class="item-note-area ${noteActiveClass}">
                         <textarea class="w-full text-xs bg-transparent border-none focus:ring-0 resize-none text-yellow-900 placeholder-yellow-600/50" rows="2" placeholder="Nota interna privada...">${itemNote ? itemNote.text : ''}</textarea>
                         <div class="flex justify-end mt-1">
@@ -903,7 +1030,6 @@
                 feedList.appendChild(card);
             });
             
-             // Listeners
             feedList.querySelectorAll('.reply-btn').forEach(btn => btn.addEventListener('click', openReplyModal));
             feedList.querySelectorAll('.toggle-note-btn').forEach(btn => btn.addEventListener('click', toggleItemNote));
             feedList.querySelectorAll('.save-item-note-btn').forEach(btn => btn.addEventListener('click', saveItemNote));
@@ -911,7 +1037,6 @@
         
         feedSearch.addEventListener('input', renderFeed);
 
-        // --- LÓGICA DE NOTAS POR ITEM (NOVO) ---
         function toggleItemNote(e) {
             const itemId = e.currentTarget.dataset.itemId;
             const area = document.getElementById(`note-area-${itemId}`);
@@ -933,11 +1058,7 @@
             
             btn.textContent = '...';
             try {
-                // Salvar na coleção de notas do gerente, usando o ID do item como chave
-                // Coleção: sessoes/{sessionId}/manager_notes_{segment}/items/{itemId}
-                // OU coleção plana: sessoes/{sessionId}/manager_item_notes
                 const notesCollection = collection(db, "sessoes", currentSessionId, "manager_item_notes");
-                // Usar ID do documento igual ao ID do item para facilitar busca
                 await setDoc(doc(notesCollection, itemId), {
                     text: text,
                     itemId: itemId,
@@ -946,13 +1067,11 @@
                 });
                 
                 btn.textContent = 'Salvar';
-                // Atualizar ícone visualmente (embora o listener fará isso)
                 const iconBtn = document.querySelector(`.toggle-note-btn[data-item-id="${itemId}"]`);
                 if(text) {
                      iconBtn.classList.remove('text-gray-300');
                      iconBtn.classList.add('text-yellow-500', 'fill-yellow-100');
                 } else {
-                    // Se salvou vazio, remove a nota (opcional, ou apenas remove destaque)
                      iconBtn.classList.add('text-gray-300');
                      iconBtn.classList.remove('text-yellow-500', 'fill-yellow-100');
                 }
@@ -964,8 +1083,6 @@
             }
         }
 
-
-        // --- RESPOSTA AO VENDEDOR (CORRIGIDO) ---
         function openReplyModal(e) {
              const sampleId = e.currentTarget.dataset.sampleId;
              currentSampleForReply = allSegmentSamples.find(s => s.id === sampleId);
@@ -983,14 +1100,12 @@
 
         sendReplyBtn.onclick = async () => {
              if (!currentSampleForReply || !currentSessionId) return;
-             // USAR O NOME DO GERENTE LOGADO
              const managerName = MANAGERS[currentSegmentKey].name;
              const replyMessage = replyMessageInput.value.trim();
 
              if (!replyMessage) { return showAlert("Preencha a resposta."); }
 
              try {
-                 // Enviar para 'notificacoesVendedor' para aparecer no painel do vendedor
                  await addDoc(collection(db, "sessoes", currentSessionId, "notificacoesVendedor"), {
                      managerName: managerName,
                      replyMessage: replyMessage,
@@ -1007,11 +1122,9 @@
              } catch(e) { console.error(e); showAlert("Erro ao enviar resposta."); }
         };
 
-        // --- NOTAS INTERNAS GERAIS (POST-ITS) ---
         function listenForInternalNotes() {
             if (internalNotesUnsubscribe) internalNotesUnsubscribe();
             
-            // Notas Gerais
             const notesRef = collection(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_'));
             const q = query(notesRef, orderBy("timestamp", "desc"));
             
@@ -1019,10 +1132,7 @@
                 renderInternalNotes(snapshot.docs);
             });
             
-            // Notas por Item (NOVO)
             const itemNotesRef = collection(db, "sessoes", currentSessionId, "manager_item_notes");
-            // O ideal seria filtrar por segmento aqui, mas como o ID é único, podemos ouvir tudo e filtrar na renderização se necessário
-            // ou confiar que o volume não é absurdo. Para segurança de dados, idealmente filtraríamos.
             const qItems = query(itemNotesRef, where("segment", "==", currentSegmentDataValue));
             
             onSnapshot(qItems, (snapshot) => {
@@ -1030,7 +1140,6 @@
                  snapshot.docs.forEach(doc => {
                      itemNotesMap[doc.id] = doc.data();
                  });
-                 // Re-render feed to show notes
                  if (!dashboardView.classList.contains('hidden')) renderFeed();
             });
         }
@@ -1083,6 +1192,7 @@
     </script>
 </body>
 </html>
+
 
 
 
