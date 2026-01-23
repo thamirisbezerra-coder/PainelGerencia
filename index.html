@@ -676,6 +676,7 @@
             destaquesListenerUnsubscribe = onSnapshot(docRef, (docSnap) => {
                 highlightedSamplesCache = docSnap.exists() ? (docSnap.data().lista || []) : [];
                 renderAttentionArea();
+                if (!dashboardView.classList.contains('hidden')) renderFeed();
             });
             listeners.push(destaquesListenerUnsubscribe);
         }
@@ -913,9 +914,14 @@
                 attentionSection.classList.remove('hidden');
                 highlightedItems.forEach(item => {
                     const card = document.createElement('div');
-                    card.className = 'attention-card p-4 rounded-lg bg-white shadow-sm';
+                    card.className = 'attention-card p-4 rounded-lg bg-white shadow-sm relative';
+                    
+                    // Add unstar button here too for convenience
                     card.innerHTML = `
-                        <p class="font-bold text-slate-800 text-sm mb-1">${item.produto}</p>
+                        <button class="absolute top-2 right-2 text-yellow-600 hover:text-red-500 toggle-star-btn" data-item-id="${item.id}" title="Remover Destaque">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        </button>
+                        <p class="font-bold text-slate-800 text-sm mb-1 pr-6">${item.produto}</p>
                         <p class="text-xs text-slate-500 mb-1">Vendedor: <span class="font-medium">${item.sellerName}</span></p>
                         <p class="text-xs text-slate-500">Pedido: ${item.pedido} | NF: ${item.notaFiscal || '-'}</p>
                         <div class="mt-2 bg-slate-50 p-2 rounded text-xs italic text-slate-600 border-l-2 border-amber-300">
@@ -927,6 +933,9 @@
                     `;
                     attentionList.appendChild(card);
                 });
+                
+                // Re-attach listeners for the new buttons in attention area
+                attentionList.querySelectorAll('.toggle-star-btn').forEach(btn => btn.addEventListener('click', toggleStar));
             } else {
                 attentionSection.classList.add('hidden');
             }
@@ -960,6 +969,10 @@
                 const itemNote = itemNotesMap[item.id];
                 const noteActiveClass = itemNote ? 'active' : '';
                 const noteIconClass = itemNote ? 'text-yellow-500 fill-yellow-100' : 'text-gray-300 hover:text-gray-500';
+
+                // Check star status
+                const isStarred = highlightedSamplesCache.includes(item.id);
+                const starIconClass = isStarred ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 hover:text-yellow-400';
 
                 const itemReplies = managerReplies.filter(r => 
                     String(r.sellerName).trim() === String(item.sellerName).trim() && 
@@ -995,7 +1008,10 @@
                              <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase mb-1">
                                 ${item.feedback}
                              </span>
-                             <div class="flex gap-2">
+                             <div class="flex gap-2 items-center mt-1">
+                                <button class="toggle-star-btn transition-colors ${starIconClass}" data-item-id="${item.id}" title="Marcar Destaque">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                </button>
                                 <button class="toggle-note-btn transition-colors ${noteIconClass}" data-item-id="${item.id}" title="Nota Interna">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                                 </button>
@@ -1033,9 +1049,58 @@
             feedList.querySelectorAll('.reply-btn').forEach(btn => btn.addEventListener('click', openReplyModal));
             feedList.querySelectorAll('.toggle-note-btn').forEach(btn => btn.addEventListener('click', toggleItemNote));
             feedList.querySelectorAll('.save-item-note-btn').forEach(btn => btn.addEventListener('click', saveItemNote));
+            feedList.querySelectorAll('.toggle-star-btn').forEach(btn => btn.addEventListener('click', toggleStar));
         }
         
         feedSearch.addEventListener('input', renderFeed);
+
+        // --- TOGGLE STAR FUNCTION ---
+        async function toggleStar(e) {
+            const itemId = e.currentTarget.dataset.itemId;
+            const btn = e.currentTarget;
+            
+            // Optimistic Update (Visual Instantâneo)
+            const isCurrentlyStarred = highlightedSamplesCache.includes(itemId);
+            if (isCurrentlyStarred) {
+                btn.classList.remove('text-yellow-400', 'fill-yellow-400');
+                btn.classList.add('text-gray-300');
+            } else {
+                btn.classList.remove('text-gray-300');
+                btn.classList.add('text-yellow-400', 'fill-yellow-400');
+            }
+            
+            const docRef = doc(db, "sessoes", currentSessionId, "configuracoes", "destaquesAmostras");
+            
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const docSnap = await transaction.get(docRef);
+                    let list = [];
+                    if (docSnap.exists()) {
+                        list = docSnap.data().lista || [];
+                    }
+                    
+                    if (list.includes(itemId)) {
+                        list = list.filter(id => id !== itemId);
+                    } else {
+                        list.push(itemId);
+                    }
+                    
+                    transaction.set(docRef, { lista: list }, { merge: true });
+                });
+                // O listener irá atualizar a UI real e a área de atenção
+            } catch (err) {
+                console.error(err);
+                showAlert("Erro ao atualizar destaque.");
+                // Reverter visual em caso de erro (opcional, mas bom pra UX)
+                if (isCurrentlyStarred) {
+                    btn.classList.add('text-yellow-400', 'fill-yellow-400');
+                    btn.classList.remove('text-gray-300');
+                } else {
+                    btn.classList.add('text-gray-300');
+                    btn.classList.remove('text-yellow-400', 'fill-yellow-400');
+                }
+            }
+        }
 
         function toggleItemNote(e) {
             const itemId = e.currentTarget.dataset.itemId;
