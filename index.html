@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Gerente</title>
+    <title>Painel do Gerente - Gestão Visual</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -11,412 +11,415 @@
     <style>
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: #f0f4f8; 
+            background-color: #f8fafc; 
             color: #1e293b;
         }
         
-        .fade-in { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* Animações Suaves */
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Animação Flutuante para Logo */
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-6px); }
-        }
-        .animate-float { animation: float 5s ease-in-out infinite; }
+        .scale-in { animation: scaleIn 0.2s ease-out; }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* Custom Scrollbar */
+        /* Scrollbar Elegante */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+        /* Login Card */
         .login-card {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease;
             border: 1px solid #e2e8f0;
             background: white;
-            min-height: 100px; /* Aumentado para caber nomes longos */
         }
         .login-card:hover {
             border-color: #3b82f6;
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
         }
         .login-card.selected {
-            background-color: #eff6ff; /* blue-50 */
+            background-color: #eff6ff;
             border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* Ring effect */
-        }
-        .login-card.selected .check-icon { opacity: 1; transform: scale(1); }
-        .check-icon { 
-            opacity: 0; 
-            transform: scale(0.5); 
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
-        
-        .attention-card {
-            background-color: #fffbeb;
-            border: 1px solid #fcd34d;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .attention-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        
-        /* Grid Otimizada para Login */
-        .segment-grid-optimized {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2 Colunas */
-            gap: 1rem;
-            width: 100%;
-            padding-bottom: 1rem;
-        }
-        @media (min-width: 1280px) {
-             .segment-grid-optimized {
-                grid-template-columns: repeat(3, 1fr); /* 3 Colunas em telas grandes */
-            }
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
         }
 
-        /* Estilo Tabela Modal Detalhes */
-        .details-table th {
-            background-color: #f8fafc;
-            color: #64748b;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.7rem;
-            padding: 0.75rem;
-            border-bottom: 1px solid #e2e8f0;
-            white-space: nowrap;
+        /* Avatar do Vendedor */
+        .avatar-initials {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
-        .details-table td {
-            padding: 0.75rem;
-            border-bottom: 1px solid #f1f5f9;
-            font-size: 0.8rem;
-            color: #334155;
-            vertical-align: top;
-        }
-        .breakdown-item:hover {
-            background-color: #f8fafc;
+
+        /* Card do Vendedor na Lista */
+        .seller-card {
+            transition: all 0.2s;
             cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .seller-card:hover {
+            background-color: #f1f5f9;
+        }
+        .seller-card.active {
+            background-color: #eff6ff; /* blue-50 */
+            border-color: #bfdbfe; /* blue-200 */
+        }
+        .seller-card.active .seller-name {
+            color: #1d4ed8; /* blue-700 */
+        }
+
+        /* Estrela de Favorito */
+        .star-btn {
+            transition: transform 0.1s;
+        }
+        .star-btn:active {
+            transform: scale(1.2);
+        }
+        .star-btn:hover {
+            color: #fbbf24; /* amber-400 */
+        }
+
+        /* Marca D'água com Ícones SVG */
+        .watermark-icon {
+            position: absolute;
+            bottom: -15px;
+            right: -15px;
+            width: 100px;
+            height: 100px;
+            opacity: 0.15; /* Sutil, mas visível */
+            pointer-events: none;
+            z-index: 0;
+            transform: rotate(-12deg);
+            transition: transform 0.3s ease;
+        }
+        
+        /* Efeito hover no card movimenta levemente a marca d'água */
+        .group:hover .watermark-icon {
+            transform: rotate(0deg) scale(1.1);
+            opacity: 0.2;
+        }
+
+        .watermark-feed-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 0;
+            color: #94a3b8;
         }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col">
+<body class="antialiased min-h-screen flex flex-col bg-slate-50">
 
-    <!-- TELA DE LOGIN (MODERNIZADA E VISUAL AJUSTADO) -->
+    <!-- TELA DE LOGIN -->
     <div id="login-view" class="fixed inset-0 z-50 bg-slate-50 flex items-center justify-center p-4">
-        <!-- Container Principal -->
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-5xl p-8 lg:p-12 fade-in relative overflow-hidden border border-slate-100 flex flex-col lg:flex-row gap-12 max-h-[95vh] overflow-y-auto lg:overflow-visible">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-5xl p-8 lg:p-12 fade-in border border-slate-100 flex flex-col lg:flex-row gap-12 max-h-[95vh] overflow-y-auto">
             
-            <!-- Lado Esquerdo: Info e Login -->
-            <div class="lg:w-5/12 flex flex-col justify-center relative z-10">
-                <div class="mb-10 text-center">
-                    <!-- Logo Aumentada e Centralizada -->
-                    <div class="flex justify-center mb-6">
-                        <div class="p-6 rounded-full bg-white border border-slate-100 shadow-sm animate-float inline-block">
-                            <img src="https://i.postimg.cc/76mXWMJh/as-02.png" alt="Logo" class="h-28 w-auto object-contain">
-                        </div>
-                    </div>
+            <!-- Lado Esquerdo -->
+            <div class="lg:w-5/12 flex flex-col justify-center">
+                <div class="mb-8 text-center lg:text-left">
+                    <img src="https://i.postimg.cc/76mXWMJh/as-02.png" alt="Logo" class="h-20 w-auto object-contain mb-6 mx-auto lg:mx-0">
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Painel do Gerente</h1>
-                    <p class="text-slate-500 mt-3 text-sm leading-relaxed max-w-xs mx-auto">Acompanhe o desempenho da sua equipe e gerencie feedbacks em tempo real.</p>
+                    <p class="text-slate-500 mt-2 text-sm">Selecione seu segmento e insira sua senha.</p>
                 </div>
 
-                <div class="space-y-6 max-w-sm mx-auto w-full">
-                    <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        </div>
-                        <input type="password" id="manager-password-input" class="w-full border border-slate-200 bg-slate-50 rounded-xl py-4 px-4 pl-12 text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all placeholder-slate-400 font-medium" placeholder="Sua senha de acesso">
+                <div class="space-y-5 max-w-sm mx-auto lg:mx-0 w-full">
+                    <div>
+                        <input type="password" id="manager-password-input" class="w-full border border-slate-200 bg-slate-50 rounded-xl py-3.5 px-4 text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-slate-400 font-medium" placeholder="Senha de acesso">
                     </div>
 
-                    <button id="manager-login-btn" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform active:scale-[0.98] flex justify-center items-center gap-2 group text-base">
-                        <span>Entrar no Painel</span>
-                        <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    <button id="manager-login-btn" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-3.5 rounded-xl shadow-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2">
+                        <span>Entrar</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </button>
                     
-                    <p id="login-error" class="text-red-500 text-sm font-medium text-center min-h-[1.5rem]"></p>
-                </div>
-                
-                <div class="mt-8 pt-6 border-t border-slate-100 text-center">
-                    <p class="text-xs text-slate-400">Sistema de Gestão de Feedbacks v2.2</p>
+                    <p id="login-error" class="text-red-500 text-sm font-medium text-center min-h-[1.25rem]"></p>
                 </div>
             </div>
 
-            <!-- Lado Direito: Grid de Seleção (Expandida) -->
-            <div class="lg:w-7/12 border-t lg:border-t-0 lg:border-l border-slate-100 pt-8 lg:pt-0 lg:pl-12 relative flex flex-col">
-                <div class="flex items-center justify-between mb-5">
-                    <label class="text-sm font-bold text-slate-500 uppercase tracking-wider">Selecione seu Segmento</label>
-                    <span class="text-xs bg-slate-100 text-slate-500 px-3 py-1 rounded-full font-medium">Total: <span id="segment-count">0</span></span>
+            <!-- Lado Direito: Grid de Seleção -->
+            <div class="lg:w-7/12 border-t lg:border-t-0 lg:border-l border-slate-100 pt-8 lg:pt-0 lg:pl-12 flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Segmentos Disponíveis</label>
                 </div>
-                
-                <!-- Grid Otimizada - Ocupa o espaço necessário -->
                 <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                    <div id="segment-grid" class="segment-grid-optimized">
+                    <div id="segment-grid" class="grid grid-cols-2 md:grid-cols-2 gap-3">
                         <!-- Cards gerados via JS -->
                     </div>
                 </div>
             </div>
-
-            <!-- Elementos Decorativos -->
-            <div class="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-50 pointer-events-none mix-blend-multiply"></div>
-            <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none mix-blend-multiply"></div>
         </div>
     </div>
 
     <!-- PAINEL PRINCIPAL (DASHBOARD) -->
     <div id="dashboard-view" class="hidden flex-col min-h-screen">
         
-        <!-- Header -->
-        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-            <div class="container mx-auto px-6 py-3 flex justify-between items-center">
-                <div class="flex items-center gap-4">
-                    <img src="https://i.postimg.cc/76mXWMJh/as-02.png" alt="Logo" class="h-8 w-auto">
-                    <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+        <!-- Header Compacto -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90">
+            <div class="container mx-auto px-4 py-2 flex justify-between items-center h-14">
+                <div class="flex items-center gap-3">
+                    <img src="https://i.postimg.cc/76mXWMJh/as-02.png" alt="Logo" class="h-6 w-auto">
+                    <div class="h-4 w-px bg-slate-300 hidden sm:block"></div>
                     <div>
-                        <h1 class="text-sm font-bold text-slate-800 leading-tight">Painel Gerencial</h1>
-                        <p id="header-segment-name" class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">---</p>
+                        <h1 class="text-xs text-slate-500 font-medium leading-none">Painel Gerencial</h1>
+                        <p id="header-segment-name" class="text-sm font-bold text-slate-800 leading-tight">---</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="hidden md:flex flex-col items-end mr-2">
-                        <span id="session-status-text" class="text-[10px] text-slate-400 font-medium">Sessão Ativa</span>
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                            <span id="session-id-display" class="text-xs font-mono text-slate-600">---</span>
-                        </div>
+                
+                <div class="flex items-center gap-2">
+                    <!-- Status Sessão -->
+                    <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-full">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                        <span id="session-id-display" class="text-[10px] font-mono text-slate-600">---</span>
                     </div>
-                    
-                    <!-- Botão Notas Internas (Geral) -->
-                    <button onclick="document.getElementById('internal-notes-modal').classList.remove('hidden')" class="p-2 text-slate-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors relative group" title="Minhas Notas Internas">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                        <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-yellow-400 rounded-full border-2 border-white hidden" id="has-notes-indicator"></span>
+
+                    <!-- Botão Notas -->
+                    <button onclick="document.getElementById('internal-notes-modal').classList.remove('hidden')" class="p-2 text-slate-400 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors relative group" title="Notas">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     </button>
 
-                    <div class="h-6 w-px bg-slate-200"></div>
-
-                    <button id="logout-btn" class="bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 p-2 rounded-lg transition-colors" title="Sair">
+                    <!-- Logout -->
+                    <button id="logout-btn" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     </button>
                 </div>
             </div>
         </header>
 
-        <main class="flex-1 container mx-auto p-6 space-y-8">
+        <main class="flex-1 container mx-auto p-4 lg:p-6 space-y-6 max-w-[1600px]">
             
-            <!-- ÁREA DE ATENÇÃO -->
-            <section id="attention-section" class="bg-amber-50 border border-amber-200 rounded-2xl p-6 shadow-sm hidden">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="bg-amber-100 p-2 rounded-full text-amber-600">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588 1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-bold text-amber-900">Área de Atenção</h2>
-                        <p class="text-xs text-amber-700">Pedidos destacados para verificação prioritária.</p>
-                    </div>
+            <!-- Cards de KPI com Ícones Temáticos (SVG) -->
+            <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                
+                <!-- Total -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-blue-300 transition-colors">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase z-10 relative">Total de Amostras</p>
+                    <p id="kpi-total" class="text-2xl font-bold text-slate-800 z-10 relative">0</p>
+                    <!-- Ícone Caixa/Arquivo -->
+                    <svg class="watermark-icon text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                 </div>
-                <div id="attention-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                <!-- Pendentes -->
+                <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 shadow-sm relative overflow-hidden group">
+                    <p class="text-[10px] font-bold text-yellow-600 uppercase z-10 relative">Pendentes</p>
+                    <p id="kpi-pending" class="text-2xl font-bold text-yellow-700 z-10 relative">0</p>
+                    <!-- Ícone Relógio -->
+                    <svg class="watermark-icon text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+
+                <!-- Aprovados -->
+                <div class="bg-green-50 p-4 rounded-xl border border-green-200 shadow-sm relative overflow-hidden group">
+                    <p class="text-[10px] font-bold text-green-600 uppercase z-10 relative">Aprovados</p>
+                    <p id="kpi-approved" class="text-2xl font-bold text-green-700 z-10 relative">0</p>
+                    <!-- Ícone Check/Sucesso -->
+                    <svg class="watermark-icon text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+
+                <!-- Reprovados -->
+                <div class="bg-red-50 p-4 rounded-xl border border-red-200 shadow-sm relative overflow-hidden group">
+                    <p class="text-[10px] font-bold text-red-600 uppercase z-10 relative">Reprovados</p>
+                    <p id="kpi-rejected" class="text-2xl font-bold text-red-700 z-10 relative">0</p>
+                    <!-- Ícone X/Erro -->
+                    <svg class="watermark-icon text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+            </section>
+
+            <!-- ÁREA DE DESTAQUE (FAVORITOS) -->
+            <section id="attention-section" class="bg-amber-50 border border-amber-200 rounded-2xl p-5 shadow-sm hidden transition-all">
+                <div class="flex items-center gap-2 mb-3">
+                    <svg class="w-5 h-5 text-amber-500 fill-amber-500" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588 1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                    <h2 class="text-sm font-bold text-amber-900 uppercase tracking-wide">Pontos de Atenção Favoritados</h2>
+                </div>
+                <div id="attention-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     <!-- Cards de atenção via JS -->
                 </div>
             </section>
 
-            <!-- Cards de Resumo -->
-            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Total Amostras</p>
-                    <p id="kpi-total" class="text-2xl font-bold text-slate-800 mt-1">0</p>
-                </div>
-                <div class="bg-white p-5 rounded-xl border border-yellow-200 shadow-sm bg-yellow-50/30 flex flex-col justify-between">
-                    <p class="text-xs font-bold text-yellow-600 uppercase tracking-wide">Pendentes</p>
-                    <p id="kpi-pending" class="text-2xl font-bold text-yellow-700 mt-1">0</p>
-                </div>
-                <div class="bg-white p-5 rounded-xl border border-green-200 shadow-sm bg-green-50/30 flex flex-col justify-between">
-                    <p class="text-xs font-bold text-green-600 uppercase tracking-wide">Aprovados</p>
-                    <p id="kpi-approved" class="text-2xl font-bold text-green-700 mt-1">0</p>
-                </div>
-                <div class="bg-white p-5 rounded-xl border border-red-200 shadow-sm bg-red-50/30 flex flex-col justify-between">
-                    <p class="text-xs font-bold text-red-600 uppercase tracking-wide">Reprovados</p>
-                    <p id="kpi-rejected" class="text-2xl font-bold text-red-700 mt-1">0</p>
-                </div>
-            </section>
-
-            <!-- NOVA SEÇÃO: DETALHAMENTO DAS RESPOSTAS -->
-            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-5 border-b border-slate-100 bg-slate-50">
-                    <h3 class="font-bold text-slate-700 text-lg flex items-center gap-2">
-                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        Detalhamento das Respostas
-                    </h3>
-                    <p class="text-xs text-slate-500 mt-1">Clique em um tipo de feedback para ver a lista completa de amostras.</p>
-                </div>
-                <div id="breakdown-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-5">
-                    <!-- Lista de breakdown injetada aqui -->
-                    <p class="text-slate-400 text-sm italic col-span-full text-center">Carregando dados...</p>
-                </div>
-            </section>
-
-            <!-- Gráficos -->
-            <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold text-lg text-slate-800 mb-4 text-center">Status Geral</h3>
-                    <div style="height: 250px;"><canvas id="status-chart"></canvas></div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold text-lg text-slate-800 mb-4 text-center">Distribuição</h3>
-                    <div style="height: 250px;"><canvas id="details-chart"></canvas></div>
-                </div>
-            </section>
-
-            <!-- Feeds e Listas -->
-            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <!-- LAYOUT PRINCIPAL: LISTA VENDEDORES (ESQ) + FEED (DIR) -->
+            <div class="flex flex-col lg:flex-row gap-6 items-start h-[calc(100vh-280px)] min-h-[600px]">
                 
-                <!-- Lista de Vendedores -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 lg:col-span-1 overflow-hidden flex flex-col h-[600px]">
-                    <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                        <h3 class="font-bold text-slate-700 text-sm">Minha Equipe</h3>
-                        <span id="seller-count-badge" class="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+                <!-- COLUNA 1: LISTA DE VENDEDORES -->
+                <div class="w-full lg:w-1/3 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
+                    <!-- Header da Lista -->
+                    <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                        <h3 class="font-bold text-slate-700 text-sm">Equipe</h3>
+                        <span id="seller-count-badge" class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
                     </div>
-                    <div id="sellers-list" class="flex-1 overflow-y-auto p-2 space-y-1">
-                        <p class="text-center text-slate-400 text-xs py-8">Carregando equipe...</p>
+
+                    <!-- Botão "Ver Todos" -->
+                    <div class="p-2 border-b border-slate-50 shrink-0">
+                        <button id="btn-show-all-sellers" class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </div>
+                            <span>Ver Todos os Vendedores</span>
+                        </button>
+                    </div>
+
+                    <!-- Lista Scrollável -->
+                    <div id="sellers-list" class="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                        <p class="text-center text-slate-400 text-xs py-8">Carregando...</p>
                     </div>
                 </div>
 
-                <!-- Feed de Observações DETALHADO -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 lg:col-span-2 overflow-hidden flex flex-col h-[600px]">
-                    <div class="p-5 border-b border-slate-100 bg-slate-50">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-slate-700 text-sm">Feed Detalhado de Respostas</h3>
-                            <input type="text" id="feed-search" placeholder="Buscar..." class="text-xs border-slate-200 rounded-lg px-3 py-1.5 w-48 focus:ring-1 focus:ring-blue-500">
+                <!-- COLUNA 2: FEED DE AMOSTRAS -->
+                <div class="w-full lg:w-2/3 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden relative group">
+                    
+                    <!-- Ícone de Fundo do Feed (Substituindo Logo) -->
+                    <svg class="watermark-feed-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+
+                    <!-- Header do Feed -->
+                    <div class="p-4 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-3 shrink-0 z-10">
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <div id="current-view-avatar" class="hidden sm:flex w-10 h-10 rounded-full bg-blue-600 items-center justify-center text-white font-bold text-sm shadow-sm avatar-initials">
+                                ALL
+                            </div>
+                            <div>
+                                <h3 id="feed-title" class="font-bold text-slate-800 text-base">Visão Geral</h3>
+                                <p id="feed-subtitle" class="text-xs text-slate-500">Exibindo todas as amostras</p>
+                            </div>
                         </div>
-                        
-                        <!-- CARD DE ORIENTAÇÕES -->
-                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3 shadow-sm">
-                            <div class="bg-blue-100 p-2 rounded-full text-blue-600 flex-shrink-0">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            </div>
-                            <div class="text-xs text-slate-600 space-y-1">
-                                <p class="font-bold text-slate-800">Dicas para o Gestor:</p>
-                                <ul class="list-disc pl-4 space-y-1">
-                                    <li>Você pode responder diretamente aos vendedores ou <strong>destacar itens com a ⭐</strong> na busca global para criar alertas.</li>
-                                    <li>Feedbacks vagos como "não gostou" dificultam a melhoria. <strong>Cobre sempre o PORQUÊ.</strong></li>
-                                    <li>Use as <strong>Notas Internas</strong> (lápis no topo ou no item) para seus lembretes pessoais.</li>
-                                </ul>
-                            </div>
+                        <div class="w-full sm:w-auto relative">
+                            <input type="text" id="feed-search" placeholder="Buscar produto, nota..." class="w-full sm:w-64 text-sm border-slate-200 bg-white rounded-lg pl-9 pr-3 py-2 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </div>
                     </div>
-                    <div id="feed-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
-                        <p class="text-center text-slate-400 text-xs py-10">Nenhuma observação registrada neste segmento ainda.</p>
+
+                    <!-- Lista Feed Scrollável -->
+                    <div id="feed-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 custom-scrollbar z-10 relative">
+                        <!-- Itens do feed injetados aqui -->
+                    </div>
+                    
+                    <!-- Loading Overlay (Opcional) -->
+                    <div id="feed-loading" class="absolute inset-0 bg-white/80 flex items-center justify-center z-20 hidden">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     </div>
                 </div>
 
-            </section>
+            </div>
+
+            <!-- Gráficos e Detalhes -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 <!-- Gráfico Status com Ícone -->
+                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                    <div class="flex justify-between items-center mb-2 z-10 relative">
+                         <h3 class="font-bold text-sm text-slate-700">Status Geral</h3>
+                         <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Gráfico</span>
+                    </div>
+                    <div style="height: 180px;" class="z-10 relative"><canvas id="status-chart"></canvas></div>
+                    <svg class="watermark-icon text-slate-300" style="width: 120px; height: 120px; opacity: 0.1;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                 </div>
+                 
+                 <!-- Gráfico Detalhes com Ícone -->
+                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                    <div class="flex justify-between items-center mb-2 z-10 relative">
+                        <h3 class="font-bold text-sm text-slate-700">Aprovações</h3>
+                        <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Gráfico</span>
+                    </div>
+                    <div style="height: 180px;" class="z-10 relative"><canvas id="details-chart"></canvas></div>
+                    <svg class="watermark-icon text-slate-300" style="width: 120px; height: 120px; opacity: 0.1;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                 </div>
+                 
+                 <!-- Tipos de Resposta -->
+                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                    <h3 class="font-bold text-sm text-slate-700 mb-3">Resumo por Tipo</h3>
+                    <div id="breakdown-list" class="flex-1 overflow-y-auto max-h-[180px] custom-scrollbar space-y-2 pr-1">
+                        <!-- JS -->
+                    </div>
+                 </div>
+            </div>
 
         </main>
     </div>
 
-    <!-- Modals -->
+    <!-- MODAIS -->
 
-    <!-- Modal Notas Internas (Gerais) -->
-    <div id="internal-notes-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-opacity">
-        <div class="bg-white rounded-xl w-full max-w-md h-[70vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200">
-            <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-yellow-50">
-                <h3 class="font-bold text-yellow-800 flex items-center gap-2 text-sm uppercase tracking-wide">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                    Minhas Notas Internas (Privado)
-                </h3>
-                <button onclick="document.getElementById('internal-notes-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+    <!-- Modal Notas Internas -->
+    <div id="internal-notes-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md h-[60vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200 scale-in">
+            <div class="px-5 py-3 border-b border-slate-100 flex justify-between items-center bg-yellow-50">
+                <h3 class="font-bold text-yellow-800 text-sm">Notas Internas</h3>
+                <button onclick="document.getElementById('internal-notes-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">&times;</button>
             </div>
-            <div id="internal-notes-list" class="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/50">
-                <!-- Notas via JS -->
-                <p class="text-center text-slate-400 text-xs italic mt-10">Use este espaço para lembretes pessoais.</p>
-            </div>
-            <div class="p-4 border-t border-slate-100 bg-white">
-                <div class="flex gap-2">
-                    <input type="text" id="new-internal-note-input" placeholder="Nova anotação..." class="flex-1 rounded-lg border-slate-200 text-sm px-4 py-2.5 focus:outline-none focus:border-yellow-500 transition-colors bg-slate-50">
-                    <button id="add-internal-note-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg px-4 py-2 transition-colors shadow-sm">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    </button>
-                </div>
+            <div id="internal-notes-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50"></div>
+            <div class="p-3 border-t border-slate-100 bg-white flex gap-2">
+                <input type="text" id="new-internal-note-input" placeholder="Nova nota..." class="flex-1 rounded-lg border-slate-200 text-sm px-3 py-2 bg-slate-50">
+                <button id="add-internal-note-btn" class="bg-yellow-500 text-white rounded-lg px-3 py-2 shadow-sm hover:bg-yellow-600">Add</button>
             </div>
         </div>
     </div>
     
-    <!-- Modal de Amostras Detalhadas -->
+    <!-- Modal Detalhes Feedback (AGORA COM BOTÃO RESPONDER) -->
     <div id="feedback-samples-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[60]">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col max-h-[90vh]">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-blue-50/50 rounded-t-2xl">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[85vh] scale-in">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-blue-50">
                 <div>
-                    <h3 id="feedback-samples-title" class="text-xl font-bold text-slate-800">Detalhes do Feedback</h3>
-                    <p class="text-xs text-slate-500 mt-1">Lista completa de amostras para este motivo.</p>
+                    <h3 id="feedback-samples-title" class="text-lg font-bold text-slate-800">Detalhes</h3>
                 </div>
                 <button id="close-feedback-samples-btn" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
             </div>
-            <div class="p-0 overflow-hidden flex-1 flex flex-col bg-slate-50">
-                <div class="flex-1 overflow-auto custom-scrollbar p-4">
-                    <table class="w-full text-left border-collapse bg-white shadow-sm rounded-lg overflow-hidden details-table">
-                        <thead>
-                            <tr>
-                                <th>Pedido</th>
-                                <th>Cód. Cliente</th>
-                                <th>Razão Social</th>
-                                <th>Produto</th>
-                                <th>Descrição</th>
-                                <th>Qtde</th>
-                                <th>Nota Fiscal</th>
-                                <th>Emissão NF</th>
-                                <th>Feedback / Comentário</th>
-                            </tr>
-                        </thead>
-                        <tbody id="feedback-samples-list" class="divide-y divide-slate-100">
-                            <!-- Items Injected Here -->
-                        </tbody>
-                    </table>
-                </div>
+            <div class="flex-1 overflow-auto p-0 bg-white">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm text-slate-500 uppercase font-semibold">
+                        <tr>
+                            <th class="p-3">Ação</th>
+                            <th class="p-3">Vendedor</th>
+                            <th class="p-3">Cliente</th>
+                            <th class="p-3">Produto</th>
+                            <th class="p-3">Descrição</th>
+                            <th class="p-3">Pedido/NF</th>
+                            <th class="p-3">Feedback</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feedback-samples-list" class="divide-y divide-slate-100 text-slate-600"></tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Resposta do Gerente -->
-    <div id="reply-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-40">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-xl p-6">
-            <h3 class="text-xl font-bold mb-4">Responder ao Vendedor</h3>
-            <div class="mb-4 p-3 bg-gray-100 rounded border text-sm">
-                <p class="font-semibold" id="reply-modal-product"></p>
-                <p class="text-xs text-gray-600 mb-1" id="reply-modal-seller"></p>
-                <p class="italic" id="reply-modal-observation">"${' '}"</p>
+    <!-- Modal Resposta -->
+    <div id="reply-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[70]">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 scale-in">
+            <h3 class="text-lg font-bold mb-4 text-slate-800">Responder ao Vendedor</h3>
+            <div class="mb-4 p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm">
+                <div class="flex justify-between mb-1">
+                    <p class="font-bold text-slate-700" id="reply-modal-product"></p>
+                    <p class="text-xs text-slate-500" id="reply-modal-seller"></p>
+                </div>
+                <p class="italic text-slate-600 border-l-2 border-slate-300 pl-2 mt-2" id="reply-modal-observation">"..."</p>
             </div>
             <div class="space-y-4">
-                  <div>
-                       <label for="reply-message-input" class="block text-sm font-medium text-gray-700">Sua Resposta (Gerente)</label>
-                       <textarea id="reply-message-input" rows="3" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm" placeholder="Digite sua resposta aqui..."></textarea>
-                  </div>
+               <textarea id="reply-message-input" rows="3" class="w-full border-slate-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-3" placeholder="Escreva sua orientação para o vendedor..."></textarea>
             </div>
-            <div class="mt-6 flex justify-end space-x-3">
-                 <button id="cancel-reply-btn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-5 rounded-lg">Cancelar</button>
-                 <button id="send-reply-btn" class="bg-blue-600 text-white font-bold py-2 px-5 rounded-lg">Enviar Resposta</button>
+            <div class="mt-6 flex justify-end gap-3">
+                 <button id="cancel-reply-btn" class="text-slate-500 font-semibold px-4 py-2 hover:bg-slate-100 rounded-lg transition-colors">Cancelar</button>
+                 <button id="send-reply-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors">Enviar</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Alerta Customizado -->
-    <div id="custom-alert" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-            <h3 id="custom-alert-title" class="text-xl font-bold mb-4 text-red-600">Erro na Operação</h3>
-            <p id="custom-alert-message" class="text-gray-700 mb-6">Ocorreu um erro.</p>
-            <div class="flex justify-end">
-                <button id="custom-alert-ok-btn" class="bg-blue-600 text-white font-bold py-2 px-5 rounded-lg">OK</button>
-            </div>
+    <!-- Alert Custom -->
+    <div id="custom-alert" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 hidden z-[80]">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center scale-in">
+            <h3 id="custom-alert-title" class="text-lg font-bold mb-2">Aviso</h3>
+            <p id="custom-alert-message" class="text-sm text-slate-600 mb-6">Mensagem...</p>
+            <button id="custom-alert-ok-btn" class="bg-slate-900 text-white font-bold py-2 px-8 rounded-full hover:bg-black transition-colors">OK</button>
         </div>
     </div>
-
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { 
             getFirestore, collection, onSnapshot, doc, getDoc, getDocs, 
-            updateDoc, setDoc, query, where, Timestamp, runTransaction, addDoc, orderBy, deleteDoc, deleteField, serverTimestamp
+            updateDoc, setDoc, query, where, Timestamp, runTransaction, addDoc, orderBy, deleteDoc, deleteField, serverTimestamp, arrayUnion, arrayRemove
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -435,7 +438,7 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // CONFIGURAÇÃO DOS GERENTES (Danilo Reincluído e Novos Segmentos)
+        // CONFIGURAÇÃO DOS GERENTES
         const MANAGERS = {
             'CÁRNEOS': { name: 'LUIS ADRIANO', pass: 'carneospass123', dataValue: 'CARNEOS' },
             'LACTEOS': { name: 'VITOR MACHADO', pass: 'lacteospass456', dataValue: 'LACTEOS' },
@@ -448,8 +451,6 @@
             'ADMIN': { name: 'Admin', pass: 'admin123', dataValue: 'ADMIN' }
         };
 
-        // --- CORREÇÃO DE NOMES FORÇADA ---
-        // Se o nome do vendedor estiver aqui, ele será forçado para o segmento indicado na carga de dados
         const SPECIAL_MAPPING = {
             'FERNANDA BEATRIZ': 'NUTRIÇÃO ESPORTIVA',
             'ANDREIA TINTI': 'NUTRIÇÃO ESPORTIVA',
@@ -459,71 +460,36 @@
 
         const PENDING_STATUSES = ['EM ANÁLISE', 'AMOSTRA SEM FEEDBACK', 'SEM RETORNO DO CLIENTE', 'AMOSTRA NÃO TESTADA', 'PENDENTE'];
         
-        // Elementos DOM
+        // Elementos DOM Principais
         const loginView = document.getElementById('login-view');
         const dashboardView = document.getElementById('dashboard-view');
         const segmentGrid = document.getElementById('segment-grid');
-        const segmentCount = document.getElementById('segment-count');
         const passwordInput = document.getElementById('manager-password-input');
         const loginBtn = document.getElementById('manager-login-btn');
         const loginError = document.getElementById('login-error');
-        const headerSegmentName = document.getElementById('header-segment-name');
-        const sessionIdDisplay = document.getElementById('session-id-display');
-        const logoutBtn = document.getElementById('logout-btn');
-        
-        const kpiTotal = document.getElementById('kpi-total');
-        const kpiPending = document.getElementById('kpi-pending');
-        const kpiApproved = document.getElementById('kpi-approved');
-        const kpiRejected = document.getElementById('kpi-rejected');
-        const sellersList = document.getElementById('sellers-list');
-        const sellerCountBadge = document.getElementById('seller-count-badge');
         const feedList = document.getElementById('feed-list');
-        const feedSearch = document.getElementById('feed-search');
-        const attentionSection = document.getElementById('attention-section');
-        const attentionList = document.getElementById('attention-list');
+        const sellersList = document.getElementById('sellers-list');
+        const btnShowAllSellers = document.getElementById('btn-show-all-sellers');
         
-        // Modal Detalhes
-        const feedbackSamplesModal = document.getElementById('feedback-samples-modal');
-        const feedbackSamplesTitle = document.getElementById('feedback-samples-title');
-        const feedbackSamplesList = document.getElementById('feedback-samples-list');
-        const closeFeedbackSamplesBtn = document.getElementById('close-feedback-samples-btn');
-
-        // Modal de Resposta
-        const replyModal = document.getElementById('reply-modal');
-        const replyModalProduct = document.getElementById('reply-modal-product');
-        const replyModalSeller = document.getElementById('reply-modal-seller');
-        const replyModalObservation = document.getElementById('reply-modal-observation');
-        const replyMessageInput = document.getElementById('reply-message-input');
-        const cancelReplyBtn = document.getElementById('cancel-reply-btn');
-        const sendReplyBtn = document.getElementById('send-reply-btn');
-        
-        // Notas Internas Elements
-        const internalNotesList = document.getElementById('internal-notes-list');
-        const newInternalNoteInput = document.getElementById('new-internal-note-input');
-        const addInternalNoteBtn = document.getElementById('add-internal-note-btn');
-
-        // Custom Alert
-        const customAlert = document.getElementById('custom-alert');
-        const customAlertTitle = document.getElementById('custom-alert-title');
-        const customAlertMessage = document.getElementById('custom-alert-message');
-        const customAlertOkBtn = document.getElementById('custom-alert-ok-btn');
-
         // Estado
         let currentSegmentKey = null; 
         let currentSegmentDataValue = null; 
         let currentSessionId = null;
-        let sellersCache = {}; 
-        let sellerSegmentsCache = {}; 
+        let selectedSellerFilter = null; // null = Todos
         let allSegmentSamples = []; 
-        let charts = {};
-        let listeners = [];
         let highlightedSamplesCache = [];
-        let destaquesListenerUnsubscribe = null;
-        let currentSampleForReply = null;
-        let internalNotesUnsubscribe = null; 
-        let allManagerNotes = []; 
+        let managerReplies = [];
         let itemNotesMap = {};
-        let managerReplies = []; // Armazena as respostas enviadas pelo gerente
+        let sellerSegmentsCache = {}; 
+        let statusChart = null;
+        let detailsChart = null;
+        
+        // Cores para avatares
+        const AVATAR_COLORS = [
+            'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-green-500', 'bg-emerald-500',
+            'bg-teal-500', 'bg-cyan-500', 'bg-sky-500', 'bg-blue-500', 'bg-indigo-500',
+            'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500', 'bg-rose-500'
+        ];
 
         // --- Inicialização ---
         (async () => {
@@ -531,54 +497,36 @@
                 await signInAnonymously(auth);
                 renderLoginSegments();
                 const savedKey = localStorage.getItem('managerSegmentKey');
-                if (savedKey && MANAGERS[savedKey]) {
-                    autoSelectSegment(savedKey);
-                }
-            } catch (e) {
-                console.error("Auth error:", e);
-                loginError.textContent = "Erro de conexão com o sistema.";
-            }
+                if (savedKey && MANAGERS[savedKey]) autoSelectSegment(savedKey);
+            } catch (e) { console.error(e); }
         })();
 
         // --- Utils ---
         const normalizeText = (text = '') => text ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim().replace(/\s+/g, ' ') : '';
-
-        function showAlert(message, title = "Aviso", color = "text-slate-700") {
-            customAlertTitle.textContent = title;
-            customAlertMessage.innerHTML = message;
-            customAlertTitle.className = `text-xl font-bold mb-4 ${color}`;
-            customAlert.classList.remove('hidden');
+        const getInitials = (name) => {
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        };
+        const getAvatarColor = (name) => {
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+        };
+        function showAlert(msg, title = "Aviso") {
+            document.getElementById('custom-alert-title').textContent = title;
+            document.getElementById('custom-alert-message').innerHTML = msg;
+            document.getElementById('custom-alert').classList.remove('hidden');
         }
-        customAlertOkBtn.addEventListener('click', () => customAlert.classList.add('hidden'));
+        document.getElementById('custom-alert-ok-btn').onclick = () => document.getElementById('custom-alert').classList.add('hidden');
 
-        function formatDate(value) {
-            if (!value) return '-';
-            if (value && typeof value === 'object' && value.toDate) {
-                return value.toDate().toLocaleDateString('pt-BR');
-            }
-            if (typeof value === 'string' && value.includes('/')) return value;
-            const d = new Date(value);
-            if (!isNaN(d.getTime())) return d.toLocaleDateString('pt-BR');
-            return value;
-        }
-
-        // --- Lógica de Login ---
+        // --- Login Logic ---
         function renderLoginSegments() {
             segmentGrid.innerHTML = '';
-            const managersList = Object.entries(MANAGERS).filter(([key]) => key !== 'ADMIN');
-            if(segmentCount) segmentCount.textContent = managersList.length;
-
-            managersList.forEach(([key, data]) => {
+            Object.entries(MANAGERS).filter(([k]) => k !== 'ADMIN').forEach(([key, data]) => {
                 const btn = document.createElement('button');
-                btn.className = 'login-card text-left p-4 rounded-xl cursor-pointer flex flex-col justify-between relative overflow-hidden group shadow-sm hover:shadow-md h-full min-h-[110px] w-full';
-                btn.innerHTML = `
-                    <span class="font-bold text-sm text-slate-700 block mb-1 relative z-10 w-full leading-tight whitespace-normal break-words">${key}</span>
-                    <span class="text-xs text-slate-500 relative z-10 w-full leading-tight whitespace-normal break-words mt-auto">${data.name}</span>
-                    <!-- Icone de Check animado -->
-                    <div class="absolute top-3 right-3 text-white bg-blue-500 rounded-full p-0.5 check-icon shadow-sm">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                    </div>
-                `;
+                btn.className = 'login-card text-left p-4 rounded-xl cursor-pointer flex flex-col justify-between h-24 relative overflow-hidden group';
+                btn.innerHTML = `<span class="font-bold text-xs text-slate-700 z-10">${key}</span><span class="text-[10px] text-slate-500 z-10">${data.name}</span>`;
                 btn.onclick = () => selectSegment(btn, key);
                 segmentGrid.appendChild(btn);
             });
@@ -589,62 +537,45 @@
             btn.classList.add('selected');
             currentSegmentKey = key;
             currentSegmentDataValue = MANAGERS[key].dataValue;
-            loginError.textContent = '';
             passwordInput.focus();
         }
 
         function autoSelectSegment(key) {
             const btns = Array.from(document.querySelectorAll('.login-card'));
-            const target = btns.find(b => b.querySelector('span').textContent === key);
+            const target = btns.find(b => b.innerText.includes(key));
             if(target) selectSegment(target, key);
-            else {
-                currentSegmentKey = key;
-                currentSegmentDataValue = MANAGERS[key].dataValue;
-            }
         }
 
         loginBtn.addEventListener('click', async () => {
-            if (!currentSegmentKey && passwordInput.value === MANAGERS['ADMIN'].pass) {
-                 currentSegmentKey = 'ADMIN';
-                 currentSegmentDataValue = 'ADMIN';
-            }
+            if (!currentSegmentKey && passwordInput.value === MANAGERS['ADMIN'].pass) { currentSegmentKey = 'ADMIN'; currentSegmentDataValue = 'ADMIN'; }
+            if (!currentSegmentKey || passwordInput.value !== MANAGERS[currentSegmentKey].pass) { loginError.textContent = "Credenciais inválidas."; return; }
 
-            if (!currentSegmentKey) {
-                loginError.textContent = "Selecione seu segmento.";
-                return;
-            }
-            if (passwordInput.value !== MANAGERS[currentSegmentKey].pass) {
-                loginError.textContent = "Senha incorreta.";
-                return;
-            }
-
-            loginBtn.textContent = "A conectar...";
-            loginBtn.disabled = true;
+            loginBtn.textContent = "Entrando...";
             localStorage.setItem('managerSegmentKey', currentSegmentKey);
-
+            
             try {
                 const configSnap = await getDoc(doc(db, "configuracoes", "sessaoAtiva"));
                 if (configSnap.exists() && configSnap.data().current) {
                     currentSessionId = configSnap.data().current;
-                    await loadSellerSegmentsCache();
+                    await loadSellerSegmentsCache(); 
                     startDashboard();
                 } else {
-                    loginError.textContent = "Nenhuma sessão ativa iniciada pelo Admin.";
-                    loginBtn.textContent = "Acessar Painel";
-                    loginBtn.disabled = false;
+                    loginError.textContent = "Sem sessão ativa.";
+                    loginBtn.textContent = "Entrar";
                 }
-            } catch (e) {
-                console.error(e);
-                loginError.textContent = "Erro ao buscar sessão.";
-                loginBtn.disabled = false;
-            }
+            } catch (e) { console.error(e); }
         });
 
         async function loadSellerSegmentsCache() {
-            const snap = await getDocs(collection(db, "vendedorConfig"));
-            snap.forEach(d => {
-                sellerSegmentsCache[d.id] = d.data().segmento;
-            });
+            try {
+                const snap = await getDocs(collection(db, "vendedorConfig"));
+                sellerSegmentsCache = {};
+                snap.forEach(d => {
+                    sellerSegmentsCache[d.id] = d.data().segmento;
+                });
+            } catch (e) {
+                console.error("Erro ao carregar segmentos:", e);
+            }
         }
 
         // --- Dashboard Logic ---
@@ -653,610 +584,477 @@
             dashboardView.classList.remove('hidden');
             dashboardView.classList.add('flex');
             
-            headerSegmentName.textContent = `${currentSegmentKey} | ${MANAGERS[currentSegmentKey].name}`;
-            sessionIdDisplay.textContent = currentSessionId.split('_')[1];
+            document.getElementById('header-segment-name').textContent = `${MANAGERS[currentSegmentKey].name}`;
+            document.getElementById('session-id-display').textContent = currentSessionId.split('_')[1] || 'Sessão';
 
-            // 1. Dados Vendedores
-            const q = collection(db, "sessoes", currentSessionId, "vendedores");
-            const unsub = onSnapshot(q, (snapshot) => processSnapshot(snapshot));
-            listeners.push(unsub);
-
-            // 2. Destaques (Área de Atenção)
-            listenForDestaques();
+            onSnapshot(collection(db, "sessoes", currentSessionId, "vendedores"), processSnapshot);
             
-            // 3. Notas Internas (Post-its)
-            listenForInternalNotes();
-            
-            // 4. Respostas do Gerente (NOVO)
-            listenForManagerReplies();
-        }
-        
-        function listenForDestaques() {
-            const docRef = doc(db, "sessoes", currentSessionId, "configuracoes", "destaquesAmostras");
-            destaquesListenerUnsubscribe = onSnapshot(docRef, (docSnap) => {
+            onSnapshot(doc(db, "sessoes", currentSessionId, "configuracoes", "destaquesAmostras"), (docSnap) => {
                 highlightedSamplesCache = docSnap.exists() ? (docSnap.data().lista || []) : [];
+                renderFeed(); 
                 renderAttentionArea();
-                if (!dashboardView.classList.contains('hidden')) renderFeed();
             });
-            listeners.push(destaquesListenerUnsubscribe);
-        }
-        
-        function listenForManagerReplies() {
-            const q = query(collection(db, "sessoes", currentSessionId, "notificacoesVendedor"));
-            const unsub = onSnapshot(q, (snapshot) => {
-                managerReplies = snapshot.docs.map(d => ({...d.data(), id: d.id}));
-                managerReplies.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                if(allSegmentSamples.length > 0) renderFeed();
+
+            onSnapshot(query(collection(db, "sessoes", currentSessionId, "notificacoesVendedor")), (snap) => {
+                managerReplies = snap.docs.map(d => ({...d.data(), id: d.id}));
+                renderFeed();
             });
-            listeners.push(unsub);
+            
+            onSnapshot(query(collection(db, "sessoes", currentSessionId, "manager_item_notes"), where("segment", "==", currentSegmentDataValue)), (snap) => {
+                itemNotesMap = {};
+                snap.docs.forEach(d => itemNotesMap[d.id] = d.data());
+                renderFeed();
+            });
+
+            onSnapshot(query(collection(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_')), orderBy("timestamp", "desc")), renderInternalNotes);
         }
 
         function processSnapshot(snapshot) {
             allSegmentSamples = [];
-            sellersCache = {};
+            let sellersData = {};
 
             snapshot.forEach(docSnap => {
-                const sellerData = docSnap.data();
-                const sellerId = docSnap.id; 
-                
-                const sellerNameNorm = normalizeText(sellerData.originalName);
+                const data = docSnap.data();
+                const sellerId = docSnap.id;
+                const sName = normalizeText(data.originalName);
+
                 let sellerSegment = sellerSegmentsCache[sellerId];
-                if (SPECIAL_MAPPING[sellerNameNorm]) {
-                    sellerSegment = SPECIAL_MAPPING[sellerNameNorm];
-                }
+                if (SPECIAL_MAPPING[sName]) sellerSegment = SPECIAL_MAPPING[sName];
                 
-                if (currentSegmentKey === 'ADMIN' || sellerSegment === currentSegmentDataValue) {
-                    const samples = sellerData.amostras || [];
-                    
-                    let pending = 0;
-                    samples.forEach(s => {
-                         let isP = s.isPending;
-                         if (isP === undefined) isP = PENDING_STATUSES.includes(normalizeText(s.originalStatus));
-                         if (isP) pending++;
-                    });
+                if (!sellerSegment && currentSegmentKey !== 'ADMIN') {
+                     if (sName.includes(currentSegmentDataValue)) sellerSegment = currentSegmentDataValue;
+                }
 
-                    sellersCache[sellerData.originalName] = {
-                        name: sellerData.originalName,
-                        total: samples.length,
-                        pending: pending,
-                        finished: samples.length - pending,
-                        systemStatus: sellerData.systemStatus || 'pending'
-                    };
+                if (currentSegmentKey !== 'ADMIN' && sellerSegment !== currentSegmentDataValue) return;
 
-                    allSegmentSamples.push(...samples);
+                const samples = data.amostras || [];
+                let pendingCount = 0;
+                
+                samples.forEach(s => {
+                    let isP = s.isPending;
+                    if (isP === undefined) isP = PENDING_STATUSES.includes(normalizeText(s.originalStatus));
+                    if (isP) pendingCount++;
+                    s.sellerName = data.originalName; 
+                    s.sellerId = sellerId;
+                });
+
+                if (samples.length > 0) {
+                     allSegmentSamples.push(...samples);
+                     sellersData[data.originalName] = {
+                         id: sellerId,
+                         name: data.originalName,
+                         total: samples.length,
+                         pending: pendingCount,
+                         finished: samples.length - pendingCount
+                     };
                 }
             });
 
-            updateKPIs();
-            renderCharts();
-            renderSellers();
+            renderKPIs();
+            renderSellersList(sellersData);
             renderFeed();
-            renderAttentionArea();
-            renderBreakdown(); // NOVA FUNÇÃO
+            renderCharts();
+            renderBreakdown();
         }
 
-        function updateKPIs() {
-            const total = allSegmentSamples.length;
-            let pending = 0, approved = 0, rejected = 0;
-
-            allSegmentSamples.forEach(s => {
-                const fb = s.feedback || '';
-                let isP = s.isPending;
-                if(isP === undefined) isP = (!fb || fb === '');
-                
-                if (isP) pending++;
-                else if (fb.startsWith('A -')) approved++;
-                else if (fb.startsWith('R -')) rejected++;
-            });
-
-            kpiTotal.textContent = total;
-            kpiPending.textContent = pending;
-            kpiApproved.textContent = approved;
-            kpiRejected.textContent = rejected;
-        }
-
-        function renderCharts() {
-            const ctxStatus = document.getElementById('status-chart');
-            const ctxDetails = document.getElementById('details-chart');
-
-            let pending = 0, resolved = 0, approved = 0, rejected = 0, events = 0;
-
-            allSegmentSamples.forEach(s => {
-                const fb = s.feedback || '';
-                let isP = s.isPending;
-                if(isP === undefined) isP = (!fb || fb === '');
-
-                if (isP) pending++;
-                else {
-                    resolved++;
-                    if (fb.startsWith('A -')) approved++;
-                    else if (fb.startsWith('R -')) rejected++;
-                    else if (fb.startsWith('E -')) events++;
-                }
-            });
-
-            if (charts.status) charts.status.destroy();
-            charts.status = new Chart(ctxStatus, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Pendentes', 'Resolvidos'],
-                    datasets: [{ data: [pending, resolved], backgroundColor: ['#facc15', '#3b82f6'], borderWidth: 0 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } }, cutout: '70%' }
-            });
-
-            if (charts.details) charts.details.destroy();
-            charts.details = new Chart(ctxDetails, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Aprovados', 'Reprovados', 'Eventos'],
-                    datasets: [{ data: [approved, rejected, events], backgroundColor: ['#22c55e', '#ef4444', '#a855f7'], borderWidth: 0 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } }, cutout: '70%' }
-            });
-        }
-
-        // --- NOVA FUNÇÃO: RENDERIZAR DETALHAMENTO ---
-        function renderBreakdown() {
-            const list = document.getElementById('breakdown-list');
-            list.innerHTML = '';
-            
-            const counts = {};
-            allSegmentSamples.forEach(s => {
-                const fb = s.feedback ? s.feedback.trim() : 'PENDENTE / SEM FEEDBACK';
-                counts[fb] = (counts[fb] || 0) + 1;
-            });
-            
-            const sortedKeys = Object.keys(counts).sort((a,b) => counts[b] - counts[a]);
-            
-            if (sortedKeys.length === 0) {
-                list.innerHTML = '<p class="text-slate-400 text-sm italic col-span-full text-center">Nenhum dado disponível.</p>';
-                return;
-            }
-
-            sortedKeys.forEach(key => {
-                const count = counts[key];
-                const div = document.createElement('div');
-                
-                // Cores baseadas no tipo
-                let colorClass = 'border-slate-200 hover:border-slate-300';
-                let bgClass = 'bg-white';
-                let textClass = 'text-slate-700';
-                
-                if (key.startsWith('A -')) { colorClass = 'border-green-200 hover:border-green-400'; bgClass = 'bg-green-50'; textClass = 'text-green-800'; }
-                else if (key.startsWith('R -')) { colorClass = 'border-red-200 hover:border-red-400'; bgClass = 'bg-red-50'; textClass = 'text-red-800'; }
-                else if (key.includes('PENDENTE')) { colorClass = 'border-yellow-200 hover:border-yellow-400'; bgClass = 'bg-yellow-50'; textClass = 'text-yellow-800'; }
-                
-                div.className = `p-3 rounded-xl border ${colorClass} ${bgClass} transition-all shadow-sm flex justify-between items-center cursor-pointer breakdown-item`;
-                div.innerHTML = `
-                    <span class="font-bold text-xs ${textClass} uppercase truncate pr-2" title="${key}">${key}</span>
-                    <span class="bg-white/80 px-2 py-1 rounded-lg text-xs font-bold shadow-sm ${textClass}">${count}</span>
-                `;
-                div.onclick = () => openFeedbackDetails(key);
-                list.appendChild(div);
-            });
-        }
-
-        // --- ABRIR MODAL DE DETALHES ---
-        function openFeedbackDetails(feedbackType) {
-            feedbackSamplesTitle.textContent = feedbackType;
-            feedbackSamplesList.innerHTML = '';
-            
-            // Filtrar itens
-            const items = allSegmentSamples.filter(s => {
-                const fb = s.feedback ? s.feedback.trim() : 'PENDENTE / SEM FEEDBACK';
-                return fb === feedbackType;
-            });
-            
-            items.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.pedido || '-'}</td>
-                    <td>${item.codCliente || item.codigo || '-'}</td>
-                    <td class="font-bold">${item.razaoSocial || '-'}</td>
-                    <td>${item.produto}</td>
-                    <td title="${item.descricao}" class="max-w-[200px] truncate">${item.descricao || '-'}</td>
-                    <td>${item.qtde || '-'}</td>
-                    <td>${item.notaFiscal || '-'}</td>
-                    <td>${formatDate(item.emissao || item.dataEmissao || item.emissaoNF)}</td>
-                    <td class="italic text-slate-600 bg-slate-50">"${item.observation || item.feedback || ''}"</td>
-                `;
-                feedbackSamplesList.appendChild(tr);
-            });
-            
-            feedbackSamplesModal.classList.remove('hidden');
-        }
-        
-        closeFeedbackSamplesBtn.onclick = () => feedbackSamplesModal.classList.add('hidden');
-
-        function renderSellers() {
+        // --- Renderização Nova da Lista de Vendedores ---
+        function renderSellersList(sellersData) {
             sellersList.innerHTML = '';
-            const sellersArray = Object.values(sellersCache).sort((a, b) => b.pending - a.pending);
-            sellerCountBadge.textContent = sellersArray.length;
+            const sortedSellers = Object.values(sellersData).sort((a, b) => b.pending - a.pending);
+            document.getElementById('seller-count-badge').textContent = sortedSellers.length;
 
-            if (sellersArray.length === 0) {
-                sellersList.innerHTML = '<p class="text-center text-slate-400 text-xs py-4">Nenhum vendedor encontrado.</p>';
+            if (sortedSellers.length === 0) {
+                sellersList.innerHTML = '<div class="text-center p-4 text-slate-400 text-xs">Nenhum vendedor encontrado para este segmento.</div>';
                 return;
             }
 
-            sellersArray.forEach(seller => {
+            sortedSellers.forEach(seller => {
                 const div = document.createElement('div');
-                const isComplete = seller.pending === 0 && seller.total > 0;
+                const isSelected = selectedSellerFilter === seller.name;
+                const initials = getInitials(seller.name);
+                const colorClass = getAvatarColor(seller.name);
                 
-                // Verifica se foi dado baixa
-                const isBaixado = seller.systemStatus === 'baixado';
-
-                div.className = `flex justify-between items-center p-3 rounded-lg border text-sm ${isBaixado ? 'bg-purple-50 border-purple-200' : (isComplete ? 'bg-green-50 border-green-100' : 'bg-white border-slate-100')}`;
+                div.className = `seller-card flex items-center gap-3 p-3 rounded-xl border mb-1 group relative ${isSelected ? 'active border-blue-200 bg-blue-50 shadow-sm' : 'border-transparent hover:bg-slate-50'}`;
                 
-                let statusIcon = isComplete ? 'bg-green-500' : 'bg-yellow-400';
-                if(isBaixado) statusIcon = 'bg-purple-500';
-
                 div.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 rounded-full ${statusIcon}"></div>
-                        <span class="font-medium text-slate-700">${seller.name}</span>
+                    <div class="w-10 h-10 rounded-full ${colorClass} shrink-0 avatar-initials text-xs shadow-sm ring-2 ring-white">
+                        ${initials}
                     </div>
-                    <div class="text-xs font-bold ${isComplete ? (isBaixado ? 'text-purple-600' : 'text-green-600') : 'text-slate-500'}">
-                        ${isBaixado ? 'Baixado' : (isComplete ? 'Finalizado' : `${seller.pending} pendentes`)}
-                        <span class="text-slate-300 font-normal ml-1">(${seller.finished}/${seller.total})</span>
+                    <div class="flex-1 min-w-0">
+                        <p class="seller-name text-xs font-bold text-slate-700 truncate group-hover:text-blue-600 transition-colors">${seller.name}</p>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="text-[10px] text-slate-500 font-medium">${seller.total} total</span>
+                            ${seller.pending > 0 
+                                ? `<span class="px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700 text-[9px] font-bold">${seller.pending} pend</span>` 
+                                : `<span class="text-[10px] text-green-600 font-bold flex items-center gap-0.5"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>OK</span>`}
+                        </div>
                     </div>
+                    ${isSelected ? `<div class="absolute right-2 w-2 h-2 rounded-full bg-blue-500"></div>` : ''}
                 `;
+                
+                div.onclick = () => {
+                    selectedSellerFilter = seller.name;
+                    renderSellersList(sellersData);
+                    renderFeed();
+                };
                 sellersList.appendChild(div);
             });
         }
-        
-        // --- ÁREA DE ATENÇÃO ---
-        function renderAttentionArea() {
-            attentionList.innerHTML = '';
-            const highlightedItems = allSegmentSamples.filter(s => highlightedSamplesCache.includes(s.id));
-            
-            if (highlightedItems.length > 0) {
-                attentionSection.classList.remove('hidden');
-                highlightedItems.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'attention-card p-4 rounded-lg bg-white shadow-sm relative';
-                    
-                    // Add unstar button here too for convenience
-                    card.innerHTML = `
-                        <button class="absolute top-2 right-2 text-yellow-600 hover:text-red-500 toggle-star-btn" data-item-id="${item.id}" title="Remover Destaque">
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        </button>
-                        <p class="font-bold text-slate-800 text-sm mb-1 pr-6">${item.produto}</p>
-                        <p class="text-xs text-slate-500 mb-1">Vendedor: <span class="font-medium">${item.sellerName}</span></p>
-                        <p class="text-xs text-slate-500">Pedido: ${item.pedido} | NF: ${item.notaFiscal || '-'}</p>
-                        <div class="mt-2 bg-slate-50 p-2 rounded text-xs italic text-slate-600 border-l-2 border-amber-300">
-                             "${item.observation || 'Sem observação'}"
-                        </div>
-                        <div class="mt-2 text-[10px] text-right text-slate-400">
-                             Status: <strong class="${item.isPending ? 'text-yellow-600' : 'text-green-600'}">${item.feedback || 'Pendente'}</strong>
-                        </div>
-                    `;
-                    attentionList.appendChild(card);
-                });
-                
-                // Re-attach listeners for the new buttons in attention area
-                attentionList.querySelectorAll('.toggle-star-btn').forEach(btn => btn.addEventListener('click', toggleStar));
-            } else {
-                attentionSection.classList.add('hidden');
-            }
-        }
 
-        // --- FEED DETALHADO ---
+        btnShowAllSellers.onclick = () => {
+            selectedSellerFilter = null;
+            document.querySelectorAll('.seller-card').forEach(c => c.classList.remove('active', 'bg-blue-50', 'border-blue-200'));
+            renderFeed();
+        };
+
+        // --- Renderização do Feed com Estrelas ---
         function renderFeed() {
-            const searchTerm = feedSearch.value.toLowerCase();
+            const searchTerm = document.getElementById('feed-search').value.toLowerCase();
             feedList.innerHTML = '';
+            
+            const headerTitle = document.getElementById('feed-title');
+            const headerSubtitle = document.getElementById('feed-subtitle');
+            const headerAvatar = document.getElementById('current-view-avatar');
 
-            const feedItems = allSegmentSamples
-                .filter(s => s.feedback && s.feedback.trim() !== '') 
-                .filter(s => String(s.produto).toLowerCase().includes(searchTerm) || String(s.sellerName).toLowerCase().includes(searchTerm))
-                .sort((a, b) => (b.lastUpdate?.toDate ? b.lastUpdate.toDate().getTime() : 0) - (a.lastUpdate?.toDate ? a.lastUpdate.toDate().getTime() : 0));
+            if (selectedSellerFilter) {
+                headerTitle.textContent = selectedSellerFilter;
+                headerSubtitle.textContent = "Filtrado por vendedor";
+                headerAvatar.className = `hidden sm:flex w-10 h-10 rounded-full items-center justify-center text-white font-bold text-sm shadow-sm avatar-initials ${getAvatarColor(selectedSellerFilter)}`;
+                headerAvatar.textContent = getInitials(selectedSellerFilter);
+            } else {
+                headerTitle.textContent = "Visão Geral";
+                headerSubtitle.textContent = `Exibindo ${allSegmentSamples.length} amostras`;
+                headerAvatar.className = "hidden sm:flex w-10 h-10 rounded-full bg-slate-800 items-center justify-center text-white font-bold text-sm shadow-sm avatar-initials";
+                headerAvatar.textContent = "ALL";
+            }
 
-            if (feedItems.length === 0) {
-                feedList.innerHTML = '<p class="text-center text-slate-400 text-xs py-10">Nenhum feedback registrado.</p>';
+            let filtered = allSegmentSamples.filter(s => {
+                const matchesSearch = String(s.produto).toLowerCase().includes(searchTerm) || 
+                                      String(s.sellerName).toLowerCase().includes(searchTerm) ||
+                                      String(s.pedido).includes(searchTerm);
+                const matchesSeller = selectedSellerFilter ? s.sellerName === selectedSellerFilter : true;
+                return matchesSearch && matchesSeller;
+            });
+            
+            filtered.sort((a, b) => {
+                const aStar = highlightedSamplesCache.includes(a.id) ? 1 : 0;
+                const bStar = highlightedSamplesCache.includes(b.id) ? 1 : 0;
+                if (bStar !== aStar) return bStar - aStar;
+                return (b.lastUpdate?.seconds || 0) - (a.lastUpdate?.seconds || 0);
+            });
+
+            if (filtered.length === 0) {
+                feedList.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-64 text-slate-400">
+                        <svg class="w-12 h-12 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        <p class="text-sm">Nenhuma amostra encontrada.</p>
+                    </div>`;
                 return;
             }
 
-            feedItems.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'bg-white p-4 rounded-xl border border-slate-100 shadow-sm text-sm mb-3 relative';
-                
-                let timeString = 'Data N/D';
-                if (item.lastUpdate && item.lastUpdate.toDate) {
-                    const d = item.lastUpdate.toDate();
-                    timeString = `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}`;
-                }
-
-                const itemNote = itemNotesMap[item.id];
-                const noteActiveClass = itemNote ? 'active' : '';
-                const noteIconClass = itemNote ? 'text-yellow-500 fill-yellow-100' : 'text-gray-300 hover:text-gray-500';
-
-                // Check star status
+            filtered.forEach(item => {
                 const isStarred = highlightedSamplesCache.includes(item.id);
-                const starIconClass = isStarred ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 hover:text-yellow-400';
-
-                const itemReplies = managerReplies.filter(r => 
-                    String(r.sellerName).trim() === String(item.sellerName).trim() && 
-                    String(r.pedido).trim() === String(item.pedido).trim() && 
-                    String(r.produto).trim() === String(item.produto).trim()
-                );
+                const itemNote = itemNotesMap[item.id];
+                const replies = managerReplies.filter(r => r.pedido == item.pedido && r.produto == item.produto); 
                 
-                let replyHtml = '';
-                if(itemReplies.length > 0) {
-                    const latestReply = itemReplies[0];
-                    replyHtml = `
-                        <div class="mt-3 bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[10px] font-bold text-blue-700 uppercase flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-                                    Respondido por ${latestReply.managerName || 'Gerente'}:
-                                </span>
-                                <span class="text-[10px] text-blue-400">${latestReply.timestamp?.toDate ? latestReply.timestamp.toDate().toLocaleDateString('pt-BR') : ''}</span>
-                            </div>
-                            <p class="text-xs text-blue-900 font-medium italic">"${latestReply.replyMessage}"</p>
-                            ${itemReplies.length > 1 ? `<p class="text-[9px] text-blue-400 mt-1 text-right">+${itemReplies.length - 1} respostas anteriores</p>` : ''}
-                        </div>
-                    `;
-                }
+                const card = document.createElement('div');
+                card.className = `bg-white p-4 rounded-xl border transition-all hover:shadow-md relative group ${isStarred ? 'border-amber-300 shadow-sm ring-1 ring-amber-100' : 'border-slate-200'}`;
+                
+                let statusColor = 'bg-slate-100 text-slate-600';
+                if (!item.feedback) statusColor = 'bg-yellow-100 text-yellow-700';
+                else if (item.feedback.startsWith('A -')) statusColor = 'bg-green-100 text-green-700';
+                else if (item.feedback.startsWith('R -')) statusColor = 'bg-red-100 text-red-700';
 
                 card.innerHTML = `
-                    <div class="flex justify-between items-start mb-2 border-b border-slate-50 pb-2">
-                        <div>
-                            <span class="font-bold text-slate-800 text-sm block">${item.sellerName}</span>
-                            <span class="text-[10px] text-slate-400">${timeString}</span>
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full ${getAvatarColor(item.sellerName)} flex items-center justify-center text-[10px] font-bold text-white">
+                                ${getInitials(item.sellerName)}
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-800 leading-tight">${item.sellerName}</p>
+                                <p class="text-[10px] text-slate-400">${item.lastUpdate ? formatDate(item.lastUpdate) : 'Recent'}</p>
+                            </div>
                         </div>
-                        <div class="text-right flex flex-col items-end">
-                             <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase mb-1">
-                                ${item.feedback}
-                             </span>
-                             <div class="flex gap-2 items-center mt-1">
-                                <button class="toggle-star-btn transition-colors ${starIconClass}" data-item-id="${item.id}" title="Marcar Destaque">
-                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                                </button>
-                                <button class="toggle-note-btn transition-colors ${noteIconClass}" data-item-id="${item.id}" title="Nota Interna">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
-                                </button>
-                                <button class="text-blue-600 hover:underline text-[10px] font-bold uppercase tracking-wide reply-btn" data-sample-id="${item.id}">Responder</button>
+                        <button class="star-btn p-1.5 rounded-full hover:bg-slate-50 text-slate-300 transition-colors" onclick="window.toggleStar('${item.id}')" title="Favoritar / Ponto de Atenção">
+                            <svg class="w-5 h-5 ${isStarred ? 'text-amber-400 fill-amber-400' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                        </button>
+                    </div>
+
+                    <div class="pl-10">
+                        <div class="flex justify-between items-start gap-2 mb-2">
+                            <h4 class="font-bold text-sm text-slate-700">${item.produto}</h4>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap ${statusColor}">${item.feedback || 'PENDENTE'}</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-500 bg-slate-50 p-2.5 rounded-lg mb-2">
+                            <p><span class="font-medium text-slate-400">Ped:</span> ${item.pedido}</p>
+                            <p class="text-right"><span class="font-medium text-slate-400">Qtde:</span> ${item.qtde}</p>
+                            <p class="col-span-2 truncate"><span class="font-medium text-slate-400">Desc:</span> ${item.descricao || '-'}</p>
+                        </div>
+
+                        ${item.observation ? `<p class="text-xs text-slate-600 italic border-l-2 border-slate-300 pl-2 mb-2">"${item.observation}"</p>` : ''}
+                        
+                        <div class="flex items-center justify-end gap-3 mt-3 pt-2 border-t border-slate-50">
+                             <button class="flex items-center gap-1 text-[10px] font-bold uppercase transition-colors ${itemNote ? 'text-yellow-600' : 'text-slate-400 hover:text-slate-600'}" onclick="document.getElementById('note-area-${item.id}').classList.toggle('hidden')">
+                                <svg class="w-4 h-4" fill="${itemNote ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                ${itemNote ? 'Nota Salva' : 'Nota'}
+                             </button>
+
+                             <button class="flex items-center gap-1 text-[10px] font-bold uppercase text-blue-500 hover:text-blue-700 transition-colors open-reply-btn" data-id="${item.id}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                                Responder
+                             </button>
+                        </div>
+
+                        <div id="note-area-${item.id}" class="hidden mt-3 bg-yellow-50 p-2 rounded-lg border border-yellow-100">
+                             <textarea class="w-full text-xs bg-transparent border-none p-0 focus:ring-0 text-yellow-900 placeholder-yellow-400/70" rows="2" placeholder="Nota privada...">${itemNote ? itemNote.text : ''}</textarea>
+                             <div class="flex justify-end mt-1">
+                                <button class="text-[10px] font-bold text-yellow-700 hover:text-yellow-900 save-note-btn" data-id="${item.id}">Salvar Nota</button>
                              </div>
                         </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-2 text-xs text-slate-500 mb-3 bg-slate-50 p-2 rounded-lg">
-                        <div>
-                            <p class="font-semibold text-slate-700">${item.produto}</p>
-                            <p class="truncate">${item.descricao || ''}</p>
-                        </div>
-                        <div class="text-right">
-                            <p>Ped: <strong>${item.pedido}</strong></p>
-                            <p>NF: ${item.notaFiscal || '-'} (${item.emissaoNF || '-'})</p>
-                            <p>Qtde: ${item.qtde}</p>
-                        </div>
-                    </div>
-
-                    ${item.observation ? `<p class="text-slate-700 italic border-l-4 border-slate-300 pl-3 py-1">"${item.observation}"</p>` : ''}
-                    
-                    ${replyHtml}
-
-                    <div id="note-area-${item.id}" class="item-note-area ${noteActiveClass}">
-                        <textarea class="w-full text-xs bg-transparent border-none focus:ring-0 resize-none text-yellow-900 placeholder-yellow-600/50" rows="2" placeholder="Nota interna privada...">${itemNote ? itemNote.text : ''}</textarea>
-                        <div class="flex justify-end mt-1">
-                             <button class="text-[10px] bg-yellow-200 hover:bg-yellow-300 text-yellow-800 px-2 py-1 rounded font-bold save-item-note-btn" data-item-id="${item.id}">Salvar</button>
-                        </div>
+                        ${replies.length > 0 ? `<div class="mt-2 text-[10px] text-blue-600 bg-blue-50 p-2 rounded text-right">✓ Respondido (${replies.length}x)</div>` : ''}
                     </div>
                 `;
                 feedList.appendChild(card);
             });
             
-            feedList.querySelectorAll('.reply-btn').forEach(btn => btn.addEventListener('click', openReplyModal));
-            feedList.querySelectorAll('.toggle-note-btn').forEach(btn => btn.addEventListener('click', toggleItemNote));
-            feedList.querySelectorAll('.save-item-note-btn').forEach(btn => btn.addEventListener('click', saveItemNote));
-            feedList.querySelectorAll('.toggle-star-btn').forEach(btn => btn.addEventListener('click', toggleStar));
+            document.querySelectorAll('.open-reply-btn').forEach(b => b.onclick = (e) => openReplyModal(e.currentTarget.dataset.id));
+            document.querySelectorAll('.save-note-btn').forEach(b => b.onclick = (e) => saveItemNote(e.currentTarget.dataset.id));
         }
-        
-        feedSearch.addEventListener('input', renderFeed);
 
-        // --- TOGGLE STAR FUNCTION ---
-        async function toggleStar(e) {
-            const itemId = e.currentTarget.dataset.itemId;
-            const btn = e.currentTarget;
-            
-            // Optimistic Update (Visual Instantâneo)
-            const isCurrentlyStarred = highlightedSamplesCache.includes(itemId);
-            if (isCurrentlyStarred) {
-                btn.classList.remove('text-yellow-400', 'fill-yellow-400');
-                btn.classList.add('text-gray-300');
-            } else {
-                btn.classList.remove('text-gray-300');
-                btn.classList.add('text-yellow-400', 'fill-yellow-400');
-            }
-            
-            const docRef = doc(db, "sessoes", currentSessionId, "configuracoes", "destaquesAmostras");
+        document.getElementById('feed-search').addEventListener('input', renderFeed);
+
+        window.toggleStar = async (sampleId) => {
+            if (!currentSessionId) return;
+            const ref = doc(db, "sessoes", currentSessionId, "configuracoes", "destaquesAmostras");
+            const isStarred = highlightedSamplesCache.includes(sampleId);
             
             try {
-                await runTransaction(db, async (transaction) => {
-                    const docSnap = await transaction.get(docRef);
-                    let list = [];
-                    if (docSnap.exists()) {
-                        list = docSnap.data().lista || [];
-                    }
-                    
-                    if (list.includes(itemId)) {
-                        list = list.filter(id => id !== itemId);
-                    } else {
-                        list.push(itemId);
-                    }
-                    
-                    transaction.set(docRef, { lista: list }, { merge: true });
-                });
-                // O listener irá atualizar a UI real e a área de atenção
-            } catch (err) {
-                console.error(err);
-                showAlert("Erro ao atualizar destaque.");
-                // Reverter visual em caso de erro (opcional, mas bom pra UX)
-                if (isCurrentlyStarred) {
-                    btn.classList.add('text-yellow-400', 'fill-yellow-400');
-                    btn.classList.remove('text-gray-300');
-                } else {
-                    btn.classList.add('text-gray-300');
-                    btn.classList.remove('text-yellow-400', 'fill-yellow-400');
-                }
-            }
-        }
-
-        function toggleItemNote(e) {
-            const itemId = e.currentTarget.dataset.itemId;
-            const area = document.getElementById(`note-area-${itemId}`);
-            if (area) {
-                if (area.style.display === 'block') {
-                    area.style.display = 'none';
-                } else {
-                    area.style.display = 'block';
-                    area.querySelector('textarea').focus();
-                }
-            }
-        }
-
-        async function saveItemNote(e) {
-            const itemId = e.currentTarget.dataset.itemId;
-            const area = document.getElementById(`note-area-${itemId}`);
-            const text = area.querySelector('textarea').value.trim();
-            const btn = e.currentTarget;
-            
-            btn.textContent = '...';
-            try {
-                const notesCollection = collection(db, "sessoes", currentSessionId, "manager_item_notes");
-                await setDoc(doc(notesCollection, itemId), {
-                    text: text,
-                    itemId: itemId,
-                    segment: currentSegmentDataValue,
-                    timestamp: serverTimestamp()
-                });
-                
-                btn.textContent = 'Salvar';
-                const iconBtn = document.querySelector(`.toggle-note-btn[data-item-id="${itemId}"]`);
-                if(text) {
-                     iconBtn.classList.remove('text-gray-300');
-                     iconBtn.classList.add('text-yellow-500', 'fill-yellow-100');
-                } else {
-                     iconBtn.classList.add('text-gray-300');
-                     iconBtn.classList.remove('text-yellow-500', 'fill-yellow-100');
-                }
-                
-            } catch(err) {
-                console.error(err);
-                showAlert("Erro ao salvar nota.");
-                btn.textContent = 'Salvar';
-            }
-        }
-
-        function openReplyModal(e) {
-             const sampleId = e.currentTarget.dataset.sampleId;
-             currentSampleForReply = allSegmentSamples.find(s => s.id === sampleId);
-             if (!currentSampleForReply) return showAlert("Erro: Amostra não encontrada.");
-             
-             replyModalProduct.textContent = `${currentSampleForReply.produto} (${currentSampleForReply.pedido})`;
-             replyModalSeller.textContent = `Vendedor: ${currentSampleForReply.sellerName}`;
-             replyModalObservation.textContent = `"${currentSampleForReply.observation || 'Sem observação'}"`;
-             
-             replyMessageInput.value = '';
-             replyModal.classList.remove('hidden');
-        }
-        
-        cancelReplyBtn.onclick = () => replyModal.classList.add('hidden');
-
-        sendReplyBtn.onclick = async () => {
-             if (!currentSampleForReply || !currentSessionId) return;
-             const managerName = MANAGERS[currentSegmentKey].name;
-             const replyMessage = replyMessageInput.value.trim();
-
-             if (!replyMessage) { return showAlert("Preencha a resposta."); }
-
-             try {
-                 await addDoc(collection(db, "sessoes", currentSessionId, "notificacoesVendedor"), {
-                     managerName: managerName,
-                     replyMessage: replyMessage,
-                     originalObservation: currentSampleForReply.observation,
-                     sellerName: currentSampleForReply.sellerName,
-                     pedido: currentSampleForReply.pedido,
-                     produto: currentSampleForReply.produto,
-                     timestamp: serverTimestamp(),
-                     read: false, 
-                     readByPd: false
-                 });
-                 replyModal.classList.add('hidden');
-                 showAlert("Resposta enviada com sucesso!", "Sucesso", "text-green-600");
-             } catch(e) { console.error(e); showAlert("Erro ao enviar resposta."); }
+                if (isStarred) await updateDoc(ref, { lista: arrayRemove(sampleId) });
+                else await setDoc(ref, { lista: arrayUnion(sampleId) }, { merge: true });
+            } catch(e) { console.error(e); showAlert("Erro ao atualizar favorito."); }
         };
 
-        function listenForInternalNotes() {
-            if (internalNotesUnsubscribe) internalNotesUnsubscribe();
+        // --- ÁREA DE ATENÇÃO ---
+        function renderAttentionArea() {
+            const list = document.getElementById('attention-list');
+            const section = document.getElementById('attention-section');
+            list.innerHTML = '';
             
-            const notesRef = collection(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_'));
-            const q = query(notesRef, orderBy("timestamp", "desc"));
+            const starredItems = allSegmentSamples.filter(s => highlightedSamplesCache.includes(s.id));
             
-            internalNotesUnsubscribe = onSnapshot(q, (snapshot) => {
-                renderInternalNotes(snapshot.docs);
-            });
-            
-            const itemNotesRef = collection(db, "sessoes", currentSessionId, "manager_item_notes");
-            const qItems = query(itemNotesRef, where("segment", "==", currentSegmentDataValue));
-            
-            onSnapshot(qItems, (snapshot) => {
-                 itemNotesMap = {};
-                 snapshot.docs.forEach(doc => {
-                     itemNotesMap[doc.id] = doc.data();
-                 });
-                 if (!dashboardView.classList.contains('hidden')) renderFeed();
-            });
-        }
-        
-        function renderInternalNotes(docs) {
-            internalNotesList.innerHTML = '';
-            if (docs.length === 0) {
-                 internalNotesList.innerHTML = '<p class="text-center text-slate-400 text-xs italic mt-10">Use este espaço para lembretes pessoais.</p>';
-                 return;
-            }
-            
-            docs.forEach(docSnap => {
-                const note = docSnap.data();
-                const div = document.createElement('div');
-                div.className = 'sticky-note p-3 rounded-lg relative group transition-transform hover:scale-[1.02] cursor-default bg-yellow-100 border border-yellow-200 shadow-sm';
-                div.innerHTML = `
-                    <p class="text-yellow-900 text-xs font-medium whitespace-pre-wrap leading-relaxed">${note.text}</p>
-                    <button class="absolute -top-2 -right-2 bg-white text-red-400 hover:text-red-600 rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity delete-note-btn" data-id="${docSnap.id}">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                `;
-                internalNotesList.appendChild(div);
-            });
-            
-            internalNotesList.querySelectorAll('.delete-note-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                     const id = e.currentTarget.dataset.id;
-                     await deleteDoc(doc(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_'), id));
+            if (starredItems.length > 0) {
+                section.classList.remove('hidden');
+                starredItems.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-white p-3 rounded-xl border-l-4 border-amber-400 shadow-sm flex flex-col justify-between h-full';
+                    div.innerHTML = `
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <p class="text-xs font-bold text-slate-800 line-clamp-1" title="${item.produto}">${item.produto}</p>
+                                <button onclick="window.toggleStar('${item.id}')" class="text-amber-400 hover:text-amber-600"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"></path></svg></button>
+                            </div>
+                            <p class="text-[10px] text-slate-500 mb-1">${item.sellerName}</p>
+                            <p class="text-[10px] text-slate-400 bg-slate-50 p-1 rounded inline-block">Ped: ${item.pedido}</p>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-slate-50 text-[10px] font-bold text-slate-600">
+                             ${item.feedback || 'Pendente'}
+                        </div>
+                    `;
+                    list.appendChild(div);
                 });
+            } else {
+                section.classList.add('hidden');
+            }
+        }
+
+        async function saveItemNote(id) {
+            const area = document.getElementById(`note-area-${id}`);
+            const text = area.querySelector('textarea').value.trim();
+            try {
+                await setDoc(doc(collection(db, "sessoes", currentSessionId, "manager_item_notes"), id), {
+                    text, itemId: id, segment: currentSegmentDataValue, timestamp: serverTimestamp()
+                });
+                area.classList.add('hidden');
+            } catch(e) { showAlert("Erro ao salvar."); }
+        }
+
+        function openReplyModal(id) {
+            const item = allSegmentSamples.find(s => s.id === id);
+            if(!item) return;
+            document.getElementById('reply-modal-product').textContent = item.produto;
+            document.getElementById('reply-modal-seller').textContent = item.sellerName;
+            document.getElementById('reply-modal-observation').textContent = `"${item.observation || ''}"`;
+            
+            const sendBtn = document.getElementById('send-reply-btn');
+            sendBtn.onclick = async () => {
+                const msg = document.getElementById('reply-message-input').value.trim();
+                if(!msg) return;
+                sendBtn.textContent = 'Enviando...';
+                await addDoc(collection(db, "sessoes", currentSessionId, "notificacoesVendedor"), {
+                     managerName: MANAGERS[currentSegmentKey].name,
+                     replyMessage: msg, sellerName: item.sellerName, pedido: item.pedido, produto: item.produto,
+                     timestamp: serverTimestamp(), read: false
+                });
+                document.getElementById('reply-modal').classList.add('hidden');
+                document.getElementById('reply-message-input').value = '';
+                sendBtn.textContent = 'Enviar';
+                showAlert("Resposta enviada!", "Sucesso");
+            };
+            document.getElementById('cancel-reply-btn').onclick = () => document.getElementById('reply-modal').classList.add('hidden');
+            document.getElementById('reply-modal').classList.remove('hidden');
+        }
+
+        function renderKPIs() {
+            const total = allSegmentSamples.length;
+            let p = 0, a = 0, r = 0;
+            allSegmentSamples.forEach(s => {
+                const fb = s.feedback || '';
+                if (!fb) p++;
+                else if (fb.startsWith('A -')) a++;
+                else if (fb.startsWith('R -')) r++;
+                else p++; 
             });
+            document.getElementById('kpi-total').textContent = total;
+            document.getElementById('kpi-pending').textContent = p;
+            document.getElementById('kpi-approved').textContent = a;
+            document.getElementById('kpi-rejected').textContent = r;
         }
         
-        addInternalNoteBtn.addEventListener('click', async () => {
-             const text = newInternalNoteInput.value.trim();
-             if(!text) return;
-             
-             await addDoc(collection(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_')), {
-                 text: text,
-                 timestamp: serverTimestamp()
-             });
-             newInternalNoteInput.value = '';
-        });
+        function renderInternalNotes(snap) {
+            const list = document.getElementById('internal-notes-list');
+            list.innerHTML = '';
+            snap.docs.forEach(d => {
+                const n = d.data();
+                const el = document.createElement('div');
+                el.className = 'bg-yellow-100 p-3 rounded text-xs text-yellow-900 relative group';
+                el.innerHTML = `${n.text} <button class="absolute top-1 right-1 text-red-400 opacity-0 group-hover:opacity-100" onclick="deleteInternalNote('${d.id}')">&times;</button>`;
+                list.appendChild(el);
+            });
+        }
+        window.deleteInternalNote = async (id) => deleteDoc(doc(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_'), id));
+        document.getElementById('add-internal-note-btn').onclick = async () => {
+            const val = document.getElementById('new-internal-note-input').value.trim();
+            if(val) {
+                await addDoc(collection(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_')), { text: val, timestamp: serverTimestamp() });
+                document.getElementById('new-internal-note-input').value = '';
+            }
+        };
 
-        logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('managerSegmentKey');
-            if (internalNotesUnsubscribe) internalNotesUnsubscribe();
-            location.reload();
-        });
+        // --- Gráficos Funcionais (Chart.js) ---
+        function renderCharts() {
+            const ctxStatus = document.getElementById('status-chart').getContext('2d');
+            const ctxDetails = document.getElementById('details-chart').getContext('2d');
+
+            let pending = 0, resolved = 0, approved = 0, rejected = 0;
+            allSegmentSamples.forEach(s => {
+                const fb = s.feedback || '';
+                if (!fb || PENDING_STATUSES.includes(fb)) pending++;
+                else {
+                    resolved++;
+                    if (fb.startsWith('A -')) approved++;
+                    else if (fb.startsWith('R -')) rejected++;
+                }
+            });
+
+            if (statusChart) statusChart.destroy();
+            if (detailsChart) detailsChart.destroy();
+
+            statusChart = new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pendentes', 'Resolvidos'],
+                    datasets: [{
+                        data: [pending, resolved],
+                        backgroundColor: ['#fcd34d', '#3b82f6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10}, usePointStyle: true } } },
+                    cutout: '70%'
+                }
+            });
+
+            detailsChart = new Chart(ctxDetails, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Aprovados', 'Reprovados'],
+                    datasets: [{
+                        data: [approved, rejected],
+                        backgroundColor: ['#22c55e', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10}, usePointStyle: true } } },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        function renderBreakdown() { 
+            const list = document.getElementById('breakdown-list');
+            list.innerHTML = '';
+            const counts = {};
+            allSegmentSamples.forEach(s => { const k = s.feedback || 'PENDENTE'; counts[k] = (counts[k]||0)+1; });
+            Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([k,v]) => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between text-xs p-2 border rounded hover:bg-slate-50 cursor-pointer';
+                div.innerHTML = `<span>${k}</span><span class="font-bold">${v}</span>`;
+                div.onclick = () => openDetailsModal(k);
+                list.appendChild(div);
+            });
+        }
+
+        // --- Detalhes com Botão Responder ---
+        function openDetailsModal(type) {
+            const list = document.getElementById('feedback-samples-list');
+            list.innerHTML = '';
+            document.getElementById('feedback-samples-title').textContent = type;
+            
+            // Renderiza tabela
+            allSegmentSamples.filter(s=>(s.feedback||'PENDENTE')===type).forEach(s => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-3">
+                        <button class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded text-[10px] font-bold uppercase transition-colors reply-btn-table" data-id="${s.id}">Responder</button>
+                    </td>
+                    <td class="p-3 font-bold">${s.sellerName}</td>
+                    <td class="p-3">${s.codCliente||'-'}</td>
+                    <td class="p-3">${s.produto}</td>
+                    <td class="p-3 truncate max-w-[150px]">${s.descricao||'-'}</td>
+                    <td class="p-3">${s.pedido}</td>
+                    <td class="p-3">${s.feedback||'-'}</td>
+                `;
+                list.appendChild(tr);
+            });
+
+            // Bind clicks na tabela
+            document.querySelectorAll('.reply-btn-table').forEach(btn => {
+                btn.onclick = (e) => {
+                    document.getElementById('feedback-samples-modal').classList.add('hidden');
+                    openReplyModal(e.target.dataset.id);
+                };
+            });
+
+            document.getElementById('feedback-samples-modal').classList.remove('hidden');
+        }
+        
+        document.getElementById('close-feedback-samples-btn').onclick = () => document.getElementById('feedback-samples-modal').classList.add('hidden');
+        document.getElementById('logout-btn').onclick = () => { localStorage.removeItem('managerSegmentKey'); location.reload(); };
+        
+        function formatDate(ts) { if(!ts) return '-'; const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString('pt-BR'); }
 
     </script>
 </body>
 </html>
+
 
 
 
