@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel do Gerente - Gestão Visual</title>
+    <!-- Favicon adicionado -->
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/76mXWMJh/as-02.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -43,6 +45,25 @@
             background-color: #eff6ff;
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Efeito de Brilho no Logo */
+        @keyframes logoGlow {
+            0% { 
+                filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.2)); 
+                transform: scale(1);
+            }
+            50% { 
+                filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.6)); 
+                transform: scale(1.05);
+            }
+            100% { 
+                filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.2)); 
+                transform: scale(1);
+            }
+        }
+        .logo-shine {
+            animation: logoGlow 3s infinite ease-in-out;
         }
 
         /* Avatar do Vendedor */
@@ -124,16 +145,21 @@
         <div class="bg-white rounded-3xl shadow-xl w-full max-w-5xl p-8 lg:p-12 fade-in border border-slate-100 flex flex-col lg:flex-row gap-12 max-h-[95vh] overflow-y-auto">
             
             <!-- Lado Esquerdo -->
-            <div class="lg:w-5/12 flex flex-col justify-center">
-                <div class="mb-8 text-center lg:text-left">
-                    <img src="https://i.postimg.cc/76mXWMJh/as-02.png" alt="Logo" class="h-20 w-auto object-contain mb-6 mx-auto lg:mx-0">
+            <div class="lg:w-5/12 flex flex-col justify-center items-center text-center">
+                <div class="mb-8 w-full">
+                    <!-- LOGO COM BRILHO E CENTRALIZADO -->
+                    <div class="relative inline-block mb-6">
+                        <div class="absolute inset-0 bg-blue-400 opacity-20 blur-2xl rounded-full"></div>
+                        <img src="https://i.postimg.cc/76mXWMJh/as-02.png" alt="Logo" class="h-32 w-auto object-contain relative z-10 logo-shine mx-auto">
+                    </div>
+                    
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Painel do Gerente</h1>
                     <p class="text-slate-500 mt-2 text-sm">Selecione seu segmento e insira sua senha.</p>
                 </div>
 
-                <div class="space-y-5 max-w-sm mx-auto lg:mx-0 w-full">
+                <div class="space-y-5 max-w-sm w-full">
                     <div>
-                        <input type="password" id="manager-password-input" class="w-full border border-slate-200 bg-slate-50 rounded-xl py-3.5 px-4 text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-slate-400 font-medium" placeholder="Senha de acesso">
+                        <input type="password" id="manager-password-input" class="w-full border border-slate-200 bg-slate-50 rounded-xl py-3.5 px-4 text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-slate-400 font-medium text-center" placeholder="Senha de acesso">
                     </div>
 
                     <button id="manager-login-btn" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-3.5 rounded-xl shadow-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2">
@@ -1054,6 +1080,7 @@
     </script>
 </body>
 </html>
+
 
 
 
