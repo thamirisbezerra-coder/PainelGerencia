@@ -3,1106 +3,1166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Gestão de Feedbacks - Gestor</title>
+    <title>Painel do Gerente - Gestão Visual</title>
+    <!-- Favicon adicionado -->
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/76mXWMJh/as-02.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #f8fafc; 
-        }
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            color: #1e293b;
         }
         
-        .stat-card-watermark {
-            position: absolute;
-            bottom: -10px;
-            right: -10px;
-            width: 80px;
-            height: 80px;
-            opacity: 0.07;
-            transform: rotate(-15deg);
-            pointer-events: none;
-        }
+        /* Animações Suaves */
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Animação POP para notificações */
-        .notification-card { 
-            animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-        }
-        @keyframes slideIn { 
-            from { opacity: 0; transform: translateY(-20px) scale(0.95); } 
-            to { opacity: 1; transform: translateY(0) scale(1); } 
-        }
-        
-        .unread-indicator {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 4px;
-            background-color: #3b82f6;
-            border-radius: 4px 0 0 4px;
-        }
-        
-        .unread-badge {
-            background-color: #3b82f6;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 9px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+        .scale-in { animation: scaleIn 0.2s ease-out; }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        .btn-action-round {
-            @apply p-2 rounded-full transition-all hover:bg-slate-100 flex items-center justify-center;
-        }
-
-        .pd-postit-card {
-            background-color: #fefce8;
-            border: 1px solid #fde047;
-            padding: 1rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
+        /* Scrollbar Elegante */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Login Card */
+        .login-card {
+            transition: all 0.2s ease;
+            border: 1px solid #e2e8f0;
+            background: white;
+        }
+        .login-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+        }
+        .login-card.selected {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Efeito de Brilho no Logo */
+        @keyframes logoGlow {
+            0% { 
+                filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.2)); 
+                transform: scale(1);
+            }
+            50% { 
+                filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.6)); 
+                transform: scale(1.05);
+            }
+            100% { 
+                filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.2)); 
+                transform: scale(1);
+            }
+        }
+        .logo-shine {
+            animation: logoGlow 3s infinite ease-in-out;
+        }
+
+        /* Avatar do Vendedor */
+        .avatar-initials {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Card do Vendedor na Lista */
+        .seller-card {
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .seller-card:hover {
+            background-color: #f1f5f9;
+        }
+        .seller-card.active {
+            background-color: #eff6ff; /* blue-50 */
+            border-color: #bfdbfe; /* blue-200 */
+        }
+        .seller-card.active .seller-name {
+            color: #1d4ed8; /* blue-700 */
+        }
+
+        /* Estrela de Favorito */
+        .star-btn {
+            transition: transform 0.1s;
+        }
+        .star-btn:active {
+            transform: scale(1.2);
+        }
+        .star-btn:hover {
+            color: #fbbf24; /* amber-400 */
+        }
+
+        /* Marca D'água com Ícones SVG */
+        .watermark-icon {
+            position: absolute;
+            bottom: -15px;
+            right: -15px;
+            width: 100px;
+            height: 100px;
+            opacity: 0.15; /* Sutil, mas visível */
+            pointer-events: none;
+            z-index: 0;
+            transform: rotate(-12deg);
+            transition: transform 0.3s ease;
+        }
+        
+        /* Efeito hover no card movimenta levemente a marca d'água */
+        .group:hover .watermark-icon {
+            transform: rotate(0deg) scale(1.1);
+            opacity: 0.2;
+        }
+
+        .watermark-feed-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 0;
+            color: #94a3b8;
+        }
     </style>
 </head>
-<body class="text-slate-800 antialiased text-sm">
+<body class="antialiased min-h-screen flex flex-col bg-slate-50">
 
-    <!-- Header -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
-        <div class="container mx-auto px-4 md:px-8 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <img src="https://i.postimg.cc/76mXWMJh/as-02.png" alt="Logo" class="h-10 w-auto object-contain">
-                <h1 class="hidden md:block text-lg font-bold text-slate-700 tracking-tight">Painel Gestor de Feedbacks</h1>
-                <span id="admin-badge" class="hidden bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded border border-red-200 ml-2">MODO ADMIN</span>
-            </div>
+    <!-- TELA DE LOGIN -->
+    <div id="login-view" class="fixed inset-0 z-50 bg-slate-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-5xl p-8 lg:p-12 fade-in border border-slate-100 flex flex-col lg:flex-row gap-12 max-h-[95vh] overflow-y-auto">
             
-            <div class="flex items-center gap-4">
-                 <div class="flex flex-col items-end text-right">
-                    <p id="session-id-text" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aguardando sessão</p>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold bg-green-100 text-green-800 animate-pulse hidden" id="live-indicator">
-                        ● AO VIVO
-                    </span>
-                 </div>
-                 
-                 <button id="admin-login-btn" class="p-2 rounded-full hover:bg-slate-100 text-slate-400 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
-                 </button>
-            </div>
-        </div>
-    </header>
-
-    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
-        
-        <!-- Input Section -->
-        <div id="input-section" class="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-slate-100 mb-8 hidden">
-            <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold text-slate-800">Nova Sessão de Feedbacks</h2>
-                <p class="text-slate-500 mt-2 text-sm">Cole os dados da planilha para iniciar o monitoramento.</p>
-            </div>
-            <textarea id="data-input" rows="5" class="w-full p-4 border rounded-xl bg-slate-50 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Copie as colunas da planilha e cole aqui..."></textarea>
-            <button id="process-btn" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-md transition-all">
-                Iniciar Monitoramento
-            </button>
-            <p id="info-message" class="text-center text-sm mt-4 font-medium"></p>
-        </div>
-
-        <!-- Dashboard -->
-        <div id="dashboard" class="hidden space-y-8 animate-[fadeIn_0.5s_ease-out]">
-            
-            <!-- Quick Links -->
-            <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Card Gerentes -->
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all group relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path></svg>
+            <!-- Lado Esquerdo -->
+            <div class="lg:w-5/12 flex flex-col justify-center items-center text-center">
+                <div class="mb-8 w-full">
+                    <!-- LOGO COM BRILHO E CENTRALIZADO -->
+                    <div class="relative inline-block mb-6">
+                        <div class="absolute inset-0 bg-blue-400 opacity-20 blur-2xl rounded-full"></div>
+                        <img src="https://i.postimg.cc/76mXWMJh/as-02.png" alt="Logo" class="h-32 w-auto object-contain relative z-10 logo-shine mx-auto">
                     </div>
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="bg-blue-50 p-2 rounded-lg text-blue-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-800">Painel Gerencial</h3>
-                    </div>
-                    <a href="https://thamirisbezerra-coder.github.io/PainelGerencia/" target="_blank" class="text-sm text-blue-600 hover:underline mb-4 inline-block font-semibold">Acessar Painel &rarr;</a>
-                    <button onclick="document.getElementById('senhas-gerentes-modal').classList.remove('hidden')" class="w-full bg-slate-50 hover:bg-slate-100 text-xs text-slate-600 py-2 rounded-lg font-bold transition-colors border border-slate-200 flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        VER SENHAS INDIVIDUAIS
-                    </button>
+                    
+                    <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Painel do Gerente</h1>
+                    <p class="text-slate-500 mt-2 text-sm">Selecione seu segmento e insira sua senha.</p>
                 </div>
 
-                <!-- Card Vendedores -->
-                <div class="bg-gradient-to-br from-blue-600 to-blue-700 p-6 rounded-2xl shadow-lg border border-blue-500 hover:shadow-xl transition-all text-white relative overflow-hidden flex flex-col items-center justify-center text-center">
-                     <div class="mb-2 bg-white/20 p-3 rounded-full">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                     </div>
-                     <h3 class="text-lg font-bold mb-1">Área do Vendedor</h3>
-                     <p class="text-blue-100 text-sm mb-4 opacity-90 leading-tight">Envio de feedbacks pelos vendedores.</p>
-                     <a href="https://thamirisbezerra-coder.github.io/Tela-do-Vendedor/" target="_blank" class="inline-flex items-center bg-white text-blue-600 font-bold py-2.5 px-6 rounded-xl hover:bg-blue-50 transition-colors text-sm shadow-sm uppercase tracking-wide">
-                         Abrir Aplicação
-                     </a>
+                <div class="space-y-5 max-w-sm w-full">
+                    <div>
+                        <input type="password" id="manager-password-input" class="w-full border border-slate-200 bg-slate-50 rounded-xl py-3.5 px-4 text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-slate-400 font-medium text-center" placeholder="Senha de acesso">
+                    </div>
+
+                    <button id="manager-login-btn" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-3.5 rounded-xl shadow-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2">
+                        <span>Entrar</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                    
+                    <p id="login-error" class="text-red-500 text-sm font-medium text-center min-h-[1.25rem]"></p>
+                </div>
+            </div>
+
+            <!-- Lado Direito: Grid de Seleção -->
+            <div class="lg:w-7/12 border-t lg:border-t-0 lg:border-l border-slate-100 pt-8 lg:pt-0 lg:pl-12 flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Segmentos Disponíveis</label>
+                </div>
+                <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                    <div id="segment-grid" class="grid grid-cols-2 md:grid-cols-2 gap-3">
+                        <!-- Cards gerados via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAINEL PRINCIPAL (DASHBOARD) -->
+    <div id="dashboard-view" class="hidden flex-col min-h-screen">
+        
+        <!-- Header Compacto -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90">
+            <div class="container mx-auto px-4 py-2 flex justify-between items-center h-14">
+                <div class="flex items-center gap-3">
+                    <img src="https://i.postimg.cc/76mXWMJh/as-02.png" alt="Logo" class="h-6 w-auto">
+                    <div class="h-4 w-px bg-slate-300 hidden sm:block"></div>
+                    <div>
+                        <h1 class="text-xs text-slate-500 font-medium leading-none">Painel Gerencial</h1>
+                        <p id="header-segment-name" class="text-sm font-bold text-slate-800 leading-tight">---</p>
+                    </div>
                 </div>
                 
-                <!-- Card P&D -->
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all group relative overflow-hidden">
-                     <div class="flex items-center gap-3 mb-2">
-                        <div class="bg-purple-50 p-2 rounded-lg text-purple-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-800">Painel P&D</h3>
-                     </div>
-                     <a href="https://thamirisbezerra-coder.github.io/Painel-Pesquisa-e-Desenvolvimento/" target="_blank" class="text-sm text-purple-600 hover:underline mb-4 inline-block font-semibold">Acessar Painel &rarr;</a>
-                     <button onclick="document.getElementById('senhas-pd-modal').classList.remove('hidden')" class="w-full bg-slate-50 hover:bg-slate-100 text-xs text-slate-600 py-2 rounded-lg font-bold transition-colors border border-slate-200 flex items-center justify-center gap-2">
-                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                         VER SENHAS POR SETOR
-                    </button>
-                </div>
-            </section>
-
-            <!-- Notifications & Results Column -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Notifications Feed -->
-                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col">
-                     <div class="flex justify-between items-center mb-4">
-                         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                             <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                             Notificações & Notas
-                         </h2>
-                         <button id="history-btn" class="text-xs font-bold text-slate-500 bg-slate-100 px-4 py-2 rounded-full transition-colors">Ver Histórico</button>
-                     </div>
-                     
-                     <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4">
-                        <div class="flex items-center justify-between cursor-pointer" onclick="document.getElementById('internal-note-form').classList.toggle('hidden')">
-                            <h3 class="text-[10px] font-black text-slate-500 flex items-center gap-2 uppercase tracking-[0.2em]">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5"></path></svg>
-                                Adicionar Nota Interna
-                            </h3>
-                            <svg class="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                        </div>
-                        <div id="internal-note-form" class="hidden space-y-2 mt-2 pt-2 border-t border-slate-200">
-                            <input type="text" id="internal-note-manager" class="w-full text-xs p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Gestor Responsável">
-                            <textarea id="internal-note-message" rows="2" class="w-full text-xs p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Digite a nota..."></textarea>
-                            <button id="save-internal-note-btn" class="bg-slate-700 text-white text-[10px] font-black px-4 py-2 rounded hover:bg-slate-800 w-full transition-colors uppercase tracking-widest">Salvar Nota</button>
-                        </div>
-                     </div>
-
-                     <div id="notifications-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-2 relative">
-                         <p class="text-slate-300 text-xs text-center py-10 italic">Aguardando atualizações...</p>
-                     </div>
-                </div>
-
-                <!-- Results & Rankings Card -->
-                <a href="https://thamirisbezerra-coder.github.io/Painel-de-Resultados/" target="_blank" 
-                   class="bg-slate-800 text-white p-6 rounded-2xl shadow-lg hover:bg-slate-900 transition-all flex flex-col relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-10 -mt-10 group-hover:scale-110 transition-transform"></div>
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="bg-yellow-400/20 p-3 rounded-xl">
-                            <svg class="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        </div>
-                        <h3 class="text-xl font-bold">Resultados & Rankings</h3>
-                    </div>
-                    <p class="text-slate-300 text-sm mb-6 leading-relaxed">Acesse o comparativo 2023-2025 e o Ranking de Aromas (DAR) completo.</p>
-                    <div class="mt-auto flex items-center justify-between">
-                        <span class="text-yellow-400 text-[10px] font-black uppercase tracking-[0.2em]">Visualizar Dashboard</span>
-                        <svg class="w-5 h-5 text-yellow-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Charts Principais -->
-            <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="font-black text-center mb-6 uppercase tracking-[0.2em] text-slate-400 text-[10px]">Status da Sessão Atual</h3>
-                    <div style="height: 250px;"><canvas id="session-status-chart"></canvas></div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="font-black text-center mb-6 uppercase tracking-[0.2em] text-slate-400 text-[10px]">Análise de Feedbacks</h3>
-                    <div style="height: 250px;"><canvas id="rejection-rate-chart"></canvas></div>
-                </div>
-            </section>
-
-            <!-- Categorias Resumo -->
-            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-green-100 relative overflow-hidden group">
-                    <svg class="stat-card-watermark text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
-                    <h3 class="text-[10px] font-black text-green-600 uppercase tracking-widest mb-3 relative z-10">Aprovados</h3>
-                    <ul id="approved-feedback-list" class="space-y-1 text-[10px] relative z-10"></ul>
-                </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-red-100 relative overflow-hidden group">
-                    <svg class="stat-card-watermark text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
-                    <h3 class="text-[10px] font-black text-red-600 uppercase tracking-widest mb-3 relative z-10">Reprovados</h3>
-                    <ul id="rejected-feedback-list" class="space-y-1 text-[10px] relative z-10"></ul>
-                </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-purple-100 relative overflow-hidden group">
-                    <svg class="stat-card-watermark text-purple-500" fill="currentColor" viewBox="0 0 20 20"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
-                    <h3 class="text-[10px] font-black text-purple-600 uppercase tracking-widest mb-3 relative z-10">Eventos</h3>
-                    <ul id="events-feedback-list" class="space-y-1 text-[10px] relative z-10"></ul>
-                </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-yellow-100 relative overflow-hidden group">
-                    <svg class="stat-card-watermark text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <h3 class="text-[10px] font-black text-yellow-600 uppercase tracking-widest mb-3 relative z-10">Pendências</h3>
-                    <ul id="pending-feedback-list" class="space-y-1 text-[10px] relative z-10"></ul>
-                </div>
-            </section>
-
-            <!-- Favoritos -->
-            <section id="attention-section">
-                <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <svg class="w-6 h-6 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588 1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                    Favoritos (Atenção)
-                </h2>
-                <div id="attention-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-            </section>
-
-            <!-- Feeds: Vendedores e P&D -->
-            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Feed Observações -->
-                <div class="flex flex-col h-[650px]">
-                    <h2 class="text-xl font-bold mb-4">Feed de Observações</h2>
-                    <div class="bg-white rounded-2xl shadow-sm border flex flex-col flex-1 overflow-hidden">
-                        <div class="p-4 bg-slate-50 border-b flex flex-wrap gap-2">
-                            <select id="observation-segment-filter" class="flex-1 min-w-[150px] text-xs border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"></select>
-                            <input id="observation-search-input" type="text" placeholder="Buscar vendedor..." class="flex-1 min-w-[150px] text-xs border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500">
-                            <label class="bg-white border rounded-lg px-4 flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-100">
-                                <input type="checkbox" id="filter-replied-obs" class="form-checkbox text-blue-600"> <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Respondidos</span>
-                            </label>
-                        </div>
-                        <div id="observations-feed-list" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30"></div>
-                    </div>
-                </div>
-                <!-- Feed P&D -->
-                <div class="flex flex-col h-[650px]">
-                    <h2 class="text-xl font-bold mb-4">Post-its do P&D</h2>
-                    <div class="bg-white rounded-2xl shadow-sm border flex flex-col flex-1 overflow-hidden">
-                        <div class="p-4 bg-slate-50 border-b">
-                            <select id="pd-postit-segment-filter" class="w-full text-xs border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"></select>
-                        </div>
-                        <div id="pd-postits-list" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Equipe e Senhas -->
-            <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 border-b border-slate-50 pb-6">
-                    <div>
-                        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Equipe de Vendas</h2>
-                        <p class="text-xs text-slate-400 font-black uppercase tracking-[0.2em] mt-1">Senhas de acesso e controle de baixa.</p>
-                    </div>
-                    <input id="seller-search-input" type="text" placeholder="Buscar vendedor..." class="border rounded-lg text-xs px-4 py-3 w-full md:w-80 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
-                </div>
-                <div id="sellers-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
-            </section>
-            
-            <!-- SegmentCharts Grid -->
-            <section id="segment-charts-section">
-                <h2 class="text-2xl font-bold text-slate-800 mb-8 border-b border-slate-200 pb-4">Detalhamento por Segmento</h2>
-                <div id="segment-charts-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
-            </section>
-        </div>
-    </div>
-
-    <!-- Modais -->
-    <div id="senhas-gerentes-modal" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8 relative animate-[slideIn_0.3s_ease-out]">
-            <button onclick="this.closest('#senhas-gerentes-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-300 text-2xl hover:text-red-500 transition-colors">&times;</button>
-            <h3 class="text-xl font-bold mb-6 uppercase tracking-widest text-slate-700">Senhas Gerentes</h3>
-            <div class="space-y-3">
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3 text-xs">
-                    <span class="text-slate-400 font-bold">CÁRNEOS (Luis Adriano)</span>
-                    <span class="font-mono bg-slate-100 px-2 py-1 rounded font-black border">carneospass123</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3 text-xs">
-                    <span class="text-slate-400 font-bold">LACTEOS (Vitor Machado)</span>
-                    <span class="font-mono bg-slate-100 px-2 py-1 rounded font-black border">lacteospass456</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3 text-xs">
-                    <span class="text-slate-400 font-bold">NUTRICAO (Danilo T.)</span>
-                    <span class="font-mono bg-slate-100 px-2 py-1 rounded font-black border">nutricaopass303</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3 text-xs">
-                    <span class="text-slate-400 font-bold">PANIFICACAO (Maristela)</span>
-                    <span class="font-mono bg-slate-100 px-2 py-1 rounded font-black border">panificacaopass101</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3 text-xs">
-                    <span class="text-slate-400 font-bold">SMB (Gustavo Bonfim)</span>
-                    <span class="font-mono bg-slate-100 px-2 py-1 rounded font-black border">smbpass202</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3 text-xs">
-                    <span class="text-slate-400 font-bold">SORVETES (Vinicius M.)</span>
-                    <span class="font-mono bg-slate-100 px-2 py-1 rounded font-black border">sorvetespass789</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3 text-xs">
-                    <span class="text-slate-400 font-bold">NUTRIÇÃO ESP. (João Schittkowski)</span>
-                    <span class="font-mono bg-slate-100 px-2 py-1 rounded font-black border">esportivapass123</span>
-                </div>
-                <div class="flex justify-between items-center pb-1 text-xs">
-                    <span class="text-slate-400 font-bold">FARMA (Vanessa Badaró)</span>
-                    <span class="font-mono bg-slate-100 px-2 py-1 rounded font-black border">farmapass123</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="senhas-pd-modal" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8 relative animate-[slideIn_0.3s_ease-out]">
-            <button onclick="this.closest('#senhas-pd-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-300 text-2xl hover:text-red-500 transition-colors">&times;</button>
-            <h3 class="text-xl font-bold mb-6 uppercase tracking-widest text-slate-700">Senhas P&D</h3>
-            <div class="space-y-2">
-                <div class="flex justify-between items-center border-b border-slate-100 pb-2 text-xs"><span>Panificação (Adriana)</span><span class="font-mono font-black">pd_adriana5</span></div>
-                <div class="flex justify-between items-center border-b border-slate-100 pb-2 text-xs"><span>Cárneos (Anderson)</span><span class="font-mono font-black">pd_anderson3</span></div>
-                <div class="flex justify-between items-center border-b border-slate-100 pb-2 text-xs"><span>Aromas (Carlos)</span><span class="font-mono font-black">pd_carlos1</span></div>
-                <div class="flex justify-between items-center border-b border-slate-100 pb-2 text-xs"><span>Nutracêuticos (Daise)</span><span class="font-mono font-black">pd_daise4</span></div>
-                <div class="flex justify-between items-center border-b border-slate-100 pb-2 text-xs"><span>Lácteos (Flavia)</span><span class="font-mono font-black">pd_flavia2</span></div>
-                <div class="flex justify-between items-center border-b border-slate-100 pb-2 text-xs"><span>Sorvetes (Margarida)</span><span class="font-mono font-black">pd_margarida7</span></div>
-                <div class="flex justify-between items-center pb-1 text-xs"><span>Nutrição Animal (Rebeca)</span><span class="font-mono font-black">pd_rebeca6</span></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="history-modal" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl h-[80vh] flex flex-col p-6 animate-[slideIn_0.3s_ease-out]">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-2xl font-bold">Histórico de Notificações</h3>
-                <button id="close-history-btn" class="text-2xl hover:text-red-500 transition-colors">&times;</button>
-            </div>
-            <div id="history-list" class="flex-1 overflow-y-auto space-y-3 pr-2"></div>
-        </div>
-    </div>
-
-    <div id="feedback-samples-modal" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 hidden z-40">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col p-0 overflow-hidden animate-[slideIn_0.3s_ease-out]">
-            <div class="p-5 border-b flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50">
-                <h3 id="feedback-samples-title" class="text-lg font-bold">Amostras Detalhadas</h3>
                 <div class="flex items-center gap-2">
-                    <label class="text-xs bg-white border px-4 py-2 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-slate-50">
-                        <input type="checkbox" id="modal-filter-replied"> <span class="font-bold">Respondidos</span>
-                    </label>
-                    <select id="modal-segment-filter" class="border rounded-lg text-xs p-2 bg-white min-w-[180px] outline-none shadow-sm"></select>
-                    <button id="close-feedback-samples-btn" class="p-2 hover:bg-slate-200 rounded-full transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <!-- Status Sessão -->
+                    <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-full">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                        <span id="session-id-display" class="text-[10px] font-mono text-slate-600">---</span>
+                    </div>
+
+                    <!-- Botão Notas -->
+                    <button onclick="document.getElementById('internal-notes-modal').classList.remove('hidden')" class="p-2 text-slate-400 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors relative group" title="Notas">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    </button>
+
+                    <!-- Logout -->
+                    <button id="logout-btn" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     </button>
                 </div>
             </div>
-            <div id="feedback-samples-list" class="flex-1 overflow-y-auto p-5 space-y-4 bg-white"></div>
+        </header>
+
+        <main class="flex-1 container mx-auto p-4 lg:p-6 space-y-6 max-w-[1600px]">
+            
+            <!-- Cards de KPI com Ícones Temáticos (SVG) -->
+            <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                
+                <!-- Total -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-blue-300 transition-colors">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase z-10 relative">Total de Amostras</p>
+                    <p id="kpi-total" class="text-2xl font-bold text-slate-800 z-10 relative">0</p>
+                    <!-- Ícone Caixa/Arquivo -->
+                    <svg class="watermark-icon text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                </div>
+
+                <!-- Pendentes -->
+                <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 shadow-sm relative overflow-hidden group">
+                    <p class="text-[10px] font-bold text-yellow-600 uppercase z-10 relative">Pendentes</p>
+                    <p id="kpi-pending" class="text-2xl font-bold text-yellow-700 z-10 relative">0</p>
+                    <!-- Ícone Relógio -->
+                    <svg class="watermark-icon text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+
+                <!-- Aprovados -->
+                <div class="bg-green-50 p-4 rounded-xl border border-green-200 shadow-sm relative overflow-hidden group">
+                    <p class="text-[10px] font-bold text-green-600 uppercase z-10 relative">Aprovados</p>
+                    <p id="kpi-approved" class="text-2xl font-bold text-green-700 z-10 relative">0</p>
+                    <!-- Ícone Check/Sucesso -->
+                    <svg class="watermark-icon text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+
+                <!-- Reprovados -->
+                <div class="bg-red-50 p-4 rounded-xl border border-red-200 shadow-sm relative overflow-hidden group">
+                    <p class="text-[10px] font-bold text-red-600 uppercase z-10 relative">Reprovados</p>
+                    <p id="kpi-rejected" class="text-2xl font-bold text-red-700 z-10 relative">0</p>
+                    <!-- Ícone X/Erro -->
+                    <svg class="watermark-icon text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+            </section>
+
+            <!-- ÁREA DE DESTAQUE (FAVORITOS) -->
+            <section id="attention-section" class="bg-amber-50 border border-amber-200 rounded-2xl p-5 shadow-sm hidden transition-all">
+                <div class="flex items-center gap-2 mb-3">
+                    <svg class="w-5 h-5 text-amber-500 fill-amber-500" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588 1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                    <h2 class="text-sm font-bold text-amber-900 uppercase tracking-wide">Pontos de Atenção Favoritados</h2>
+                </div>
+                <div id="attention-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    <!-- Cards de atenção via JS -->
+                </div>
+            </section>
+
+            <!-- LAYOUT PRINCIPAL: LISTA VENDEDORES (ESQ) + FEED (DIR) -->
+            <div class="flex flex-col lg:flex-row gap-6 items-start h-[calc(100vh-280px)] min-h-[600px]">
+                
+                <!-- COLUNA 1: LISTA DE VENDEDORES -->
+                <div class="w-full lg:w-1/3 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
+                    <!-- Header da Lista -->
+                    <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                        <h3 class="font-bold text-slate-700 text-sm">Equipe</h3>
+                        <span id="seller-count-badge" class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+                    </div>
+
+                    <!-- Botão "Ver Todos" -->
+                    <div class="p-2 border-b border-slate-50 shrink-0">
+                        <button id="btn-show-all-sellers" class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </div>
+                            <span>Ver Todos os Vendedores</span>
+                        </button>
+                    </div>
+
+                    <!-- Lista Scrollável -->
+                    <div id="sellers-list" class="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                        <p class="text-center text-slate-400 text-xs py-8">Carregando...</p>
+                    </div>
+                </div>
+
+                <!-- COLUNA 2: FEED DE AMOSTRAS -->
+                <div class="w-full lg:w-2/3 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden relative group">
+                    
+                    <!-- Ícone de Fundo do Feed (Substituindo Logo) -->
+                    <svg class="watermark-feed-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+
+                    <!-- Header do Feed com Filtro de Data -->
+                    <div class="p-4 border-b border-slate-100 bg-slate-50 flex flex-col gap-3 shrink-0 z-10">
+                        <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
+                            <div class="flex items-center gap-3 w-full sm:w-auto">
+                                <div id="current-view-avatar" class="hidden sm:flex w-10 h-10 rounded-full bg-blue-600 items-center justify-center text-white font-bold text-sm shadow-sm avatar-initials">
+                                    ALL
+                                </div>
+                                <div>
+                                    <h3 id="feed-title" class="font-bold text-slate-800 text-base">Visão Geral</h3>
+                                    <p id="feed-subtitle" class="text-xs text-slate-500">Exibindo todas as amostras</p>
+                                </div>
+                            </div>
+                            <div class="w-full sm:w-auto relative">
+                                <input type="text" id="feed-search" placeholder="Buscar produto, nota..." class="w-full sm:w-64 text-sm border-slate-200 bg-white rounded-lg pl-9 pr-3 py-2 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+                                <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </div>
+                        </div>
+                        
+                        <!-- FILTRO DE PERÍODO -->
+                        <div class="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-sm w-full sm:w-auto self-start">
+                            <span class="text-xs font-bold text-slate-500 uppercase px-1">Período NF:</span>
+                            <input type="date" id="filter-start-date" class="text-xs border border-slate-200 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none text-slate-600">
+                            <span class="text-xs text-slate-400">até</span>
+                            <input type="date" id="filter-end-date" class="text-xs border border-slate-200 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none text-slate-600">
+                            <button id="clear-date-filter" class="text-xs text-red-400 hover:text-red-600 px-2 font-medium" title="Limpar Datas">Limpar</button>
+                        </div>
+                    </div>
+
+                    <!-- Lista Feed Scrollável -->
+                    <div id="feed-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 custom-scrollbar z-10 relative">
+                        <!-- Itens do feed injetados aqui -->
+                    </div>
+                    
+                    <!-- Loading Overlay (Opcional) -->
+                    <div id="feed-loading" class="absolute inset-0 bg-white/80 flex items-center justify-center z-20 hidden">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Gráficos e Detalhes -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 <!-- Gráfico Status com Ícone -->
+                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                    <div class="flex justify-between items-center mb-2 z-10 relative">
+                         <h3 class="font-bold text-sm text-slate-700">Status Geral</h3>
+                         <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Gráfico</span>
+                    </div>
+                    <div style="height: 180px;" class="z-10 relative"><canvas id="status-chart"></canvas></div>
+                    <svg class="watermark-icon text-slate-300" style="width: 120px; height: 120px; opacity: 0.1;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                 </div>
+                 
+                 <!-- Gráfico Detalhes com Ícone -->
+                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                    <div class="flex justify-between items-center mb-2 z-10 relative">
+                        <h3 class="font-bold text-sm text-slate-700">Aprovações</h3>
+                        <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Gráfico</span>
+                    </div>
+                    <div style="height: 180px;" class="z-10 relative"><canvas id="details-chart"></canvas></div>
+                    <svg class="watermark-icon text-slate-300" style="width: 120px; height: 120px; opacity: 0.1;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                 </div>
+                 
+                 <!-- Tipos de Resposta -->
+                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                    <h3 class="font-bold text-sm text-slate-700 mb-3">Resumo por Tipo</h3>
+                    <div id="breakdown-list" class="flex-1 overflow-y-auto max-h-[180px] custom-scrollbar space-y-2 pr-1">
+                        <!-- JS -->
+                    </div>
+                 </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAIS -->
+
+    <!-- Modal Notas Internas -->
+    <div id="internal-notes-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md h-[60vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200 scale-in">
+            <div class="px-5 py-3 border-b border-slate-100 flex justify-between items-center bg-yellow-50">
+                <h3 class="font-bold text-yellow-800 text-sm">Notas Internas</h3>
+                <button onclick="document.getElementById('internal-notes-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">&times;</button>
+            </div>
+            <div id="internal-notes-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50"></div>
+            <div class="p-3 border-t border-slate-100 bg-white flex gap-2">
+                <input type="text" id="new-internal-note-input" placeholder="Nova nota..." class="flex-1 rounded-lg border-slate-200 text-sm px-3 py-2 bg-slate-50">
+                <button id="add-internal-note-btn" class="bg-yellow-500 text-white rounded-lg px-3 py-2 shadow-sm hover:bg-yellow-600">Add</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Detalhes Feedback (AGORA COM BOTÃO RESPONDER) -->
+    <div id="feedback-samples-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[60]">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[85vh] scale-in">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-blue-50">
+                <div>
+                    <h3 id="feedback-samples-title" class="text-lg font-bold text-slate-800">Detalhes</h3>
+                </div>
+                <button id="close-feedback-samples-btn" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="flex-1 overflow-auto p-0 bg-white">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm text-slate-500 uppercase font-semibold">
+                        <tr>
+                            <th class="p-3">Ação</th>
+                            <th class="p-3">Vendedor</th>
+                            <th class="p-3">Cliente</th>
+                            <th class="p-3">Produto</th>
+                            <th class="p-3">Descrição</th>
+                            <th class="p-3">Pedido/NF</th>
+                            <th class="p-3">Feedback</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feedback-samples-list" class="divide-y divide-slate-100 text-slate-600"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <div id="reply-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 animate-[slideIn_0.3s_ease-out]">
-            <h3 class="text-xl font-bold mb-4">Responder Observação</h3>
-            <div class="mb-5 p-4 bg-slate-50 rounded-xl border border-slate-200 text-[11px]">
-                <p class="font-bold text-slate-800 text-sm" id="reply-modal-product"></p>
-                <p class="text-slate-400 mb-2 font-bold uppercase tracking-widest" id="reply-modal-seller"></p>
-                <p class="italic text-slate-600 border-l-4 border-blue-400 pl-3 leading-relaxed">"${' '}"</p> 
+    <!-- Modal Resposta -->
+    <div id="reply-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[70]">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 scale-in">
+            <h3 class="text-lg font-bold mb-4 text-slate-800">Responder ao Vendedor</h3>
+            <div class="mb-4 p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm">
+                <div class="flex justify-between mb-1">
+                    <p class="font-bold text-slate-700" id="reply-modal-product"></p>
+                    <p class="text-xs text-slate-500" id="reply-modal-seller"></p>
+                </div>
+                <p class="italic text-slate-600 border-l-2 border-slate-300 pl-2 mt-2" id="reply-modal-observation">"..."</p>
             </div>
             <div class="space-y-4">
-                <input type="text" id="manager-name-input" class="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Seu Nome (Gestor)">
-                <textarea id="reply-message-input" rows="3" class="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Sua Resposta..."></textarea>
+               <textarea id="reply-message-input" rows="3" class="w-full border-slate-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-3" placeholder="Escreva sua orientação para o vendedor..."></textarea>
             </div>
             <div class="mt-6 flex justify-end gap-3">
-                <button id="cancel-reply-btn" class="px-4 py-2 hover:bg-slate-100 rounded-lg font-bold text-slate-400 uppercase text-xs">Cancelar</button>
-                <button id="send-reply-btn" class="bg-blue-600 text-white font-black px-6 py-2 rounded-lg hover:bg-blue-700 shadow-md uppercase text-xs tracking-widest">Enviar Resposta</button>
+                 <button id="cancel-reply-btn" class="text-slate-500 font-semibold px-4 py-2 hover:bg-slate-100 rounded-lg transition-colors">Cancelar</button>
+                 <button id="send-reply-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors">Enviar</button>
             </div>
         </div>
     </div>
 
-    <div id="seller-details-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden animate-[slideIn_0.3s_ease-out]">
-            <div class="p-5 border-b flex justify-between items-center bg-slate-50">
-                <div>
-                    <h3 id="seller-details-name" class="text-lg font-bold text-slate-800">Nome do Vendedor</h3>
-                    <p id="seller-details-segment" class="text-xs text-slate-500 uppercase font-black tracking-widest">Segmento</p>
-                </div>
-                <button onclick="document.getElementById('seller-details-modal').classList.add('hidden')" class="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400 hover:text-slate-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <div id="seller-samples-list" class="flex-1 overflow-y-auto p-6 bg-slate-50/50 space-y-4"></div>
+    <!-- Alert Custom -->
+    <div id="custom-alert" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 hidden z-[80]">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center scale-in">
+            <h3 id="custom-alert-title" class="text-lg font-bold mb-2">Aviso</h3>
+            <p id="custom-alert-message" class="text-sm text-slate-600 mb-6">Mensagem...</p>
+            <button id="custom-alert-ok-btn" class="bg-slate-900 text-white font-bold py-2 px-8 rounded-full hover:bg-black transition-colors">OK</button>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, getDocs, updateDoc, query, orderBy, serverTimestamp, addDoc, runTransaction, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { 
+            getFirestore, collection, onSnapshot, doc, getDoc, getDocs, 
+            updateDoc, setDoc, query, where, Timestamp, runTransaction, addDoc, orderBy, deleteDoc, deleteField, serverTimestamp, arrayUnion, arrayRemove
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+        // Configuração Firebase
         const firebaseConfig = {
-             apiKey: "AIzaSyAF_TE28Tbp2nakBGTva1yEEbBCqWvRdJQ",
-             authDomain: "feedback-vendedores.firebaseapp.com",
-             projectId: "feedback-vendedores",
-             storageBucket: "feedback-vendedores.firebasestorage.app",
-             messagingSenderId: "650880422749",
-             appId: "1:650880422749:web:54a258964a6ca8db180eb4"
+            apiKey: "AIzaSyAF_TE28Tbp2nakBGTva1yEEbBCqWvRdJQ",
+            authDomain: "feedback-vendedores.firebaseapp.com",
+            projectId: "feedback-vendedores",
+            storageBucket: "feedback-vendedores.firebasestorage.app",
+            messagingSenderId: "650880422749",
+            appId: "1:650880422749:web:54a258964a6ca8db180eb4",
+            measurementId: "G-TG588KDK0C"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // --- Mapeamento de Segmentos ---
-        const DEFAULT_SELLER_SEGMENTS = {
-            "ALEXANDRE NASCIMENTO": "SNACKS, MOLHOS E BEBIDAS",
-            "ALEXSANDER DE ANDRADE OLIVEIRA": "SORVETES",
-            "ALINE BARROS": "NUTRICAO ANIMAL",
-            "ALISSON FERNANDES": "LACTEOS",
-            "ANA MOTA": "SNACKS, MOLHOS E BEBIDAS",
-            "ANDRE FELIX": "SORVETES",
-            "ANDREIA TINTI": "NUTRICAO ESPORTIVA",
-            "ANDRE BRESSANIN": "SORVETES",
-            "ANTENOR ADRIANO": "SORVETES",
-            "BRUNO VERONEZ": "SNACKS, MOLHOS E BEBIDAS",
-            "CAMILA BENTO": "LACTEOS",
-            "CLAUDIANO TERCARIOL": "SORVETES",
-            "CRISTIANE OLIVEIRA": "LACTEOS",
-            "CRISTIANO RAMOS": "CARNEOS",
-            "DANIELA MARCHEZIN": "SORVETES",
-            "DANILO ARAUJO": "SORVETES",
-            "DANILO TREMOCOLDI": "NUTRICAO ANIMAL",
-            "DELMAR PAES": "SORVETES",
-            "DIEGO FIORIO": "SORVETES",
-            "DIRETO - JMC": "LACTEOS",
-            "DIRETO- MACALE": "LACTEOS",
-            "DIRETO-DANTE": "LACTEOS",
-            "DOUGLAS SILVA": "SORVETES",
-            "ELINIVAL SANTOS": "SNACKS, MOLHOS E BEBIDAS",
-            "FABRICIO NOGUEIRA": "LACTEOS",
-            "FABRICIO OLIVEIRA DE CARVALHO": "SORVETES",
-            "FELIPE LOHAN": "LACTEOS",
-            "FELIPE LOPES BARBOSA": "SORVETES",
-            "FERNANDA BEATRIZ": "NUTRICAO ESPORTIVA",
-            "FERNANDA CAMPOS": "SNACKS, MOLHOS E BEBIDAS",
-            "FLAVIO BORTOLINI": "EXPORTACAO",
-            "FRANCISCO ALVES FERREIRA": "SORVETES",
-            "GABRIEL PAZIANOTO": "SORVETES",
-            "GEORGIA ARAUJO": "SORVETES",
-            "GILBERTO JUNIOR": "PANIFICACAO",
-            "GLAUCIO MARINI": "CARNEOS",
-            "GUILHERME ANTONIO": "SORVETES",
-            "GUILHERME SILVA": "SNACKS, MOLHOS E BEBIDAS",
-            "GUSTAVO BONFIM": "SNACKS, MOLHOS E BEBIDAS",
-            "GUSTAVO MAIA": "NUTRICAO ANIMAL",
-            "IGOR CROVATO": "LACTEOS",
-            "JACKSON DE ALMEIDA FREITAS": "SORVETES",
-            "JOAO SCHITTKOWSKI": "NUTRICAO ESPORTIVA",
-            "JULIANA LAGUNA": "PANIFICACAO",
-            "JURACI TALASCA": "CARNEOS",
-            "KARLA ALMEIDA": "NUTRICAO ESPORTIVA",
-            "LEANDRO FENALTI": "PANIFICACAO",
-            "LEANDRO GASPARINI": "PANIFICACAO",
-            "LEILA RODRIGUES": "PANIFICACAO",
-            "LEONARDO GARCIA": "CARNEOS",
-            "LEONARDO SODRE": "CARNEOS",
-            "LUCIMARIO BEZERRA DA SILVA": "SORVETES",
-            "LUIS ADRIANO": "CARNEOS",
-            "LUIS FELIPE CASSA": "SORVETES",
-            "LUIS SCARPIN": "FOOD SERVICE",
-            "LUIZ FELIPE": "SORVETES",
-            "MAICON SILVA": "SORVETES",
-            "MARCELO COSTA": "LACTEOS",
-            "MARCO ANTONIO": "SORVETES",
-            "MARCUS MASCARENHAS": "SORVETES",
-            "MARIANA CONEGERO": "EXPORTACAO",
-            "MARINA POSSEBON": "CARNEOS",
-            "MARIO GUERRERO": "EXPORTACAO",
-            "MARISTELA THOMAZINI": "PANIFICACAO",
-            "MARITZA TEIXEIRA": "PANIFICACAO",
-            "MARTIN SCHWARZ": "SORVETES",
-            "MELINA MUFFO RUZZI": "SORVETES",
-            "MORLEY RAMALHO": "SNACKS, MOLHOS E BEBIDAS",
-            "NATA ZAFENATE": "SORVETES",
-            "PATRICIA CORREIA": "NUTRICAO ESPORTIVA",
-            "PAULO BARRETO": "SNACKS, MOLHOS E BEBIDAS",
-            "PEDRO DE OLIVEIRA SILVA": "SORVETES",
-            "PEDRO LESSA": "SORVETES",
-            "RENATO VASCONCELOS": "SNACKS, MOLHOS E BEBIDAS",
-            "RICARDO BUKALIL": "SORVETES",
-            "SAULO NACLE PEREIRA": "SORVETES",
-            "SERGIO VIEIRA": "NUTRICAO ESPORTIVA",
-            "SIDNEI RODRIGUES": "FARMA",
-            "TATIANE LOURENCO": "FARMA",
-            "VAGA - ANA FLAVIA AMAMOTO": "SNACKS, MOLHOS E BEBIDAS",
-            "VAGA - ED CARLOS RIBEIRO SANTANA": "CARNEOS",
-            "VAGA - LINCOLN VIANNA": "SNACKS, MOLHOS E BEBIDAS",
-            "VAGA - LUCIANA ALVES": "FOOD SERVICE",
-            "VAGA - PATRICIA ALVES PINATTI": "SNACKS, MOLHOS E BEBIDAS",
-            "VICTOR ROSSI": "FARMA",
-            "VINICIUS REGINATO": "SNACKS, MOLHOS E BEBIDAS",
-            "VINICIUS SILVA": "SNACKS, MOLHOS E BEBIDAS",
-            "VITOR DINIZ": "SORVETES",
-            "VITOR VINAS DUTRA": "SORVETES",
-            "WASHINGTON DIAS": "CARNEOS",
-            "WILSON LUCENA": "SORVETES"
+        // CONFIGURAÇÃO DOS GERENTES
+        const MANAGERS = {
+            'CÁRNEOS': { name: 'LUIS ADRIANO', pass: 'carneospass123', dataValue: 'CARNEOS' },
+            'LACTEOS': { name: 'VITOR MACHADO', pass: 'lacteospass456', dataValue: 'LACTEOS' },
+            'NUTRIÇÃO ESPORTIVA': { name: 'JOÃO SCHITTKOWSKI', pass: 'esportivapass123', dataValue: 'NUTRIÇÃO ESPORTIVA' },
+            'FARMA': { name: 'VANESSA BADARÓ', pass: 'farmapass123', dataValue: 'FARMA' },
+            'NUTRICAO ANIMAL': { name: 'DANILO TREMOLCOLDI', pass: 'nutricaopass303', dataValue: 'NUTRICAO ANIMAL' },
+            'PANIFICACAO': { name: 'MARISTELA', pass: 'panificacaopass101', dataValue: 'PANIFICACAO' },
+            'SMB': { name: 'GUSTAVO BONFIM', pass: 'smbpass202', dataValue: 'SNACKS, MOLHOS E BEBIDAS' },
+            'SORVETES': { name: 'VINICIUS MADALENO', pass: 'sorvetespass789', dataValue: 'SORVETES' },
+            'ADMIN': { name: 'Admin', pass: 'admin123', dataValue: 'ADMIN' }
         };
 
-        // --- Mapeamento do DOM ---
-        const $ = id => document.getElementById(id);
-        const els = {
-            dashboard: $('dashboard'), inputSection: $('input-section'), sellersList: $('sellers-list'),
-            notifsList: $('notifications-list'), obsFilter: $('observation-segment-filter'),
-            obsSearch: $('observation-search-input'), obsReplied: $('filter-replied-obs'),
-            samplesModal: $('feedback-samples-modal'), samplesList: $('feedback-samples-list'),
-            samplesTitle: $('feedback-samples-title'), modalSegFilter: $('modal-segment-filter'),
-            modalReplied: $('modal-filter-replied'), replyModal: $('reply-modal'),
-            liveIndicator: $('live-indicator'),
-            sendReplyBtn: $('send-reply-btn'), cancelReplyBtn: $('cancel-reply-btn'),
-            historyBtn: $('history-btn'), historyModal: $('history-modal'),
-            closeHistoryBtn: $('close-history-btn'), 
-            pdFeedList: $('pd-postits-list'), pdFilter: $('pd-postit-segment-filter'), 
-            attentionList: $('attention-list'), segmentChartsGrid: $('segment-charts-grid'),
-            saveInternalNoteBtn: $('save-internal-note-btn'), processBtn: $('process-btn'),
-            internalNoteManager: $('internal-note-manager'), internalNoteMessage: $('internal-note-message'),
-            closeSamplesBtn: $('close-feedback-samples-btn')
+        const SPECIAL_MAPPING = {
+            'FERNANDA BEATRIZ': 'NUTRIÇÃO ESPORTIVA',
+            'ANDREIA TINTI': 'NUTRIÇÃO ESPORTIVA',
+            'PATRICIA CORREIA': 'NUTRIÇÃO ESPORTIVA',
+            'KARLA ALMEIDA': 'NUTRIÇÃO ESPORTIVA'
         };
 
-        // --- Estado Global ---
-        let currentSessionId = null;
-        let allSamples = [];
-        let sellerDocs = []; 
-        let sellerSegments = {};
-        let managerReplies = [];
-        let starredIds = [];
-        let readIds = [];
-        let pdPostits = [];
-        let systemNotifs = [];
-        let internalNotes = [];
-        let sellerReplies = []; 
-        let currentFilterFeedback = '';
-
-        const norm = t => t ? t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : '';
-        const sanitize = t => norm(t).replace(/[\/\.]/g, "-");
-        const isAroma = (p, d) => norm(p).startsWith('DAR ') || norm(p).startsWith('AROMAS ') || norm(d).includes('AROMA');
-
-        // --- Funções de Ação ---
-
-        async function toggleAction(sampleId, path) {
-            if (!currentSessionId) return;
-            const ref = doc(db, "sessoes", currentSessionId, "configuracoes", path);
-            try {
-                await runTransaction(db, async t => {
-                    const snap = await t.get(ref);
-                    let list = snap.exists() ? (snap.data().lista || []) : [];
-                    list = list.includes(sampleId) ? list.filter(id => id !== sampleId) : [...list, sampleId];
-                    t.set(ref, { lista: list });
-                });
-            } catch (e) { console.error(e); }
-        }
-
-        async function darBaixa(sellerName) {
-            if (!currentSessionId) return;
-            const docRef = doc(db, "sessoes", currentSessionId, "vendedores", sanitize(sellerName));
-            try {
-                await runTransaction(db, async t => {
-                    const snap = await t.get(docRef);
-                    if (!snap.exists()) return;
-                    const samples = snap.data().amostras.map(s => ({ ...s, systemStatus: 'baixado' }));
-                    t.update(docRef, { amostras: samples });
-                });
-                alert("Baixa confirmada para: " + sellerName);
-            } catch (e) { alert("Erro ao processar baixa."); }
-        }
-
-        async function deleteNote(id) {
-            if(!currentSessionId || !confirm("Tem certeza que deseja excluir esta nota?")) return;
-            try {
-                await deleteDoc(doc(db, "sessoes", currentSessionId, "notasInternas", id));
-            } catch(e) { console.error(e); alert("Erro ao excluir nota."); }
-        }
-
-        function populateAllFilters() {
-            const segs = [...new Set(Object.values(sellerSegments).filter(Boolean))].sort();
-            const opts = `<option value="">Todos os Segmentos</option><option value="AROMAS_FILTER">Aromas (DAR)</option>` + 
-                         segs.map(s => `<option value="${s}">${s}</option>`).join('');
-            if (els.modalSegFilter) els.modalSegFilter.innerHTML = opts;
-            if (els.obsFilter) els.obsFilter.innerHTML = opts;
-            if (els.pdFilter) els.pdFilter.innerHTML = opts;
-        }
-
-        // --- Renders ---
-
-        function renderSampleCard(s, isAttention = false) {
-            const isRead = readIds.includes(s.id);
-            const isStarred = starredIds.includes(s.id);
-            const reply = managerReplies.find(r => r.sellerName === s.sellerName && r.pedido === s.pedido && r.produto === s.produto);
-            
-            // Format timestamp
-            const dateObj = s.lastUpdate && s.lastUpdate.toDate ? s.lastUpdate.toDate() : new Date();
-            const dateStr = dateObj.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-
-            return `
-                <div class="relative bg-white rounded-xl shadow-sm border ${isRead ? 'border-slate-100' : 'border-blue-200'} overflow-hidden transition-all hover:shadow-md">
-                    ${!isRead ? '<div class="unread-indicator"></div>' : ''}
-                    <div class="p-4">
-                        <div class="flex justify-between items-start gap-2 mb-2">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2">
-                                    <p class="text-[9px] font-black text-blue-600 uppercase truncate tracking-tight">${s.razaoSocial || 'Cliente não informado'}</p>
-                                    ${!isRead ? '<span class="unread-badge">NOVO</span>' : ''}
-                                </div>
-                                <h4 class="font-bold text-slate-800 text-sm truncate" title="${s.produto}">${s.produto}</h4>
-                            </div>
-                            <div class="flex gap-1">
-                                <button onclick="window.toggleAction('${s.id}', 'destaquesAmostras')" class="btn-action-round ${isStarred ? 'text-amber-500' : 'text-slate-300'}" title="Favoritar">
-                                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                                </button>
-                                <button onclick="window.toggleAction('${s.id}', 'amostrasLidas')" class="btn-action-round ${isRead ? 'text-slate-400' : 'text-blue-500'}" title="Marcar lida">
-                                    <svg class="w-5 h-5 fill-none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[9px] text-slate-500 uppercase font-black mb-3">
-                            <div class="truncate bg-slate-50 p-1 rounded">Ped: <span class="text-slate-800 font-bold">${s.pedido || '-'}</span></div>
-                            <div class="truncate bg-slate-50 p-1 rounded">Qtde: <span class="text-slate-800 font-bold">${s.qtde || '-'}</span></div>
-                            <div class="truncate bg-slate-50 p-1 rounded">Vend: <span class="text-slate-800 font-bold">${s.sellerName}</span></div>
-                            <div class="truncate bg-slate-50 p-1 rounded">NF: <span class="text-slate-800 font-bold">${s.notaFiscal || '-'}</span></div>
-                            <div class="col-span-2 truncate bg-slate-50 p-1 rounded">Emissão: <span class="text-slate-800 font-bold">${s.emissaoNF || '-'}</span></div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <p class="text-[10px] text-slate-500 italic line-clamp-2 leading-tight">Desc: ${s.descricao || '-'}</p>
-                            <div class="text-[11px] bg-slate-50 p-2 rounded border border-slate-100 flex justify-between items-center">
-                                <div>
-                                    <span class="font-bold text-[9px] text-slate-400 block uppercase mb-0.5">Feedback:</span> 
-                                    <span class="text-slate-700">${s.feedback || 'Aguardando.'}</span>
-                                </div>
-                                <span class="text-[8px] text-slate-400 font-bold bg-white px-1 rounded border">${dateStr}</span>
-                            </div>
-                            ${s.observation ? `<div class="text-[11px] bg-blue-50/50 p-2 rounded border border-blue-100"><span class="font-bold text-[9px] text-blue-400 block uppercase mb-0.5">Obs:</span> <span class="text-slate-800 font-medium leading-relaxed">"${s.observation}"</span></div>` : ''}
-                        </div>
-                        ${reply ? `<div class="mt-3 bg-green-50 p-3 rounded-lg border-l-4 border-green-400 text-[11px] italic text-green-900 shadow-sm leading-snug"><strong>Sua Resposta:</strong> "${reply.replyMessage}"</div>` : ''}
-                    </div>
-                    ${!isAttention ? `<button onclick="window.openReply('${s.id}')" class="w-full py-2.5 bg-slate-50 text-[10px] font-black text-slate-400 hover:bg-blue-600 hover:text-white transition-all border-t uppercase tracking-[0.2em]">Responder Observação</button>` : ''}
-                </div>`;
-        }
-
-        function renderDashboard() {
-            if(!els.dashboard) return;
-            els.dashboard.classList.remove('hidden');
-            els.inputSection.classList.add('hidden');
-
-            const dataSource = [...allSamples];
-            
-            const starred = dataSource.filter(s => starredIds.includes(s.id));
-            if(els.attentionList) els.attentionList.innerHTML = starred.length ? starred.map(s => renderSampleCard(s, true)).join('') : '<p class="text-xs text-slate-400 italic col-span-full text-center py-10">Use a estrela para destacar amostras críticas aqui.</p>';
-
-            const categorize = (samples) => {
-                const cats = { approved: {}, rejected: {}, events: {}, pending: {} };
-                samples.forEach(s => {
-                    let cat = 'pending';
-                    if (s.feedback) {
-                        const f = s.feedback.toUpperCase();
-                        if (f.startsWith('A -') || f.includes('APROVAD')) cat = 'approved';
-                        else if (f.startsWith('R -')) cat = 'rejected';
-                        else if (f.startsWith('E -') || f.includes('EVENTO')) cat = 'events';
-                    }
-                    const k = s.feedback || 'SEM FEEDBACK (PENDENTE)';
-                    cats[cat][k] = (cats[cat][k] || 0) + 1;
-                });
-                return cats;
-            };
-            const cats = categorize(dataSource);
-            
-            const drawList = (id, data) => {
-                const el = $(id); if(!el) return;
-                el.innerHTML = Object.entries(data).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
-                    <li>
-                        <button onclick="window.showSamples('${k}')" class="w-full text-left hover:bg-slate-50 px-2 py-1 rounded flex justify-between items-center group">
-                            <span class="text-[10px] truncate group-hover:text-blue-600 font-bold uppercase tracking-tight">${k}</span>
-                            <span class="font-black text-[10px] bg-slate-100 px-2 rounded-full">${v}</span>
-                        </button>
-                    </li>`).join('');
-            };
-            
-            drawList('approved-feedback-list', cats.approved);
-            drawList('rejected-feedback-list', cats.rejected);
-            drawList('events-feedback-list', cats.events);
-            drawList('pending-feedback-list', cats.pending);
-
-            renderObsFeed();
-            renderEquipe();
-            updateDashboardCharts();
-            renderSegmentCharts();
-        }
-
-        function renderEquipe() {
-            const sellers = {};
-            allSamples.forEach(s => {
-                if (!sellers[s.sellerName]) sellers[s.sellerName] = { p: 0, t: 0, s: 'pending' };
-                sellers[s.sellerName].t++;
-                if (!s.feedback) sellers[s.sellerName].p++;
-                if (s.systemStatus === 'baixado') sellers[s.sellerName].s = 'baixado';
-            });
-
-            if(els.sellersList) els.sellersList.innerHTML = Object.keys(sellers).sort().map(name => {
-                const s = sellers[name];
-                const docData = sellerDocs.find(d => d.originalName === name);
-                const code = docData ? docData.accessCode : '---';
-                const isFinalized = s.p === 0 && s.s !== 'baixado';
-                
-                return `
-                    <div onclick="window.openSellerDetails('${name}')" class="group p-5 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer relative overflow-hidden">
-                        <div class="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                        </div>
-                        <div>
-                            <div class="flex flex-col gap-1 mb-3">
-                                <h4 class="font-bold text-slate-800 text-sm">${name}</h4>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[10px] font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200 font-bold tracking-widest">${code}</span>
-                                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wide border border-slate-100 px-1.5 rounded">${sellerSegments[norm(name)] || 'N/D'}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-4 pt-3 border-t border-slate-50 flex justify-between items-center">
-                             <div class="flex flex-col">
-                                <span class="text-[10px] text-slate-400 font-bold uppercase">Status</span>
-                                <span class="text-xs font-black ${s.s === 'baixado' ? 'text-purple-600' : s.p === 0 ? 'text-green-600' : 'text-yellow-600'}">
-                                    ${s.s === 'baixado' ? 'FINALIZADO' : s.p === 0 ? 'CONCLUÍDO' : s.p + ' PENDENTES'}
-                                </span>
-                             </div>
-                             ${isFinalized ? `<button onclick="event.stopPropagation(); window.darBaixa('${name}')" class="text-[9px] bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-1.5 rounded-lg transition-colors uppercase shadow-sm tracking-wide z-10 relative">Dar Baixa</button>` : ''}
-                        </div>
-                    </div>`;
-            }).join('');
-        }
-
-        function renderObsFeed() {
-            const seg = els.obsFilter?.value;
-            const search = norm(els.obsSearch?.value);
-            const showReplied = els.obsReplied?.checked;
-
-            let filtered = allSamples.filter(s => s.observation && s.observation.trim() !== '');
-            if (seg) filtered = filtered.filter(s => seg === 'AROMAS_FILTER' ? isAroma(s.produto, s.descricao) : sellerSegments[norm(s.sellerName)] === seg);
-            if (search) filtered = filtered.filter(s => norm(s.sellerName).includes(search));
-            if (showReplied) filtered = filtered.filter(s => managerReplies.some(r => r.sellerName === s.sellerName && r.pedido === s.pedido && r.produto === s.produto));
-
-            // ORDENAÇÃO: Mais recentes primeiro (baseado em lastUpdate)
-            filtered.sort((a, b) => {
-                const ta = a.lastUpdate?.toDate ? a.lastUpdate.toDate() : new Date(0);
-                const tb = b.lastUpdate?.toDate ? b.lastUpdate.toDate() : new Date(0);
-                return tb - ta;
-            });
-
-            const container = $('observations-feed-list');
-            if(container) container.innerHTML = filtered.length ? filtered.map(s => renderSampleCard(s)).join('') : '<p class="text-center py-20 text-slate-300 italic text-xs tracking-widest uppercase">Nenhuma observação disponível</p>';
-        }
-
-        function renderSegmentCharts() {
-            const container = els.segmentChartsGrid;
-            if(!container) return;
-            container.innerHTML = '';
-
-            const dataBySeg = {};
-            allSamples.forEach(s => {
-                const seg = sellerSegments[norm(s.sellerName)];
-                if(!seg || !s.feedback) return;
-                if(!dataBySeg[seg]) dataBySeg[seg] = { approved: 0, rejected: 0, events: 0 };
-                const f = s.feedback.toUpperCase();
-                if(f.startsWith('A -') || f.includes('APROVAD')) dataBySeg[seg].approved++;
-                else if(f.startsWith('R -')) dataBySeg[seg].rejected++;
-                else if(f.startsWith('E -') || f.includes('EVENTO')) dataBySeg[seg].events++;
-            });
-
-            Object.keys(dataBySeg).sort().forEach((seg, i) => {
-                const canvasId = `chart-seg-${i}`;
-                const div = document.createElement('div');
-                div.className = 'bg-white p-6 rounded-2xl border shadow-sm';
-                div.innerHTML = `<h4 class="text-center font-black text-slate-500 mb-6 text-[10px] uppercase tracking-[0.3em] border-b pb-2">${seg}</h4><div style="height:220px"><canvas id="${canvasId}"></canvas></div>`;
-                container.appendChild(div);
-
-                const ctx = $(canvasId).getContext('2d');
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Aprovados', 'Reprovados', 'Eventos'],
-                        datasets: [{
-                            data: [dataBySeg[seg].approved, dataBySeg[seg].rejected, dataBySeg[seg].events],
-                            backgroundColor: ['#10b981', '#ef4444', '#a855f7'],
-                            borderRadius: 8
-                        }]
-                    },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false, 
-                        plugins: { legend: { display: false } }, 
-                        scales: { 
-                            y: { beginAtZero: true, ticks: { precision: 0, font: { size: 9 } } },
-                            x: { ticks: { font: { size: 9, weight: 'bold' } } }
-                        } 
-                    }
-                });
-            });
-        }
-
-        function updateDashboardCharts() {
-            let p = 0, r = 0;
-            allSamples.forEach(s => s.feedback ? r++ : p++);
-            renderDoughnut('session-status-chart', ['Pendentes', 'Respondidos'], [p, r], ['#fbbf24', '#3b82f6']);
-            
-            let ap = 0, re = 0, ev = 0;
-            allSamples.forEach(s => {
-                if(!s.feedback) return;
-                const f = s.feedback.toUpperCase();
-                if (f.startsWith('A -') || f.includes('APROVAD')) ap++;
-                else if (f.startsWith('R -')) re++;
-                else if (f.startsWith('E -') || f.includes('EVENTO')) ev++;
-            });
-            renderDoughnut('rejection-rate-chart', ['Aprovados', 'Reprovados', 'Eventos'], [ap, re, ev], ['#10b981', '#ef4444', '#8b5cf6']);
-        }
-
-        function renderDoughnut(id, labels, data, colors) {
-            const canvas = $(id);
-            if(!canvas) return;
-            const ctx = canvas.getContext('2d');
-            if(window.charts && window.charts[id]) window.charts[id].destroy();
-            if(!window.charts) window.charts = {};
-            window.charts[id] = new Chart(ctx, { 
-                type:'doughnut', 
-                data:{labels, datasets:[{data, backgroundColor:colors, borderWidth:0}]}, 
-                options:{
-                    responsive:true, 
-                    maintainAspectRatio:false, 
-                    plugins:{
-                        legend:{position:'bottom', labels:{usePointStyle:true, font:{size:9, weight:'bold'}, padding: 15}}
-                    }, 
-                    cutout:'78%'
-                } 
-            });
-        }
-
-        // --- Firebase Listeners ---
-
-        function setupListeners(sessionId) {
-            currentSessionId = sessionId;
-            if(els.liveIndicator) els.liveIndicator.classList.remove('hidden');
-
-            onSnapshot(collection(db, "sessoes", sessionId, "vendedores"), snap => {
-                sellerDocs = snap.docs.map(d => d.data());
-                allSamples = snap.docs.flatMap(d => d.data().amostras || []);
-                loadSegmentsData([...new Set(allSamples.map(s => s.sellerName))]);
-                renderDashboard();
-            });
-
-            onSnapshot(doc(db, "sessoes", sessionId, "configuracoes", "destaquesAmostras"), s => { starredIds = s.exists() ? s.data().lista || [] : []; renderDashboard(); });
-            onSnapshot(doc(db, "sessoes", sessionId, "configuracoes", "amostrasLidas"), s => { readIds = s.exists() ? s.data().lista || [] : []; renderDashboard(); });
-            onSnapshot(collection(db, "sessoes", sessionId, "notificacoesVendedor"), snap => { managerReplies = snap.docs.map(d => d.data()); renderDashboard(); });
-            
-            // Listeners combinados para o feed de notificações - REMOVIDO orderBy para evitar erros de índice
-            onSnapshot(collection(db, "sessoes", sessionId, "notificacoes"), snap => {
-                systemNotifs = snap.docs.map(d => ({ ...d.data(), type: 'sys' }));
-                updateNotifUI();
-            });
-            onSnapshot(collection(db, "sessoes", sessionId, "notasInternas"), snap => {
-                internalNotes = snap.docs.map(d => ({ ...d.data(), id: d.id, type: 'note' }));
-                updateNotifUI();
-            });
-            onSnapshot(collection(db, "sessoes", sessionId, "respostasVendedor"), snap => {
-                sellerReplies = snap.docs.map(d => ({ ...d.data(), type: 'seller_reply' }));
-                updateNotifUI();
-            });
-
-            onSnapshot(query(collection(db, "sessoes", sessionId, "pdPostits"), orderBy("timestamp", "desc")), snap => {
-                pdPostits = snap.docs.map(d => d.data());
-                if(els.pdFeedList) els.pdFeedList.innerHTML = pdPostits.length ? pdPostits.map(p => `
-                    <div class="pd-postit-card mb-3">
-                        <p class="text-[11px] font-medium text-slate-800 leading-relaxed">${p.message}</p>
-                        <div class="flex justify-between mt-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-t pt-2 border-yellow-200">
-                            <span>${p.pdManagerName}</span>
-                            <span>${p.timestamp?.toDate().toLocaleTimeString()}</span>
-                        </div>
-                    </div>`).join('') : '<p class="text-center py-12 text-slate-300 italic text-[10px]">SEM NOTAS DE P&D</p>';
-            });
-        }
-
-        function updateNotifUI() {
-            const all = [...systemNotifs, ...internalNotes, ...sellerReplies].sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-            
-            if(els.notifsList) els.notifsList.innerHTML = all.length ? all.slice(0, 20).map(n => {
-                const date = n.timestamp?.toDate ? n.timestamp.toDate() : new Date();
-                const time = date.toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
-                
-                let borderClass = 'border-blue-500';
-                let bgClass = 'bg-white';
-                let deleteBtn = '';
-                let contentHTML = '';
-
-                if(n.type === 'note') { 
-                    borderClass = 'border-slate-400'; 
-                    bgClass = 'bg-slate-50'; 
-                    deleteBtn = `<button onclick="window.deleteNote('${n.id}')" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 transition-colors" title="Excluir Nota">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>`;
-                    contentHTML = `<p class="text-[11px] text-slate-700 leading-snug">${n.message}</p>`;
-                } 
-                else if (n.type === 'seller_reply') {
-                    borderClass = 'border-green-500';
-                    bgClass = 'bg-green-50';
-                    const displayText = n.message || `<strong>${n.sellerName}</strong> respondeu: ${n.feedback || ''} - ${n.produto || ''}`;
-                    contentHTML = `<p class="text-[11px] text-green-900 font-medium leading-snug">${displayText}</p>`;
-                }
-                else { 
-                    contentHTML = `<p class="text-[11px] text-slate-700 leading-snug">${n.message}</p>`;
-                }
-
-                return `
-                    <div class="notification-card p-3 rounded-xl border-l-4 ${borderClass} ${bgClass} shadow-sm flex flex-col gap-1 mb-2 relative">
-                        <div class="pr-4">
-                            ${contentHTML}
-                        </div>
-                        <span class="text-[8px] text-slate-400 font-black uppercase tracking-widest text-right mt-1">${time}</span>
-                        ${deleteBtn}
-                    </div>`;
-            }).join('') : '<p class="text-center py-10 text-slate-300 italic text-[10px]">SEM NOTIFICAÇÕES RECENTES</p>';
-            
-            const hist = $('history-list');
-            if(hist) hist.innerHTML = all.map(n => `<div class="p-4 bg-slate-50 border rounded-xl mb-3"><p class="text-xs font-medium text-slate-800">${n.message || n.replyMessage || `Resposta de ${n.sellerName}`}</p><p class="text-[9px] text-slate-400 mt-1 uppercase font-bold">${n.timestamp?.toDate().toLocaleString()}</p></div>`).join('');
-        }
-
-        async function loadSegmentsData(names) {
-            const snap = await getDocs(collection(db, "vendedorConfig"));
-            const map = {}; 
-            snap.forEach(d => map[d.id] = d.data().segmento);
-            
-            const normalizedDefaults = {};
-            Object.entries(DEFAULT_SELLER_SEGMENTS).forEach(([k, v]) => {
-                normalizedDefaults[norm(k)] = v;
-            });
-
-            names.forEach(n => {
-                const normalized = norm(n);
-                if (normalizedDefaults[normalized]) {
-                    sellerSegments[normalized] = normalizedDefaults[normalized];
-                } else {
-                    sellerSegments[normalized] = map[sanitize(n)] || null;
-                }
-            });
-            
-            populateAllFilters();
-            renderDashboard(); 
-        }
-
-        // --- Exposures ---
-
-        window.toggleAction = toggleAction;
-        window.darBaixa = darBaixa;
-        window.deleteNote = deleteNote; 
+        const PENDING_STATUSES = ['EM ANÁLISE', 'AMOSTRA SEM FEEDBACK', 'SEM RETORNO DO CLIENTE', 'AMOSTRA NÃO TESTADA', 'PENDENTE'];
         
-        window.openSellerDetails = (name) => {
-            const modal = $('seller-details-modal');
-            const title = $('seller-details-name');
-            const seg = $('seller-details-segment');
-            const list = $('seller-samples-list');
-            
-            if(title) title.textContent = name;
-            if(seg) seg.textContent = sellerSegments[norm(name)] || 'Segmento não definido';
-            
-            // Filter samples
-            const sellerSamples = allSamples.filter(s => s.sellerName === name);
-            
-            if (sellerSamples.length === 0) {
-                if(list) list.innerHTML = '<div class="text-center py-12 text-slate-400 italic">Nenhuma amostra encontrada para este vendedor.</div>';
-            } else {
-                // Sort: Pending first
-                sellerSamples.sort((a, b) => {
-                    if (a.isPending && !b.isPending) return -1;
-                    if (!a.isPending && b.isPending) return 1;
-                    return 0; 
-                });
-                if(list) list.innerHTML = sellerSamples.map(s => renderSampleCard(s, false)).join('');
-            }
-            
-            if(modal) modal.classList.remove('hidden');
-        };
+        // Elementos DOM Principais
+        const loginView = document.getElementById('login-view');
+        const dashboardView = document.getElementById('dashboard-view');
+        const segmentGrid = document.getElementById('segment-grid');
+        const passwordInput = document.getElementById('manager-password-input');
+        const loginBtn = document.getElementById('manager-login-btn');
+        const loginError = document.getElementById('login-error');
+        const feedList = document.getElementById('feed-list');
+        const sellersList = document.getElementById('sellers-list');
+        const btnShowAllSellers = document.getElementById('btn-show-all-sellers');
+        
+        // Filtros de Data
+        const filterStartDate = document.getElementById('filter-start-date');
+        const filterEndDate = document.getElementById('filter-end-date');
+        const clearDateFilter = document.getElementById('clear-date-filter');
 
-        window.openReply = (id) => {
-            const s = allSamples.find(x => x.id === id);
-            if (!s) return;
-            $('reply-modal-product').textContent = s.produto;
-            $('reply-modal-seller').textContent = s.sellerName;
-            els.replyModal.querySelector('.italic').textContent = `"${s.observation}"`;
-            els.replyModal.dataset.currentId = id;
-            els.replyModal.classList.remove('hidden');
-        };
-        window.showSamples = (f) => {
-            currentFilterFeedback = f;
-            const seg = els.modalSegFilter?.value;
-            const replied = els.modalReplied?.checked;
-            let filtered = allSamples.filter(s => (s.feedback || 'SEM FEEDBACK (PENDENTE)') === f);
-            if(seg) filtered = filtered.filter(s => seg === 'AROMAS_FILTER' ? isAroma(s.produto, s.descricao) : sellerSegments[norm(s.sellerName)] === seg);
-            if(replied) filtered = filtered.filter(s => managerReplies.some(r => r.sellerName === s.sellerName && r.pedido === s.pedido && r.produto === s.produto));
+        // Estado
+        let currentSegmentKey = null; 
+        let currentSegmentDataValue = null; 
+        let currentSessionId = null;
+        let selectedSellerFilter = null; // null = Todos
+        let allSegmentSamples = []; 
+        let highlightedSamplesCache = [];
+        let managerReplies = [];
+        let itemNotesMap = {};
+        let sellerSegmentsCache = {}; 
+        let statusChart = null;
+        let detailsChart = null;
+        
+        // Cores para avatares
+        const AVATAR_COLORS = [
+            'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-green-500', 'bg-emerald-500',
+            'bg-teal-500', 'bg-cyan-500', 'bg-sky-500', 'bg-blue-500', 'bg-indigo-500',
+            'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500', 'bg-rose-500'
+        ];
 
-            els.samplesTitle.textContent = `Amostras: ${f} (${filtered.length})`;
-            els.samplesList.innerHTML = filtered.length ? filtered.map(s => renderSampleCard(s)).join('') : '<p class="text-center py-20 italic text-slate-400">Nenhum registro.</p>';
-            els.samplesModal.classList.remove('hidden');
-        };
-
-        // --- Eventos ---
-
-        if (els.saveInternalNoteBtn) {
-            els.saveInternalNoteBtn.onclick = async () => {
-                const name = els.internalNoteManager.value.trim();
-                const msg = els.internalNoteMessage.value.trim();
-                if(!name || !msg) return;
-                await addDoc(collection(db, "sessoes", currentSessionId, "notasInternas"), { managerName: name, message: `<strong>${name}</strong> (Nota): ${msg}`, timestamp: serverTimestamp() });
-                els.internalNoteMessage.value = '';
-            };
-        }
-
-        if (els.sendReplyBtn) {
-            els.sendReplyBtn.onclick = async () => {
-                const s = allSamples.find(x => x.id === els.replyModal.dataset.currentId);
-                const msg = $('reply-message-input').value.trim();
-                const manager = $('manager-name-input').value.trim();
-                if(!msg || !manager || !s) return;
-                await addDoc(collection(db, "sessoes", currentSessionId, "notificacoesVendedor"), { 
-                    managerName: manager, replyMessage: msg, sellerName: s.sellerName, 
-                    pedido: s.pedido, produto: s.produto, timestamp: serverTimestamp() 
-                });
-                els.replyModal.classList.add('hidden');
-                $('reply-message-input').value = '';
-                alert("Resposta enviada com sucesso!");
-            };
-        }
-
-        if (els.cancelReplyBtn) els.cancelReplyBtn.onclick = () => els.replyModal.classList.add('hidden');
-        if (els.obsFilter) els.obsFilter.onchange = renderObsFeed;
-        if (els.obsSearch) els.obsSearch.oninput = renderObsFeed;
-        if (els.obsReplied) els.obsReplied.onchange = renderObsFeed;
-        if (els.modalSegFilter) els.modalSegFilter.onchange = () => window.showSamples(currentFilterFeedback);
-        if (els.modalReplied) els.modalReplied.onchange = () => window.showSamples(currentFilterFeedback);
-        if (els.historyBtn) els.historyBtn.onclick = () => els.historyModal.classList.remove('hidden');
-        if (els.closeHistoryBtn) els.closeHistoryBtn.onclick = () => els.historyModal.classList.add('hidden');
-        if (els.closeSamplesBtn) els.closeSamplesBtn.onclick = () => els.samplesModal.classList.add('hidden');
-        if (els.processBtn) els.processBtn.onclick = () => els.inputSection.classList.remove('hidden');
-
-        // --- Init ---
-
+        // --- Inicialização ---
         (async () => {
             try {
                 await signInAnonymously(auth);
-                onSnapshot(doc(db, "configuracoes", "sessaoAtiva"), s => {
-                    const act = s.data()?.current;
-                    if(act) { 
-                        setupListeners(act); 
-                        if ($('session-id-text')) $('session-id-text').textContent = "SESSÃO: " + act.split('_')[1]; 
-                    } else { 
-                        els.dashboard.classList.add('hidden'); 
-                        els.inputSection.classList.remove('hidden'); 
-                    }
-                });
-            } catch (err) { console.error("Erro no Auth:", err); }
+                renderLoginSegments();
+                const savedKey = localStorage.getItem('managerSegmentKey');
+                if (savedKey && MANAGERS[savedKey]) autoSelectSegment(savedKey);
+            } catch (e) { console.error(e); }
         })();
+
+        // --- Utils ---
+        const normalizeText = (text = '') => text ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim().replace(/\s+/g, ' ') : '';
+        const getInitials = (name) => {
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        };
+        const getAvatarColor = (name) => {
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+        };
+        function showAlert(msg, title = "Aviso") {
+            document.getElementById('custom-alert-title').textContent = title;
+            document.getElementById('custom-alert-message').innerHTML = msg;
+            document.getElementById('custom-alert').classList.remove('hidden');
+        }
+        document.getElementById('custom-alert-ok-btn').onclick = () => document.getElementById('custom-alert').classList.add('hidden');
+
+        // Helper para Data
+        function parseDateBR(dateStr) {
+            if (!dateStr) return null;
+            // Tenta converter se for timestamp do firestore
+            if (typeof dateStr === 'object' && dateStr.toDate) return dateStr.toDate();
+            
+            // Se for string DD/MM/YYYY
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+            return new Date(dateStr); // Tenta formato padrão
+        }
+
+        // --- Login Logic ---
+        function renderLoginSegments() {
+            segmentGrid.innerHTML = '';
+            Object.entries(MANAGERS).filter(([k]) => k !== 'ADMIN').forEach(([key, data]) => {
+                const btn = document.createElement('button');
+                btn.className = 'login-card text-left p-4 rounded-xl cursor-pointer flex flex-col justify-between h-24 relative overflow-hidden group';
+                btn.innerHTML = `<span class="font-bold text-xs text-slate-700 z-10">${key}</span><span class="text-[10px] text-slate-500 z-10">${data.name}</span>`;
+                btn.onclick = () => selectSegment(btn, key);
+                segmentGrid.appendChild(btn);
+            });
+        }
+
+        function selectSegment(btn, key) {
+            document.querySelectorAll('.login-card').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            currentSegmentKey = key;
+            currentSegmentDataValue = MANAGERS[key].dataValue;
+            passwordInput.focus();
+        }
+
+        function autoSelectSegment(key) {
+            const btns = Array.from(document.querySelectorAll('.login-card'));
+            const target = btns.find(b => b.innerText.includes(key));
+            if(target) selectSegment(target, key);
+        }
+
+        loginBtn.addEventListener('click', async () => {
+            if (!currentSegmentKey && passwordInput.value === MANAGERS['ADMIN'].pass) { currentSegmentKey = 'ADMIN'; currentSegmentDataValue = 'ADMIN'; }
+            if (!currentSegmentKey || passwordInput.value !== MANAGERS[currentSegmentKey].pass) { loginError.textContent = "Credenciais inválidas."; return; }
+
+            loginBtn.textContent = "Entrando...";
+            localStorage.setItem('managerSegmentKey', currentSegmentKey);
+            
+            try {
+                const configSnap = await getDoc(doc(db, "configuracoes", "sessaoAtiva"));
+                if (configSnap.exists() && configSnap.data().current) {
+                    currentSessionId = configSnap.data().current;
+                    await loadSellerSegmentsCache(); 
+                    startDashboard();
+                } else {
+                    loginError.textContent = "Sem sessão ativa.";
+                    loginBtn.textContent = "Entrar";
+                }
+            } catch (e) { console.error(e); }
+        });
+
+        async function loadSellerSegmentsCache() {
+            try {
+                const snap = await getDocs(collection(db, "vendedorConfig"));
+                sellerSegmentsCache = {};
+                snap.forEach(d => {
+                    sellerSegmentsCache[d.id] = d.data().segmento;
+                });
+            } catch (e) {
+                console.error("Erro ao carregar segmentos:", e);
+            }
+        }
+
+        // --- Dashboard Logic ---
+        function startDashboard() {
+            loginView.classList.add('hidden');
+            dashboardView.classList.remove('hidden');
+            dashboardView.classList.add('flex');
+            
+            document.getElementById('header-segment-name').textContent = `${MANAGERS[currentSegmentKey].name}`;
+            document.getElementById('session-id-display').textContent = currentSessionId.split('_')[1] || 'Sessão';
+
+            onSnapshot(collection(db, "sessoes", currentSessionId, "vendedores"), processSnapshot);
+            
+            onSnapshot(doc(db, "sessoes", currentSessionId, "configuracoes", "destaquesAmostras"), (docSnap) => {
+                highlightedSamplesCache = docSnap.exists() ? (docSnap.data().lista || []) : [];
+                renderFeed(); 
+                renderAttentionArea();
+            });
+
+            onSnapshot(query(collection(db, "sessoes", currentSessionId, "notificacoesVendedor")), (snap) => {
+                managerReplies = snap.docs.map(d => ({...d.data(), id: d.id}));
+                // Ordena respostas mais recentes primeiro
+                managerReplies.sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                renderFeed();
+            });
+            
+            onSnapshot(query(collection(db, "sessoes", currentSessionId, "manager_item_notes"), where("segment", "==", currentSegmentDataValue)), (snap) => {
+                itemNotesMap = {};
+                snap.docs.forEach(d => itemNotesMap[d.id] = d.data());
+                renderFeed();
+            });
+
+            onSnapshot(query(collection(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_')), orderBy("timestamp", "desc")), renderInternalNotes);
+        }
+
+        function processSnapshot(snapshot) {
+            allSegmentSamples = [];
+            let sellersData = {};
+
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const sellerId = docSnap.id;
+                const sName = normalizeText(data.originalName);
+
+                let sellerSegment = sellerSegmentsCache[sellerId];
+                if (SPECIAL_MAPPING[sName]) sellerSegment = SPECIAL_MAPPING[sName];
+                
+                if (!sellerSegment && currentSegmentKey !== 'ADMIN') {
+                     if (sName.includes(currentSegmentDataValue)) sellerSegment = currentSegmentDataValue;
+                }
+
+                if (currentSegmentKey !== 'ADMIN' && sellerSegment !== currentSegmentDataValue) return;
+
+                const samples = data.amostras || [];
+                let pendingCount = 0;
+                
+                samples.forEach(s => {
+                    let isP = s.isPending;
+                    if (isP === undefined) isP = PENDING_STATUSES.includes(normalizeText(s.originalStatus));
+                    if (isP) pendingCount++;
+                    s.sellerName = data.originalName; 
+                    s.sellerId = sellerId;
+                });
+
+                if (samples.length > 0) {
+                     allSegmentSamples.push(...samples);
+                     sellersData[data.originalName] = {
+                         id: sellerId,
+                         name: data.originalName,
+                         total: samples.length,
+                         pending: pendingCount,
+                         finished: samples.length - pendingCount
+                     };
+                }
+            });
+
+            renderKPIs();
+            renderSellersList(sellersData);
+            renderFeed();
+            renderCharts();
+            renderBreakdown();
+        }
+
+        // --- Renderização Nova da Lista de Vendedores ---
+        function renderSellersList(sellersData) {
+            sellersList.innerHTML = '';
+            const sortedSellers = Object.values(sellersData).sort((a, b) => b.pending - a.pending);
+            document.getElementById('seller-count-badge').textContent = sortedSellers.length;
+
+            if (sortedSellers.length === 0) {
+                sellersList.innerHTML = '<div class="text-center p-4 text-slate-400 text-xs">Nenhum vendedor encontrado para este segmento.</div>';
+                return;
+            }
+
+            sortedSellers.forEach(seller => {
+                const div = document.createElement('div');
+                const isSelected = selectedSellerFilter === seller.name;
+                const initials = getInitials(seller.name);
+                const colorClass = getAvatarColor(seller.name);
+                
+                div.className = `seller-card flex items-center gap-3 p-3 rounded-xl border mb-1 group relative ${isSelected ? 'active border-blue-200 bg-blue-50 shadow-sm' : 'border-transparent hover:bg-slate-50'}`;
+                
+                div.innerHTML = `
+                    <div class="w-10 h-10 rounded-full ${colorClass} shrink-0 avatar-initials text-xs shadow-sm ring-2 ring-white">
+                        ${initials}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="seller-name text-xs font-bold text-slate-700 truncate group-hover:text-blue-600 transition-colors">${seller.name}</p>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="text-[10px] text-slate-500 font-medium">${seller.total} total</span>
+                            ${seller.pending > 0 
+                                ? `<span class="px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700 text-[9px] font-bold">${seller.pending} pend</span>` 
+                                : `<span class="text-[10px] text-green-600 font-bold flex items-center gap-0.5"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>OK</span>`}
+                        </div>
+                    </div>
+                    ${isSelected ? `<div class="absolute right-2 w-2 h-2 rounded-full bg-blue-500"></div>` : ''}
+                `;
+                
+                div.onclick = () => {
+                    selectedSellerFilter = seller.name;
+                    renderSellersList(sellersData);
+                    renderFeed();
+                };
+                sellersList.appendChild(div);
+            });
+        }
+
+        btnShowAllSellers.onclick = () => {
+            selectedSellerFilter = null;
+            document.querySelectorAll('.seller-card').forEach(c => c.classList.remove('active', 'bg-blue-50', 'border-blue-200'));
+            renderFeed();
+        };
+
+        // --- Renderização do Feed com Filtro de Data e Respostas Visíveis ---
+        function renderFeed() {
+            const searchTerm = document.getElementById('feed-search').value.toLowerCase();
+            feedList.innerHTML = '';
+            
+            // Datas do Filtro
+            let start = filterStartDate.value ? new Date(filterStartDate.value) : null;
+            let end = filterEndDate.value ? new Date(filterEndDate.value) : null;
+            if (end) end.setHours(23,59,59); // Final do dia
+
+            const headerTitle = document.getElementById('feed-title');
+            const headerSubtitle = document.getElementById('feed-subtitle');
+            const headerAvatar = document.getElementById('current-view-avatar');
+
+            if (selectedSellerFilter) {
+                headerTitle.textContent = selectedSellerFilter;
+                headerSubtitle.textContent = "Filtrado por vendedor";
+                headerAvatar.className = `hidden sm:flex w-10 h-10 rounded-full items-center justify-center text-white font-bold text-sm shadow-sm avatar-initials ${getAvatarColor(selectedSellerFilter)}`;
+                headerAvatar.textContent = getInitials(selectedSellerFilter);
+            } else {
+                headerTitle.textContent = "Visão Geral";
+                headerSubtitle.textContent = `Exibindo ${allSegmentSamples.length} amostras`;
+                headerAvatar.className = "hidden sm:flex w-10 h-10 rounded-full bg-slate-800 items-center justify-center text-white font-bold text-sm shadow-sm avatar-initials";
+                headerAvatar.textContent = "ALL";
+            }
+
+            let filtered = allSegmentSamples.filter(s => {
+                const matchesSearch = String(s.produto).toLowerCase().includes(searchTerm) || 
+                                      String(s.sellerName).toLowerCase().includes(searchTerm) ||
+                                      String(s.pedido).includes(searchTerm);
+                const matchesSeller = selectedSellerFilter ? s.sellerName === selectedSellerFilter : true;
+                
+                // Filtro de Data (Emissão NF)
+                let matchesDate = true;
+                if (start || end) {
+                    const dateStr = s.emissao || s.dataEmissao || s.emissaoNF;
+                    const dateObj = parseDateBR(dateStr);
+                    if (dateObj) {
+                        if (start && dateObj < start) matchesDate = false;
+                        if (end && dateObj > end) matchesDate = false;
+                    } else {
+                        matchesDate = false; // Se não tem data e filtro está ativo, esconde
+                    }
+                }
+
+                return matchesSearch && matchesSeller && matchesDate;
+            });
+            
+            filtered.sort((a, b) => {
+                const aStar = highlightedSamplesCache.includes(a.id) ? 1 : 0;
+                const bStar = highlightedSamplesCache.includes(b.id) ? 1 : 0;
+                if (bStar !== aStar) return bStar - aStar;
+                return (b.lastUpdate?.seconds || 0) - (a.lastUpdate?.seconds || 0);
+            });
+
+            if (filtered.length === 0) {
+                feedList.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-64 text-slate-400">
+                        <svg class="w-12 h-12 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        <p class="text-sm">Nenhuma amostra encontrada.</p>
+                    </div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const isStarred = highlightedSamplesCache.includes(item.id);
+                const itemNote = itemNotesMap[item.id];
+                
+                // Busca respostas para este item
+                const replies = managerReplies.filter(r => r.pedido == item.pedido && r.produto == item.produto); 
+                
+                const card = document.createElement('div');
+                card.className = `bg-white p-4 rounded-xl border transition-all hover:shadow-md relative group ${isStarred ? 'border-amber-300 shadow-sm ring-1 ring-amber-100' : 'border-slate-200'}`;
+                
+                let statusColor = 'bg-slate-100 text-slate-600';
+                if (!item.feedback) statusColor = 'bg-yellow-100 text-yellow-700';
+                else if (item.feedback.startsWith('A -')) statusColor = 'bg-green-100 text-green-700';
+                else if (item.feedback.startsWith('R -')) statusColor = 'bg-red-100 text-red-700';
+
+                // Constrói HTML das Respostas
+                let repliesHtml = '';
+                if (replies.length > 0) {
+                    // Mostra a resposta mais recente (primeira da lista filtrada e ordenada)
+                    const lastReply = replies[0]; 
+                    const replyDate = lastReply.timestamp ? formatDate(lastReply.timestamp) : '';
+                    
+                    repliesHtml = `
+                        <div class="mt-3 bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[10px] font-bold text-blue-800 uppercase flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                                    Respondido por ${lastReply.managerName || 'Gerente'}
+                                </span>
+                                <span class="text-[9px] text-blue-400">${replyDate}</span>
+                            </div>
+                            <p class="text-xs text-blue-900 font-medium italic">"${lastReply.replyMessage}"</p>
+                            ${replies.length > 1 ? `<p class="text-[9px] text-blue-400 mt-1 text-right font-bold cursor-pointer">+${replies.length - 1} anteriores</p>` : ''}
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full ${getAvatarColor(item.sellerName)} flex items-center justify-center text-[10px] font-bold text-white">
+                                ${getInitials(item.sellerName)}
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-800 leading-tight">${item.sellerName}</p>
+                                <p class="text-[10px] text-slate-400">${item.lastUpdate ? formatDate(item.lastUpdate) : 'Recent'}</p>
+                            </div>
+                        </div>
+                        <button class="star-btn p-1.5 rounded-full hover:bg-slate-50 text-slate-300 transition-colors" onclick="window.toggleStar('${item.id}')" title="Favoritar / Ponto de Atenção">
+                            <svg class="w-5 h-5 ${isStarred ? 'text-amber-400 fill-amber-400' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                        </button>
+                    </div>
+
+                    <div class="pl-10">
+                        <div class="flex justify-between items-start gap-2 mb-2">
+                            <h4 class="font-bold text-sm text-slate-700">${item.produto}</h4>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap ${statusColor}">${item.feedback || 'PENDENTE'}</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-500 bg-slate-50 p-2.5 rounded-lg mb-2">
+                            <p><span class="font-medium text-slate-400">Ped:</span> ${item.pedido}</p>
+                            <p class="text-right"><span class="font-medium text-slate-400">Qtde:</span> ${item.qtde}</p>
+                            <p class="col-span-2 truncate"><span class="font-medium text-slate-400">Desc:</span> ${item.descricao || '-'}</p>
+                            <p class="col-span-2 mt-1 border-t border-slate-200 pt-1"><span class="font-medium text-slate-400">Emissão NF:</span> ${formatDate(item.emissao || item.dataEmissao || item.emissaoNF)}</p>
+                        </div>
+
+                        ${item.observation ? `<p class="text-xs text-slate-600 italic border-l-2 border-slate-300 pl-2 mb-2">"${item.observation}"</p>` : ''}
+                        
+                        <!-- ÁREA DAS RESPOSTAS (Inserida Aqui) -->
+                        ${repliesHtml}
+
+                        <div class="flex items-center justify-end gap-3 mt-3 pt-2 border-t border-slate-50">
+                             <button class="flex items-center gap-1 text-[10px] font-bold uppercase transition-colors ${itemNote ? 'text-yellow-600' : 'text-slate-400 hover:text-slate-600'}" onclick="document.getElementById('note-area-${item.id}').classList.toggle('hidden')">
+                                <svg class="w-4 h-4" fill="${itemNote ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                ${itemNote ? 'Nota Salva' : 'Nota'}
+                             </button>
+
+                             <button class="flex items-center gap-1 text-[10px] font-bold uppercase text-blue-500 hover:text-blue-700 transition-colors open-reply-btn" data-id="${item.id}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                                Responder
+                             </button>
+                        </div>
+
+                        <div id="note-area-${item.id}" class="hidden mt-3 bg-yellow-50 p-2 rounded-lg border border-yellow-100">
+                             <textarea class="w-full text-xs bg-transparent border-none p-0 focus:ring-0 text-yellow-900 placeholder-yellow-400/70" rows="2" placeholder="Nota privada...">${itemNote ? itemNote.text : ''}</textarea>
+                             <div class="flex justify-end mt-1">
+                                <button class="text-[10px] font-bold text-yellow-700 hover:text-yellow-900 save-note-btn" data-id="${item.id}">Salvar Nota</button>
+                             </div>
+                        </div>
+                    </div>
+                `;
+                feedList.appendChild(card);
+            });
+            
+            document.querySelectorAll('.open-reply-btn').forEach(b => b.onclick = (e) => openReplyModal(e.currentTarget.dataset.id));
+            document.querySelectorAll('.save-note-btn').forEach(b => b.onclick = (e) => saveItemNote(e.currentTarget.dataset.id));
+        }
+
+        document.getElementById('feed-search').addEventListener('input', renderFeed);
+        
+        // Listeners para filtro de data
+        filterStartDate.addEventListener('change', renderFeed);
+        filterEndDate.addEventListener('change', renderFeed);
+        clearDateFilter.addEventListener('click', () => {
+            filterStartDate.value = '';
+            filterEndDate.value = '';
+            renderFeed();
+        });
+
+        window.toggleStar = async (sampleId) => {
+            if (!currentSessionId) return;
+            const ref = doc(db, "sessoes", currentSessionId, "configuracoes", "destaquesAmostras");
+            const isStarred = highlightedSamplesCache.includes(sampleId);
+            
+            try {
+                if (isStarred) await updateDoc(ref, { lista: arrayRemove(sampleId) });
+                else await setDoc(ref, { lista: arrayUnion(sampleId) }, { merge: true });
+            } catch(e) { console.error(e); showAlert("Erro ao atualizar favorito."); }
+        };
+
+        // --- ÁREA DE ATENÇÃO ---
+        function renderAttentionArea() {
+            const list = document.getElementById('attention-list');
+            const section = document.getElementById('attention-section');
+            list.innerHTML = '';
+            
+            const starredItems = allSegmentSamples.filter(s => highlightedSamplesCache.includes(s.id));
+            
+            if (starredItems.length > 0) {
+                section.classList.remove('hidden');
+                starredItems.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-white p-3 rounded-xl border-l-4 border-amber-400 shadow-sm flex flex-col justify-between h-full';
+                    div.innerHTML = `
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <p class="text-xs font-bold text-slate-800 line-clamp-1" title="${item.produto}">${item.produto}</p>
+                                <button onclick="window.toggleStar('${item.id}')" class="text-amber-400 hover:text-amber-600"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"></path></svg></button>
+                            </div>
+                            <p class="text-[10px] text-slate-500 mb-1">${item.sellerName}</p>
+                            <p class="text-[10px] text-slate-400 bg-slate-50 p-1 rounded inline-block">Ped: ${item.pedido}</p>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-slate-50 text-[10px] font-bold text-slate-600">
+                             ${item.feedback || 'Pendente'}
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            } else {
+                section.classList.add('hidden');
+            }
+        }
+
+        async function saveItemNote(id) {
+            const area = document.getElementById(`note-area-${id}`);
+            const text = area.querySelector('textarea').value.trim();
+            try {
+                await setDoc(doc(collection(db, "sessoes", currentSessionId, "manager_item_notes"), id), {
+                    text, itemId: id, segment: currentSegmentDataValue, timestamp: serverTimestamp()
+                });
+                area.classList.add('hidden');
+            } catch(e) { showAlert("Erro ao salvar."); }
+        }
+
+        function openReplyModal(id) {
+            const item = allSegmentSamples.find(s => s.id === id);
+            if(!item) return;
+            document.getElementById('reply-modal-product').textContent = item.produto;
+            document.getElementById('reply-modal-seller').textContent = item.sellerName;
+            document.getElementById('reply-modal-observation').textContent = `"${item.observation || ''}"`;
+            
+            const sendBtn = document.getElementById('send-reply-btn');
+            sendBtn.onclick = async () => {
+                const msg = document.getElementById('reply-message-input').value.trim();
+                if(!msg) return;
+                sendBtn.textContent = 'Enviando...';
+                await addDoc(collection(db, "sessoes", currentSessionId, "notificacoesVendedor"), {
+                     managerName: MANAGERS[currentSegmentKey].name,
+                     replyMessage: msg, sellerName: item.sellerName, pedido: item.pedido, produto: item.produto,
+                     timestamp: serverTimestamp(), read: false
+                });
+                document.getElementById('reply-modal').classList.add('hidden');
+                document.getElementById('reply-message-input').value = '';
+                sendBtn.textContent = 'Enviar';
+                showAlert("Resposta enviada!", "Sucesso");
+            };
+            document.getElementById('cancel-reply-btn').onclick = () => document.getElementById('reply-modal').classList.add('hidden');
+            document.getElementById('reply-modal').classList.remove('hidden');
+        }
+
+        function renderKPIs() {
+            const total = allSegmentSamples.length;
+            let p = 0, a = 0, r = 0;
+            allSegmentSamples.forEach(s => {
+                const fb = s.feedback || '';
+                if (!fb) p++;
+                else if (fb.startsWith('A -')) a++;
+                else if (fb.startsWith('R -')) r++;
+                else p++; 
+            });
+            document.getElementById('kpi-total').textContent = total;
+            document.getElementById('kpi-pending').textContent = p;
+            document.getElementById('kpi-approved').textContent = a;
+            document.getElementById('kpi-rejected').textContent = r;
+        }
+        
+        function renderInternalNotes(snap) {
+            const list = document.getElementById('internal-notes-list');
+            list.innerHTML = '';
+            snap.docs.forEach(d => {
+                const n = d.data();
+                const el = document.createElement('div');
+                el.className = 'bg-yellow-100 p-3 rounded text-xs text-yellow-900 relative group';
+                el.innerHTML = `${n.text} <button class="absolute top-1 right-1 text-red-400 opacity-0 group-hover:opacity-100" onclick="deleteInternalNote('${d.id}')">&times;</button>`;
+                list.appendChild(el);
+            });
+        }
+        window.deleteInternalNote = async (id) => deleteDoc(doc(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_'), id));
+        document.getElementById('add-internal-note-btn').onclick = async () => {
+            const val = document.getElementById('new-internal-note-input').value.trim();
+            if(val) {
+                await addDoc(collection(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_')), { text: val, timestamp: serverTimestamp() });
+                document.getElementById('new-internal-note-input').value = '';
+            }
+        };
+
+        // --- Gráficos Funcionais (Chart.js) ---
+        function renderCharts() {
+            const ctxStatus = document.getElementById('status-chart').getContext('2d');
+            const ctxDetails = document.getElementById('details-chart').getContext('2d');
+
+            let pending = 0, resolved = 0, approved = 0, rejected = 0;
+            allSegmentSamples.forEach(s => {
+                const fb = s.feedback || '';
+                if (!fb || PENDING_STATUSES.includes(fb)) pending++;
+                else {
+                    resolved++;
+                    if (fb.startsWith('A -')) approved++;
+                    else if (fb.startsWith('R -')) rejected++;
+                }
+            });
+
+            if (statusChart) statusChart.destroy();
+            if (detailsChart) detailsChart.destroy();
+
+            statusChart = new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pendentes', 'Resolvidos'],
+                    datasets: [{
+                        data: [pending, resolved],
+                        backgroundColor: ['#fcd34d', '#3b82f6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10}, usePointStyle: true } } },
+                    cutout: '70%'
+                }
+            });
+
+            detailsChart = new Chart(ctxDetails, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Aprovados', 'Reprovados'],
+                    datasets: [{
+                        data: [approved, rejected],
+                        backgroundColor: ['#22c55e', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10}, usePointStyle: true } } },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        function renderBreakdown() { 
+            const list = document.getElementById('breakdown-list');
+            list.innerHTML = '';
+            const counts = {};
+            allSegmentSamples.forEach(s => { const k = s.feedback || 'PENDENTE'; counts[k] = (counts[k]||0)+1; });
+            Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([k,v]) => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between text-xs p-2 border rounded hover:bg-slate-50 cursor-pointer';
+                div.innerHTML = `<span>${k}</span><span class="font-bold">${v}</span>`;
+                div.onclick = () => openDetailsModal(k);
+                list.appendChild(div);
+            });
+        }
+
+        // --- Detalhes com Botão Responder ---
+        function openDetailsModal(type) {
+            const list = document.getElementById('feedback-samples-list');
+            list.innerHTML = '';
+            document.getElementById('feedback-samples-title').textContent = type;
+            
+            // Renderiza tabela
+            allSegmentSamples.filter(s=>(s.feedback||'PENDENTE')===type).forEach(s => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-3">
+                        <button class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded text-[10px] font-bold uppercase transition-colors reply-btn-table" data-id="${s.id}">Responder</button>
+                    </td>
+                    <td class="p-3 font-bold">${s.sellerName}</td>
+                    <td class="p-3">${s.codCliente||'-'}</td>
+                    <td class="p-3">${s.produto}</td>
+                    <td class="p-3 truncate max-w-[150px]">${s.descricao||'-'}</td>
+                    <td class="p-3">${s.pedido}</td>
+                    <td class="p-3">${s.feedback||'-'}</td>
+                `;
+                list.appendChild(tr);
+            });
+
+            // Bind clicks na tabela
+            document.querySelectorAll('.reply-btn-table').forEach(btn => {
+                btn.onclick = (e) => {
+                    document.getElementById('feedback-samples-modal').classList.add('hidden');
+                    openReplyModal(e.target.dataset.id);
+                };
+            });
+
+            document.getElementById('feedback-samples-modal').classList.remove('hidden');
+        }
+        
+        document.getElementById('close-feedback-samples-btn').onclick = () => document.getElementById('feedback-samples-modal').classList.add('hidden');
+        document.getElementById('logout-btn').onclick = () => { localStorage.removeItem('managerSegmentKey'); location.reload(); };
+        
+        function formatDate(ts) { if(!ts) return '-'; const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString('pt-BR'); }
 
     </script>
 </body>
