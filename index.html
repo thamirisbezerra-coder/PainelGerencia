@@ -432,12 +432,38 @@
         }
         document.getElementById('custom-alert-ok-btn').onclick = () => document.getElementById('custom-alert').classList.add('hidden');
 
+        // FUNÇÃO AJUSTADA PARA EVITAR "INVALID DATE"
         function parseDateBR(dateStr) {
             if (!dateStr) return null;
             if (typeof dateStr === 'object' && dateStr.toDate) return dateStr.toDate();
-            const parts = dateStr.split('/');
-            if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
-            return new Date(dateStr);
+            
+            // Se for string
+            if (typeof dateStr === 'string') {
+                if (dateStr.includes('/')) {
+                    const parts = dateStr.split('/');
+                    if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+                const d = new Date(dateStr);
+                if(!isNaN(d.getTime())) return d;
+            }
+            return null;
+        }
+
+        // FUNÇÃO DE EXIBIÇÃO AJUSTADA
+        function formatDate(value) {
+            if (!value) return '-';
+            
+            // Timestamp Firestore
+            if (typeof value === 'object' && value.toDate) return value.toDate().toLocaleDateString('pt-BR');
+            
+            // Se já for string com barras (ex: 25/12/2023), assume que está pronta e retorna ela mesma
+            if (typeof value === 'string' && value.includes('/')) return value;
+            
+            // Tenta criar data (para ISO ou timestamp numérico)
+            const d = new Date(value);
+            if (!isNaN(d.getTime())) return d.toLocaleDateString('pt-BR');
+            
+            return value; // Retorna o valor original se não conseguir converter
         }
 
         function renderLoginSegments() {
@@ -732,10 +758,14 @@
                             <span class="px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap ${statusColor}">${item.feedback || 'PENDENTE'}</span>
                         </div>
                         <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-500 bg-slate-50 p-2.5 rounded-lg mb-2">
+                            <p class="col-span-2 font-bold text-slate-700 truncate" title="${item.razaoSocial || item.cliente || 'Cliente não informado'}">
+                                ${item.razaoSocial || item.cliente || 'Cliente não informado'}
+                            </p>
                             <p><span class="font-medium text-slate-400">Ped:</span> ${item.pedido}</p>
+                            <p class="text-right"><span class="font-medium text-slate-400">NF:</span> ${item.notaFiscal || '-'}</p>
+                            <p><span class="font-medium text-slate-400">Emissão:</span> ${formatDate(item.emissao || item.dataEmissao || item.emissaoNF)}</p>
                             <p class="text-right"><span class="font-medium text-slate-400">Qtde:</span> ${item.qtde}</p>
-                            <p class="col-span-2 truncate"><span class="font-medium text-slate-400">Desc:</span> ${item.descricao || '-'}</p>
-                            <p class="col-span-2 mt-1 border-t border-slate-200 pt-1"><span class="font-medium text-slate-400">Emissão NF:</span> ${formatDate(item.emissao || item.dataEmissao || item.emissaoNF)}</p>
+                            <p class="col-span-2 truncate border-t border-slate-200 mt-1 pt-1"><span class="font-medium text-slate-400">Desc:</span> ${item.descricao || '-'}</p>
                         </div>
                         ${item.observation ? `<p class="text-xs text-slate-600 italic border-l-2 border-slate-300 pl-2 mb-2">"${item.observation}"</p>` : ''}
                         ${repliesHtml}
@@ -783,6 +813,7 @@
 
                 return {
                     "Vendedor": item.sellerName,
+                    "Cliente (Razão Social)": item.razaoSocial || item.cliente || '-',
                     "Cliente (Código)": item.codCliente || '-',
                     "Produto": item.produto,
                     "Descrição": item.descricao || '-',
@@ -956,12 +987,9 @@
         document.getElementById('close-feedback-samples-btn').onclick = () => document.getElementById('feedback-samples-modal').classList.add('hidden');
         document.getElementById('logout-btn').onclick = () => { localStorage.removeItem('managerSegmentKey'); location.reload(); };
         
-        function formatDate(ts) { if(!ts) return '-'; const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString('pt-BR'); }
-
     </script>
 </body>
 </html>
-
 
 
 
