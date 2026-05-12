@@ -11,7 +11,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <!-- Biblioteca Excel (SheetJS) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -230,7 +229,6 @@
                                 <button id="clear-date-filter" class="text-xs text-red-400 hover:text-red-600 px-2 font-medium" title="Limpar Datas">✕</button>
                             </div>
                             
-                            <!-- Botão Exportar Excel -->
                             <button onclick="exportReport()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-sm text-xs font-bold transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                 Exportar Excel
@@ -261,7 +259,7 @@
                         <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Gráfico</span>
                     </div>
                     <div style="height: 180px;" class="z-10 relative"><canvas id="details-chart"></canvas></div>
-                    <svg class="watermark-icon text-slate-300" style="width: 120px; height: 120px; opacity: 0.1;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    <svg class="watermark-icon text-slate-300" style="width: 120px; height: 120px; opacity: 0.1;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                  </div>
                  <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col">
                     <h3 class="font-bold text-sm text-slate-700 mb-3">Resumo por Tipo</h3>
@@ -335,7 +333,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, getDoc, getDocs, updateDoc, setDoc, query, where, Timestamp, runTransaction, addDoc, orderBy, deleteDoc, deleteField, serverTimestamp, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, getDoc, getDocs, updateDoc, setDoc, query, where, serverTimestamp, arrayUnion, arrayRemove, addDoc, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -344,8 +342,7 @@
             projectId: "feedback-vendedores",
             storageBucket: "feedback-vendedores.firebasestorage.app",
             messagingSenderId: "650880422749",
-            appId: "1:650880422749:web:54a258964a6ca8db180eb4",
-            measurementId: "G-TG588KDK0C"
+            appId: "1:650880422749:web:54a258964a6ca8db180eb4"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -353,14 +350,14 @@
         const auth = getAuth(app);
 
         const MANAGERS = {
-            'CÁRNEOS': { name: 'LUIS ADRIANO', pass: 'carneospass123', dataValue: 'CARNEOS' },
-            'LACTEOS': { name: 'VITOR MACHADO', pass: 'lacteospass456', dataValue: 'LACTEOS' },
-            'NUTRIÇÃO ESPORTIVA': { name: 'JOÃO SCHITTKOWSKI', pass: 'esportivapass123', dataValue: 'NUTRIÇÃO ESPORTIVA' },
-            'FARMA': { name: 'VANESSA BADARÓ', pass: 'farmapass123', dataValue: 'FARMA' },
-            'NUTRICAO ANIMAL': { name: 'DANILO TREMOLCOLDI', pass: 'nutricaopass303', dataValue: 'NUTRICAO ANIMAL' },
-            'PANIFICACAO': { name: 'MARISTELA', pass: 'panificacaopass101', dataValue: 'PANIFICACAO' },
-            'SMB': { name: 'GUSTAVO BONFIM', pass: 'smbpass202', dataValue: 'SNACKS, MOLHOS E BEBIDAS' },
-            'SORVETES': { name: 'VINICIUS MADALENO', pass: 'sorvetespass789', dataValue: 'SORVETES' },
+            'CÁRNEOS': { name: 'LUIS ADRIANO', pass: 'Drm#Carneos24', dataValue: 'CARNEOS' },
+            'LACTEOS': { name: 'VITOR MACHADO', pass: 'Drm#Lacteos24', dataValue: 'LACTEOS' },
+            'NUTRIÇÃO ESPORTIVA': { name: 'JOÃO SCHITTKOWSKI', pass: 'Drm#Esp123', dataValue: 'NUTRIÇÃO ESPORTIVA' },
+            'FARMA': { name: 'VANESSA BADARÓ', pass: 'Drm#Farma99', dataValue: 'FARMA' },
+            'NUTRICAO ANIMAL': { name: 'DANILO TREMOLCOLDI', pass: 'Drm#Nutri33', dataValue: 'NUTRICAO ANIMAL' },
+            'PANIFICACAO': { name: 'MARISTELA', pass: 'Drm#Pani10', dataValue: 'PANIFICACAO' },
+            'SMB': { name: 'GUSTAVO BONFIM', pass: 'Drm#SMB20', dataValue: 'SNACKS, MOLHOS E BEBIDAS' },
+            'SORVETES': { name: 'VINICIUS MADALENO', pass: 'Drm#Sorv77', dataValue: 'SORVETES' },
             'ADMIN': { name: 'Admin', pass: 'admin123', dataValue: 'ADMIN' }
         };
 
@@ -391,28 +388,20 @@
         let currentSessionId = null;
         let selectedSellerFilter = null;
         let allSegmentSamples = []; 
-        let currentFilteredSamples = []; // Para exportação
+        let currentFilteredSamples = []; 
         let highlightedSamplesCache = [];
         let managerReplies = [];
         let itemNotesMap = {};
         let sellerSegmentsCache = {}; 
         let statusChart = null;
         let detailsChart = null;
+        let dashboardUnsubs = []; // Armazena os listeners da sessão atual
         
         const AVATAR_COLORS = [
             'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-green-500', 'bg-emerald-500',
             'bg-teal-500', 'bg-cyan-500', 'bg-sky-500', 'bg-blue-500', 'bg-indigo-500',
             'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500', 'bg-rose-500'
         ];
-
-        (async () => {
-            try {
-                await signInAnonymously(auth);
-                renderLoginSegments();
-                const savedKey = localStorage.getItem('managerSegmentKey');
-                if (savedKey && MANAGERS[savedKey]) autoSelectSegment(savedKey);
-            } catch (e) { console.error(e); }
-        })();
 
         const normalizeText = (text = '') => text ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim().replace(/\s+/g, ' ') : '';
         const getInitials = (name) => {
@@ -432,12 +421,9 @@
         }
         document.getElementById('custom-alert-ok-btn').onclick = () => document.getElementById('custom-alert').classList.add('hidden');
 
-        // FUNÇÃO AJUSTADA PARA EVITAR "INVALID DATE"
         function parseDateBR(dateStr) {
             if (!dateStr) return null;
             if (typeof dateStr === 'object' && dateStr.toDate) return dateStr.toDate();
-            
-            // Se for string
             if (typeof dateStr === 'string') {
                 if (dateStr.includes('/')) {
                     const parts = dateStr.split('/');
@@ -449,21 +435,13 @@
             return null;
         }
 
-        // FUNÇÃO DE EXIBIÇÃO AJUSTADA
         function formatDate(value) {
             if (!value) return '-';
-            
-            // Timestamp Firestore
             if (typeof value === 'object' && value.toDate) return value.toDate().toLocaleDateString('pt-BR');
-            
-            // Se já for string com barras (ex: 25/12/2023), assume que está pronta e retorna ela mesma
             if (typeof value === 'string' && value.includes('/')) return value;
-            
-            // Tenta criar data (para ISO ou timestamp numérico)
             const d = new Date(value);
             if (!isNaN(d.getTime())) return d.toLocaleDateString('pt-BR');
-            
-            return value; // Retorna o valor original se não conseguir converter
+            return value; 
         }
 
         function renderLoginSegments() {
@@ -506,19 +484,22 @@
                     startDashboard();
                 } else {
                     loginError.textContent = "Sem sessão ativa.";
-                    loginBtn.textContent = "Entrar";
                 }
             } catch (e) { console.error(e); }
+            finally { loginBtn.textContent = "Entrar"; }
         });
 
         async function loadSellerSegmentsCache() {
             try {
                 const snap = await getDocs(collection(db, "vendedorConfig"));
                 sellerSegmentsCache = {};
-                snap.forEach(d => {
-                    sellerSegmentsCache[d.id] = d.data().segmento;
-                });
+                snap.forEach(d => { sellerSegmentsCache[d.id] = d.data().segmento; });
             } catch (e) { console.error("Erro ao carregar segmentos:", e); }
+        }
+
+        function clearDashboardListeners() {
+            dashboardUnsubs.forEach(unsub => unsub());
+            dashboardUnsubs = [];
         }
 
         function startDashboard() {
@@ -529,27 +510,29 @@
             document.getElementById('header-segment-name').textContent = `${MANAGERS[currentSegmentKey].name}`;
             document.getElementById('session-id-display').textContent = currentSessionId.split('_')[1] || 'Sessão';
 
-            onSnapshot(collection(db, "sessoes", currentSessionId, "vendedores"), processSnapshot);
+            clearDashboardListeners();
+
+            dashboardUnsubs.push(onSnapshot(collection(db, "sessoes", currentSessionId, "vendedores"), processSnapshot));
             
-            onSnapshot(doc(db, "sessoes", currentSessionId, "configuracoes", "destaquesAmostras"), (docSnap) => {
+            dashboardUnsubs.push(onSnapshot(doc(db, "sessoes", currentSessionId, "configuracoes", "destaquesAmostras"), (docSnap) => {
                 highlightedSamplesCache = docSnap.exists() ? (docSnap.data().lista || []) : [];
                 renderFeed(); 
                 renderAttentionArea();
-            });
+            }));
 
-            onSnapshot(query(collection(db, "sessoes", currentSessionId, "notificacoesVendedor")), (snap) => {
+            dashboardUnsubs.push(onSnapshot(query(collection(db, "sessoes", currentSessionId, "notificacoesVendedor")), (snap) => {
                 managerReplies = snap.docs.map(d => ({...d.data(), id: d.id}));
                 managerReplies.sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
                 renderFeed();
-            });
+            }));
             
-            onSnapshot(query(collection(db, "sessoes", currentSessionId, "manager_item_notes"), where("segment", "==", currentSegmentDataValue)), (snap) => {
+            dashboardUnsubs.push(onSnapshot(query(collection(db, "sessoes", currentSessionId, "manager_item_notes"), where("segment", "==", currentSegmentDataValue)), (snap) => {
                 itemNotesMap = {};
                 snap.docs.forEach(d => itemNotesMap[d.id] = d.data());
                 renderFeed();
-            });
+            }));
 
-            onSnapshot(query(collection(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_')), orderBy("timestamp", "desc")), renderInternalNotes);
+            dashboardUnsubs.push(onSnapshot(query(collection(db, "sessoes", currentSessionId, "manager_notes_" + currentSegmentDataValue.replace(/\s+/g, '_')), orderBy("timestamp", "desc")), renderInternalNotes));
         }
 
         function processSnapshot(snapshot) {
@@ -563,7 +546,6 @@
 
                 let sellerSegment = sellerSegmentsCache[sellerId];
                 if (SPECIAL_MAPPING[sName]) sellerSegment = SPECIAL_MAPPING[sName];
-                
                 if (!sellerSegment && currentSegmentKey !== 'ADMIN') {
                      if (sName.includes(currentSegmentDataValue)) sellerSegment = currentSegmentDataValue;
                 }
@@ -584,11 +566,7 @@
                 if (samples.length > 0) {
                      allSegmentSamples.push(...samples);
                      sellersData[data.originalName] = {
-                         id: sellerId,
-                         name: data.originalName,
-                         total: samples.length,
-                         pending: pendingCount,
-                         finished: samples.length - pendingCount
+                         id: sellerId, name: data.originalName, total: samples.length, pending: pendingCount, finished: samples.length - pendingCount
                      };
                 }
             });
@@ -606,7 +584,7 @@
             document.getElementById('seller-count-badge').textContent = sortedSellers.length;
 
             if (sortedSellers.length === 0) {
-                sellersList.innerHTML = '<div class="text-center p-4 text-slate-400 text-xs">Nenhum vendedor encontrado para este segmento.</div>';
+                sellersList.innerHTML = '<div class="text-center p-4 text-slate-400 text-xs">Nenhum vendedor encontrado.</div>';
                 return;
             }
 
@@ -673,7 +651,6 @@
                 headerAvatar.textContent = "ALL";
             }
 
-            // Filtragem Principal
             let filtered = allSegmentSamples.filter(s => {
                 const matchesSearch = String(s.produto).toLowerCase().includes(searchTerm) || 
                                       String(s.sellerName).toLowerCase().includes(searchTerm) ||
@@ -682,19 +659,16 @@
                 
                 let matchesDate = true;
                 if (start || end) {
-                    const dateStr = s.emissao || s.dataEmissao || s.emissaoNF;
-                    const dateObj = parseDateBR(dateStr);
+                    const dateObj = parseDateBR(s.emissao || s.dataEmissao || s.emissaoNF);
                     if (dateObj) {
                         if (start && dateObj < start) matchesDate = false;
                         if (end && dateObj > end) matchesDate = false;
-                    } else {
-                        matchesDate = false; 
-                    }
+                    } else { matchesDate = false; }
                 }
                 return matchesSearch && matchesSeller && matchesDate;
             });
             
-            currentFilteredSamples = filtered; // Salva para exportação
+            currentFilteredSamples = filtered; 
 
             filtered.sort((a, b) => {
                 const aStar = highlightedSamplesCache.includes(a.id) ? 1 : 0;
@@ -758,9 +732,7 @@
                             <span class="px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap ${statusColor}">${item.feedback || 'PENDENTE'}</span>
                         </div>
                         <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-500 bg-slate-50 p-2.5 rounded-lg mb-2">
-                            <p class="col-span-2 font-bold text-slate-700 truncate" title="${item.razaoSocial || item.cliente || 'Cliente não informado'}">
-                                ${item.razaoSocial || item.cliente || 'Cliente não informado'}
-                            </p>
+                            <p class="col-span-2 font-bold text-slate-700 truncate" title="${item.razaoSocial || item.cliente || 'Cliente não informado'}">${item.razaoSocial || item.cliente || 'Cliente não informado'}</p>
                             <p><span class="font-medium text-slate-400">Ped:</span> ${item.pedido}</p>
                             <p class="text-right"><span class="font-medium text-slate-400">NF:</span> ${item.notaFiscal || '-'}</p>
                             <p><span class="font-medium text-slate-400">Emissão:</span> ${formatDate(item.emissao || item.dataEmissao || item.emissaoNF)}</p>
@@ -799,49 +771,25 @@
         filterEndDate.addEventListener('change', renderFeed);
         clearDateFilter.addEventListener('click', () => { filterStartDate.value = ''; filterEndDate.value = ''; renderFeed(); });
 
-        // --- LÓGICA DE EXPORTAÇÃO EXCEL ---
         window.exportReport = () => {
-            if (!currentFilteredSamples || currentFilteredSamples.length === 0) {
-                showAlert("Não há dados na tela para exportar.");
-                return;
-            }
+            if (!currentFilteredSamples || currentFilteredSamples.length === 0) return showAlert("Não há dados na tela para exportar.");
 
             const data = currentFilteredSamples.map(item => {
-                // Encontrar resposta do gerente
                 const reply = managerReplies.find(r => r.pedido == item.pedido && r.produto == item.produto);
                 const itemNote = itemNotesMap[item.id];
-
                 return {
-                    "Vendedor": item.sellerName,
-                    "Cliente (Razão Social)": item.razaoSocial || item.cliente || '-',
-                    "Cliente (Código)": item.codCliente || '-',
-                    "Produto": item.produto,
-                    "Descrição": item.descricao || '-',
-                    "Pedido": item.pedido,
-                    "Nota Fiscal": item.notaFiscal || '-',
-                    "Emissão NF": formatDate(item.emissao || item.dataEmissao || item.emissaoNF),
-                    "Quantidade": item.qtde,
-                    "Status/Feedback": item.feedback || 'PENDENTE',
-                    "Observação Vendedor": item.observation || '',
-                    "Resposta Gerente": reply ? `${reply.replyMessage} (em ${formatDate(reply.timestamp)})` : '',
-                    "Nota Interna (Privada)": itemNote ? itemNote.text : ''
+                    "Vendedor": item.sellerName, "Cliente (Razão Social)": item.razaoSocial || item.cliente || '-', "Cliente (Código)": item.codCliente || '-',
+                    "Produto": item.produto, "Descrição": item.descricao || '-', "Pedido": item.pedido, "Nota Fiscal": item.notaFiscal || '-',
+                    "Emissão NF": formatDate(item.emissao || item.dataEmissao || item.emissaoNF), "Quantidade": item.qtde,
+                    "Status/Feedback": item.feedback || 'PENDENTE', "Observação Vendedor": item.observation || '',
+                    "Resposta Gerente": reply ? `${reply.replyMessage} (em ${formatDate(reply.timestamp)})` : '', "Nota Interna (Privada)": itemNote ? itemNote.text : ''
                 };
             });
 
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.json_to_sheet(data);
-            
-            // Auto-width simples
-            const wscols = Object.keys(data[0]).map(k => ({wch: 20}));
-            ws['!cols'] = wscols;
-
+            const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data);
+            ws['!cols'] = Object.keys(data[0]).map(k => ({wch: 20}));
             XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
-            
-            // Nome do arquivo com data
-            const dateStr = new Date().toISOString().split('T')[0];
-            const fileName = `Relatorio_Amostras_${dateStr}.xlsx`;
-            
-            XLSX.writeFile(wb, fileName);
+            XLSX.writeFile(wb, `Relatorio_Amostras_${new Date().toISOString().split('T')[0]}.xlsx`);
         };
 
         window.toggleStar = async (sampleId) => {
@@ -986,6 +934,29 @@
         
         document.getElementById('close-feedback-samples-btn').onclick = () => document.getElementById('feedback-samples-modal').classList.add('hidden');
         document.getElementById('logout-btn').onclick = () => { localStorage.removeItem('managerSegmentKey'); location.reload(); };
+
+        // --- GLOBAL LISTENER DE SESSÃO ---
+        (async () => {
+            try {
+                await signInAnonymously(auth);
+                renderLoginSegments();
+                const savedKey = localStorage.getItem('managerSegmentKey');
+                if (savedKey && MANAGERS[savedKey]) autoSelectSegment(savedKey);
+
+                onSnapshot(doc(db, "configuracoes", "sessaoAtiva"), async (configSnap) => {
+                    if (configSnap.exists() && configSnap.data().current) {
+                        const newSession = configSnap.data().current;
+                        
+                        if (currentSessionId && currentSessionId !== newSession) {
+                            currentSessionId = newSession;
+                            await loadSellerSegmentsCache();
+                            showAlert("Uma nova remessa foi iniciada. Atualizando dados da tela...", "Sessão Atualizada");
+                            startDashboard(); 
+                        }
+                    }
+                });
+            } catch (e) { console.error(e); }
+        })();
         
     </script>
 </body>
