@@ -83,7 +83,7 @@
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                 </div>
                 <h1 class="text-2xl font-bold text-slate-800">Acesso Gerencial</h1>
-                <p class="text-sm text-slate-500 mt-2">Acompanhe os resultados da sua equipe</p>
+                <p class="text-sm text-slate-500 mt-2">Acompanhe os resultados da sua equipa</p>
             </div>
             
             <div class="space-y-5">
@@ -103,6 +103,10 @@
                     <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Senha de Acesso</label>
                     <input type="password" id="manager-password-input" class="w-full border border-slate-200 bg-slate-50 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-colors" placeholder="Digite sua senha">
                 </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">ID da Sessão (Opcional)</label>
+                    <input type="text" id="manager-session-input" class="w-full border border-slate-200 bg-slate-50 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-colors" placeholder="Deixe em branco para ligação global">
+                </div>
                 
                 <button id="login-btn" class="w-full bg-blue-600 text-white font-semibold py-3.5 rounded-xl shadow-md hover:bg-blue-700 transition-colors mt-4 flex items-center justify-center gap-2">
                     Entrar no Painel
@@ -116,7 +120,7 @@
     <!-- TELA DE LOADING -->
     <div id="loading-state" class="hidden min-h-screen flex flex-col items-center justify-center p-4 text-center">
         <svg class="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <p id="loading-message" class="text-slate-600 font-medium">Conectando ao sistema...</p>
+        <p id="loading-message" class="text-slate-600 font-medium">A conectar ao sistema...</p>
     </div>
 
     <!-- DASHBOARD PRINCIPAL -->
@@ -149,6 +153,9 @@
         </header>
 
         <div class="container mx-auto px-4 mt-8">
+            <div class="mb-4">
+                 <p id="session-id-text" class="text-xs font-medium text-slate-500">A procurar sessão...</p>
+            </div>
             
             <!-- Cards de Resumo -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -173,7 +180,7 @@
             <!-- Gráficos -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
                 <div class="modern-card p-6">
-                    <h3 class="font-bold text-sm uppercase tracking-wider text-slate-600 mb-6 text-center">Status Geral da Equipe</h3>
+                    <h3 class="font-bold text-sm uppercase tracking-wider text-slate-600 mb-6 text-center">Status Geral da Equipa</h3>
                     <div style="height: 250px;" class="relative w-full"><canvas id="status-chart"></canvas></div>
                 </div>
                 <div class="modern-card p-6">
@@ -288,6 +295,7 @@
         // Variáveis de Estado
         let currentSessionId = null;
         let currentSegment = null;
+        let targetSessionId = null; // Para ligar a uma sessão específica
         let allSegmentSamples = [];
         let allowedSellers = [];
         let chartStatusInstance = null;
@@ -304,6 +312,7 @@
         const loginBtn = document.getElementById('login-btn');
         const segmentInput = document.getElementById('manager-segment-input');
         const passwordInput = document.getElementById('manager-password-input');
+        const manualSessionInput = document.getElementById('manager-session-input'); // NOVO
         const errorMsg = document.getElementById('access-error');
         const headerSegmentName = document.getElementById('header-segment-name');
         const logoutBtn = document.getElementById('logout-btn');
@@ -367,14 +376,28 @@
             }, 6000);
         }
 
+        function cancelLoading(message) {
+            loadingState.classList.add('hidden');
+            loadingState.classList.remove('flex');
+            accessView.classList.remove('hidden');
+            if(message) showAlert(message);
+        }
+
         // --- LOGIN & INICIALIZAÇÃO ---
-        async function attemptLogin(segment, pass) {
+        async function attemptLogin(segment, pass, manualSession = null) {
             if (!segment || !pass) throw new Error("Preencha segmento e senha.");
             if (PASSWORDS[segment] !== pass) throw new Error("Senha incorreta.");
 
             currentSegment = segment;
+            targetSessionId = manualSession || null;
+
             localStorage.setItem('managerSegmentV2', segment);
             localStorage.setItem('managerPassV2', pass);
+            if(targetSessionId) {
+                localStorage.setItem('managerSessionV2', targetSessionId);
+            } else {
+                localStorage.removeItem('managerSessionV2');
+            }
 
             accessView.classList.add('hidden');
             loadingState.classList.remove('hidden');
@@ -382,13 +405,18 @@
             
             headerSegmentName.textContent = `Área: ${segment}`;
             
-            listenForActiveSession();
+            if(targetSessionId) {
+                connectToSession(targetSessionId);
+            } else {
+                listenForActiveSession();
+            }
         }
 
         loginBtn.addEventListener('click', async () => {
             try {
                 errorMsg.textContent = '';
-                await attemptLogin(segmentInput.value, passwordInput.value);
+                const manualId = manualSessionInput.value.trim();
+                await attemptLogin(segmentInput.value, passwordInput.value, manualId);
             } catch(e) {
                 errorMsg.textContent = e.message;
             }
@@ -397,6 +425,7 @@
         logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('managerSegmentV2');
             localStorage.removeItem('managerPassV2');
+            localStorage.removeItem('managerSessionV2');
             window.location.reload();
         });
 
@@ -406,16 +435,23 @@
             onSnapshot(activeSessionRef, (docSnap) => {
                 const activeId = docSnap.exists() ? docSnap.data().current : null;
                 if (!activeId) {
-                    showAlert("Nenhuma sessão ativa iniciada pelo Administrador.");
+                    cancelLoading("Nenhuma sessão ativa iniciada pelo Administrador. Se desejar, digite o ID manualmente na tela inicial.");
                     return;
                 }
                 
                 if (activeId !== currentSessionId) {
-                    currentSessionId = activeId;
-                    document.getElementById('session-id-text').innerHTML = `<span class="opacity-70">Sessão:</span> <span class="font-bold text-slate-700">${activeId}</span>`;
-                    loadManagerData();
+                    connectToSession(activeId);
                 }
+            }, (error) => {
+                console.error("Erro ao procurar sessaoAtiva:", error);
+                cancelLoading("Falha de conexão com a base de dados.");
             });
+        }
+
+        function connectToSession(sessionId) {
+            currentSessionId = sessionId;
+            document.getElementById('session-id-text').innerHTML = `<span class="opacity-70">Sessão:</span> <span class="font-bold text-slate-700">${sessionId}</span>`;
+            loadManagerData();
         }
 
         async function loadManagerData() {
@@ -425,7 +461,7 @@
                 allowedSellers = [];
                 configSnap.forEach(doc => {
                     if(doc.data().segmento === currentSegment) {
-                        allowedSellers.push(doc.id); // doc.id is sanitized seller name
+                        allowedSellers.push(doc.id); 
                     }
                 });
 
@@ -437,7 +473,7 @@
                     return;
                 }
 
-                // 2. Ouvir dados das amostras na Sessão Ativa
+                // 2. Ouvir dados das amostras na Sessão
                 let isInitialLoad = true;
                 onSnapshot(collection(db, "sessoes", currentSessionId, "vendedores"), (snapshot) => {
                     const previousSamples = isInitialLoad ? [] : [...allSegmentSamples];
@@ -475,14 +511,16 @@
                         dashboardView.classList.remove('hidden');
                         isInitialLoad = false;
                         
-                        // Iniciar os listeners de resposta depois dos dados iniciais
                         listenForReplies();
                     }
+                }, (error) => {
+                    console.error("Erro ao carregar vendedores:", error);
+                    cancelLoading("A sessão não foi encontrada ou ocorreu um erro de conexão. Tente outro ID ou aguarde o Gestor.");
                 });
 
             } catch (e) {
                 console.error("Erro a carregar dados do gerente:", e);
-                showAlert("Falha ao carregar dados. Tente atualizar a página.");
+                cancelLoading("Falha ao carregar as configurações do sistema. Tente novamente.");
             }
         }
         
@@ -502,10 +540,9 @@
                     snap.docChanges().forEach(change => {
                         if(change.type === 'added') {
                             const data = change.doc.data();
-                            // Se o vendedor responder e for de um vendedor que pertence ao nosso segmento
                             const sanitizedName = sanitizeForFirebaseId(data.sellerName);
                             if(allowedSellers.includes(sanitizedName)) {
-                                showToast('Nova Resposta da Equipe', `${data.sellerName} respondeu sobre o produto ${data.produto}: "${data.replyMessage}"`, 'blue');
+                                showToast('Nova Resposta da Equipa', `${data.sellerName} respondeu sobre o produto ${data.produto}: "${data.replyMessage}"`, 'blue');
                             }
                         }
                     });
@@ -799,9 +836,11 @@
         async function checkAutoLogin() {
             const savedSeg = localStorage.getItem('managerSegmentV2');
             const savedPass = localStorage.getItem('managerPassV2');
+            const savedSession = localStorage.getItem('managerSessionV2');
+            
             if(savedSeg && savedPass) {
                 try {
-                    await attemptLogin(savedSeg, savedPass);
+                    await attemptLogin(savedSeg, savedPass, savedSession);
                 } catch(e) {
                     // Fail silently
                 }
